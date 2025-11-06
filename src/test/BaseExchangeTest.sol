@@ -8,7 +8,6 @@ import { ERC1271Mock } from "./dev/mocks/ERC1271Mock.sol";
 
 import { Deployer } from "./dev/util/Deployer.sol";
 
-import { IERC20 } from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { IERC1155 } from "lib/openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
 
 import { CTFExchange } from "src/exchange/CTFExchange.sol";
@@ -84,7 +83,7 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IRegistryEE, IPausabl
     }
 
     function _getPositionId(uint256 indexSet) internal view returns (uint256) {
-        return ctf.getPositionId(IERC20(address(usdc)), ctf.getCollectionId(bytes32(0), conditionId, indexSet));
+        return ctf.getPositionId(address(usdc), ctf.getCollectionId(bytes32(0), conditionId, indexSet));
     }
 
     function _createAndSignOrderWithFee(
@@ -166,7 +165,7 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IRegistryEE, IPausabl
         IERC1155(address(ctf)).setApprovalForAll(spender, true);
 
         uint256 splitAmount = amount / 2;
-        IConditionalTokens(ctf).splitPosition(IERC20(address(usdc)), bytes32(0), conditionId, partition, splitAmount);
+        IConditionalTokens(ctf).splitPosition(address(usdc), bytes32(0), conditionId, partition, splitAmount);
         vm.stopPrank();
     }
 
