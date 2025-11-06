@@ -1,0 +1,7 @@
+{
+  "rules": {
+    "private-vars-leading-underscore": "off",
+    "const-name-snakecase": "off",
+    "func-name-mixedcase": "off"
+  }
+}

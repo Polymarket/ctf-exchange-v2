@@ -21,7 +21,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @notice Gets the status of an order
     /// @param orderHash    - The hash of the order
     function getOrderStatus(bytes32 orderHash) public view returns (OrderStatus memory) {
-        return orderStatus[ orderHash];
+        return orderStatus[orderHash];
     }
 
     /// @notice Validates an order
@@ -44,7 +44,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         uint256 length = orders.length;
         uint256 i = 0;
         for (; i < length;) {
-            _cancelOrder(orders[ i]);
+            _cancelOrder(orders[i]);
             unchecked {
                 ++i;
             }
@@ -163,13 +163,9 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         uint256 refund = _getBalance(makerAssetId);
         if (refund > 0) _transfer(address(this), takerOrder.maker, makerAssetId, refund);
 
-        emit OrderFilled(
-            orderHash, takerOrder.maker, address(this), makerAssetId, takerAssetId, making, taking, fee
-        );
+        emit OrderFilled(orderHash, takerOrder.maker, address(this), makerAssetId, takerAssetId, making, taking, fee);
 
         emit OrdersMatched(orderHash, takerOrder.maker, makerAssetId, takerAssetId, making, taking);
-
-        
     }
 
     function _fillMakerOrders(Order memory takerOrder, Order[] memory makerOrders, uint256[] memory makerFillAmounts)
@@ -208,9 +204,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
 
         _fillFacingExchange(making, taking, makerOrder.maker, makerAssetId, takerAssetId, matchType, fee);
 
-        emit OrderFilled(
-            orderHash, makerOrder.maker, takerOrder.maker, makerAssetId, takerAssetId, making, taking, fee
-        );
+        emit OrderFilled(orderHash, makerOrder.maker, takerOrder.maker, makerAssetId, takerAssetId, making, taking, fee);
     }
 
     /// @notice Performs common order computations and validation

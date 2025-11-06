@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { BaseExchangeTest } from "exchange/test/BaseExchangeTest.sol";
-import { Order, Side, MatchType, OrderStatus, SignatureType } from "exchange/libraries/OrderStructs.sol";
+import { BaseExchangeTest } from "./BaseExchangeTest.sol";
+import { Order, Side, MatchType, OrderStatus, SignatureType } from "src/exchange/libraries/OrderStructs.sol";
 
 contract CTFExchangeTest is BaseExchangeTest {
     function testSetup() public {

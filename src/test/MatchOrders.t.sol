@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { BaseExchangeTest } from "exchange/test/BaseExchangeTest.sol";
+import { BaseExchangeTest } from "./BaseExchangeTest.sol";
 
-import { Order, Side } from "exchange/libraries/OrderStructs.sol";
+import { Order, Side } from "src/exchange/libraries/OrderStructs.sol";
 
 contract MatchOrdersTest is BaseExchangeTest {
     function setUp() public override {
@@ -18,12 +18,12 @@ contract MatchOrdersTest is BaseExchangeTest {
         Order memory sellA = _createAndSignOrder(carlaPK, yes, 50_000_000, 25_000_000, Side.SELL);
         Order memory sellB = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
         Order[] memory makerOrders = new Order[](2);
-        makerOrders[ 0] = sellA;
-        makerOrders[ 1] = sellB;
+        makerOrders[0] = sellA;
+        makerOrders[1] = sellB;
 
         uint256[] memory fillAmounts = new uint256[](2);
-        fillAmounts[ 0] = 50_000_000;
-        fillAmounts[ 1] = 70_000_000;
+        fillAmounts[0] = 50_000_000;
+        fillAmounts[1] = 70_000_000;
 
         checkpointCollateral(carla);
         checkpointCTF(bob, yes);
@@ -147,9 +147,7 @@ contract MatchOrdersTest is BaseExchangeTest {
         assertFalse(exchange.getOrderStatus(exchange.hashOrder(yesBuy)).isFilledOrCancelled);
     }
 
-    function testMatchTypeComplementaryFuzz(uint128 fillAmount, uint16 takerFeeRateBps, uint16 makerFeeRateBps)
-        public
-    {
+    function testMatchTypeComplementaryFuzz(uint128 fillAmount, uint16 takerFeeRateBps, uint16 makerFeeRateBps) public {
         uint256 makerAmount = 50_000_000;
         uint256 takerAmount = 100_000_000;
 
@@ -412,7 +410,9 @@ contract MatchOrdersTest is BaseExchangeTest {
         }
 
         vm.expectEmit(true, true, true, true);
-        emit OrderFilled(exchange.hashOrder(sell), bob, address(exchange), yes, 0, 100_000_000, 60_000_000, expectedTakerFee);
+        emit OrderFilled(
+            exchange.hashOrder(sell), bob, address(exchange), yes, 0, 100_000_000, 60_000_000, expectedTakerFee
+        );
 
         vm.expectEmit(true, true, true, true);
         emit OrdersMatched(exchange.hashOrder(sell), bob, yes, 0, 100_000_000, 60_000_000);
@@ -468,7 +468,9 @@ contract MatchOrdersTest is BaseExchangeTest {
         emit FeeCharged(admin, yes, expectedTakerFee);
 
         vm.expectEmit(true, true, true, true);
-        emit OrderFilled(exchange.hashOrder(buy), bob, address(exchange), 0, yes, 50_000_000, 100_000_000, expectedTakerFee);
+        emit OrderFilled(
+            exchange.hashOrder(buy), bob, address(exchange), 0, yes, 50_000_000, 100_000_000, expectedTakerFee
+        );
 
         // Match the orders
         exchange.matchOrders(buy, makerOrders, takerFillAmount, fillAmounts);
@@ -525,7 +527,9 @@ contract MatchOrdersTest is BaseExchangeTest {
         emit FeeCharged(admin, 0, expectedTakerFee);
 
         vm.expectEmit(true, true, true, true);
-        emit OrderFilled(exchange.hashOrder(yesSell), bob, address(exchange), yes, 0, 100_000_000, 50_000_000, expectedTakerFee);
+        emit OrderFilled(
+            exchange.hashOrder(yesSell), bob, address(exchange), yes, 0, 100_000_000, 50_000_000, expectedTakerFee
+        );
 
         // Match the orders
         exchange.matchOrders(yesSell, makerOrders, takerFillAmount, fillAmounts);

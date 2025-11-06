@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import { ECDSA } from "openzeppelin-contracts/utils/cryptography/ECDSA.sol";
+import { ECDSA } from "lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 
 contract ERC1271Mock {
     address public signer;

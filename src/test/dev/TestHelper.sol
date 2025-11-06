@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.15;
 
-import {Test, console2 as console, stdStorage, StdStorage} from "forge-std/Test.sol";
-import {ERC20} from "common/ERC20.sol";
-import {TestMath} from "dev/libraries/TestMath.sol";
+import { Test } from "lib/forge-std/src/Test.sol";
+import { ERC20 } from "src/common/token/ERC20.sol";
+
+import { TestMath } from "./libraries/TestMath.sol";
 
 abstract contract TestHelper is Test {
     using TestMath for uint64;

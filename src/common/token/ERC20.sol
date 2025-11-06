@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.15;
 
-import {IERC20} from "common/interfaces/IERC20.sol";
+import { IERC20 } from "./IERC20.sol";
 
 /// @notice Forked to have non-constant decimals, to set after deployment.
 /// @author Polymarket

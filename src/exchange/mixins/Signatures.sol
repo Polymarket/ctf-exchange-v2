@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import { SignatureCheckerLib } from "solady/utils/SignatureCheckerLib.sol";
-import { ECDSA } from "openzeppelin-contracts/utils/cryptography/ECDSA.sol";
+import { SignatureCheckerLib } from "lib/solady/src/utils/SignatureCheckerLib.sol";
+import { ECDSA } from "lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 
 import { SignatureType, Order } from "../libraries/OrderStructs.sol";
 

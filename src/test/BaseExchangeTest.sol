@@ -1,28 +1,29 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { TestHelper } from "dev/TestHelper.sol";
+import { TestHelper } from "./dev/TestHelper.sol";
 
-import { USDC } from "dev/mocks/USDC.sol";
-import { ERC1271Mock } from "dev/mocks/ERC1271Mock.sol";
+import { USDC } from "./dev/mocks/USDC.sol";
+import { ERC1271Mock } from "./dev/mocks/ERC1271Mock.sol";
 
-import { Deployer } from "dev/util/Deployer.sol";
+import { Deployer } from "./dev/util/Deployer.sol";
 
-import { IERC20 } from "openzeppelin-contracts/token/ERC20/IERC20.sol";
-import { IERC1155 } from "openzeppelin-contracts/token/ERC1155/IERC1155.sol";
+import { IERC20 } from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { IERC20 } from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { IERC1155 } from "lib/openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
 
-import { CTFExchange } from "exchange/CTFExchange.sol";
-import { IAuthEE } from "exchange/interfaces/IAuth.sol";
-import { IFeesEE } from "exchange/interfaces/IFees.sol";
-import { ITradingEE } from "exchange/interfaces/ITrading.sol";
-import { IPausableEE } from "exchange/interfaces/IPausable.sol";
-import { IRegistryEE } from "exchange/interfaces/IRegistry.sol";
-import { ISignaturesEE } from "exchange/interfaces/ISignatures.sol";
+import { CTFExchange } from "src/exchange/CTFExchange.sol";
+import { IAuthEE } from "src/exchange/interfaces/IAuth.sol";
+import { IFeesEE } from "src/exchange/interfaces/IFees.sol";
+import { ITradingEE } from "src/exchange/interfaces/ITrading.sol";
+import { IPausableEE } from "src/exchange/interfaces/IPausable.sol";
+import { IRegistryEE } from "src/exchange/interfaces/IRegistry.sol";
+import { ISignaturesEE } from "src/exchange/interfaces/ISignatures.sol";
 
-import { IConditionalTokens } from "exchange/interfaces/IConditionalTokens.sol";
+import { IConditionalTokens } from "src/exchange/interfaces/IConditionalTokens.sol";
 
-import { CalculatorHelper } from "exchange/libraries/CalculatorHelper.sol";
-import { Order, Side, SignatureType } from "exchange/libraries/OrderStructs.sol";
+import { CalculatorHelper } from "src/exchange/libraries/CalculatorHelper.sol";
+import { Order, Side, SignatureType } from "src/exchange/libraries/OrderStructs.sol";
 
 contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IRegistryEE, IPausableEE, ITradingEE, ISignaturesEE {
     mapping(address => mapping(address => mapping(uint256 => uint256))) private _checkpoints1155;
@@ -60,7 +61,7 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IRegistryEE, IPausabl
 
         usdc = new USDC();
         vm.label(address(usdc), "USDC");
-        ctf = IConditionalTokens(Deployer.ConditionalTokens());
+        ctf = IConditionalTokens(Deployer.deployConditionalTokens());
         vm.label(address(ctf), "CTF");
 
         conditionId = _prepareCondition(admin, questionID);
@@ -112,10 +113,14 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IRegistryEE, IPausabl
         return order;
     }
 
-    function _createAndSign1271Order(uint256 signerPk, address wallet, uint256 tokenId, uint256 makerAmount, uint256 takerAmount, Side side) 
-        internal
-        returns (Order memory)
-    {
+    function _createAndSign1271Order(
+        uint256 signerPk,
+        address wallet,
+        uint256 tokenId,
+        uint256 makerAmount,
+        uint256 takerAmount,
+        Side side
+    ) internal returns (Order memory) {
         Order memory order = _createOrder(wallet, tokenId, makerAmount, takerAmount, side);
         order.signatureType = SignatureType.POLY_1271;
         order.signature = _signMessage(signerPk, exchange.hashOrder(order));

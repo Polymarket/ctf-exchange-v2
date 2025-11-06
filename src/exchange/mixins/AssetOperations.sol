@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { IERC20 } from "openzeppelin-contracts/token/ERC20/IERC20.sol";
-import { IERC1155 } from "openzeppelin-contracts/token/ERC1155/IERC1155.sol";
+import { IERC20 } from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { IERC1155 } from "lib/openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
 
 import { IAssets } from "../interfaces/IAssets.sol";
 import { IAssetOperations } from "../interfaces/IAssetOperations.sol";
@@ -39,9 +39,8 @@ abstract contract AssetOperations is IAssetOperations, IAssets {
         uint256[] memory partition = new uint256[](2);
         partition[0] = 1;
         partition[1] = 2;
-        IConditionalTokens(getCtf()).splitPosition(
-            IERC20(getCollateral()), parentCollectionId, conditionId, partition, amount
-        );
+        IConditionalTokens(getCtf())
+            .splitPosition(IERC20(getCollateral()), parentCollectionId, conditionId, partition, amount);
     }
 
     function _merge(bytes32 conditionId, uint256 amount) internal override {
@@ -49,8 +48,7 @@ abstract contract AssetOperations is IAssetOperations, IAssets {
         partition[0] = 1;
         partition[1] = 2;
 
-        IConditionalTokens(getCtf()).mergePositions(
-            IERC20(getCollateral()), parentCollectionId, conditionId, partition, amount
-        );
+        IConditionalTokens(getCtf())
+            .mergePositions(IERC20(getCollateral()), parentCollectionId, conditionId, partition, amount);
     }
 }

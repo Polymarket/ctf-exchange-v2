@@ -11,10 +11,10 @@ abstract contract NonceManager is INonceManager {
     }
 
     function updateNonce(uint256 val) internal {
-        nonces[ msg.sender] = nonces[ msg.sender] + val;
+        nonces[msg.sender] = nonces[msg.sender] + val;
     }
 
     function isValidNonce(address usr, uint256 nonce) public view override returns (bool) {
-        return nonces[ usr] == nonce;
+        return nonces[usr] == nonce;
     }
 }
