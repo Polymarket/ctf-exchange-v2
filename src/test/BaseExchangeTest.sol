@@ -9,7 +9,6 @@ import { ERC1271Mock } from "./dev/mocks/ERC1271Mock.sol";
 import { Deployer } from "./dev/util/Deployer.sol";
 
 import { IERC20 } from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import { IERC20 } from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import { IERC1155 } from "lib/openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
 
 import { CTFExchange } from "src/exchange/CTFExchange.sol";
