@@ -4,11 +4,7 @@ pragma solidity ^0.8.15;
 import { Test } from "lib/forge-std/src/Test.sol";
 import { ERC20 } from "src/common/token/ERC20.sol";
 
-import { TestMath } from "./libraries/TestMath.sol";
-
 abstract contract TestHelper is Test {
-    using TestMath for uint64;
-    using TestMath for uint256;
 
     mapping(address => mapping(address => uint256)) private balanceCheckpoints;
 
@@ -64,15 +60,7 @@ abstract contract TestHelper is Test {
         approve(_token, _spender, _amount);
     }
 
-    function add(uint256 _a, uint256 _b) internal pure returns (uint256) {
-        return _a + _b;
-    }
-
     function advance(uint256 _delta) internal {
         vm.roll(block.number + _delta);
-    }
-
-    function _address(bytes memory _seed) internal pure returns (address) {
-        return address(bytes20(keccak256(_seed)));
     }
 }
