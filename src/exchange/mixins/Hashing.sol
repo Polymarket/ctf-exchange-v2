@@ -5,7 +5,7 @@ import { EIP712 } from "lib/openzeppelin-contracts/contracts/utils/cryptography/
 
 import { IHashing } from "../interfaces/IHashing.sol";
 
-import { Order, ORDER_TYPEHASH } from "../libraries/OrderStructs.sol";
+import { Order, ORDER_TYPEHASH } from "../libraries/Structs.sol";
 
 abstract contract Hashing is EIP712, IHashing {
     bytes32 public immutable domainSeparator;
@@ -29,7 +29,6 @@ abstract contract Hashing is EIP712, IHashing {
                     order.makerAmount,
                     order.takerAmount,
                     order.expiration,
-                    order.nonce,
                     order.feeRateBps,
                     order.side,
                     order.signatureType

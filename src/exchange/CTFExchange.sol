@@ -9,12 +9,11 @@ import { Trading } from "./mixins/Trading.sol";
 import { Registry } from "./mixins/Registry.sol";
 import { Pausable } from "./mixins/Pausable.sol";
 import { Signatures } from "./mixins/Signatures.sol";
-import { NonceManager } from "./mixins/NonceManager.sol";
 import { AssetOperations } from "./mixins/AssetOperations.sol";
 
 import { BaseExchange } from "./BaseExchange.sol";
 
-import { Order } from "./libraries/OrderStructs.sol";
+import { Order } from "./libraries/Structs.sol";
 
 /// @title CTF Exchange
 /// @notice Implements logic for trading CTF assets
@@ -26,8 +25,7 @@ contract CTFExchange is
     Fees,
     Pausable,
     AssetOperations,
-    Hashing("Polymarket CTF Exchange", "1"),
-    NonceManager,
+    Hashing("Polymarket CTF Exchange", "2"),
     Registry,
     Signatures,
     Trading

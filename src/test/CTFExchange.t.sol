@@ -2,7 +2,7 @@
 pragma solidity <0.9.0;
 
 import { BaseExchangeTest } from "./BaseExchangeTest.sol";
-import { Order, Side, MatchType, OrderStatus, SignatureType } from "src/exchange/libraries/OrderStructs.sol";
+import { Order, Side, MatchType, OrderStatus, SignatureType } from "src/exchange/libraries/Structs.sol";
 
 contract CTFExchangeTest is BaseExchangeTest {
     function testSetup() public {
@@ -124,7 +124,7 @@ contract CTFExchangeTest is BaseExchangeTest {
     function testHashOrder() public {
         Order memory order = _createOrder(bob, 1, 50_000_000, 100_000_000, Side.BUY);
 
-        bytes32 expectedHash = 0xea9d5909ecf95a08c9906dc3cfafa62ca6b505f5e1c37c33e0d01099c0565c8f;
+        bytes32 expectedHash = 0x13c006b4766e5fcb7ef324b5e0bbf4efad3c649f33bbcaf3d07acd66544ec1f3;
 
         assertEq(exchange.hashOrder(order), expectedHash);
     }
@@ -147,18 +147,6 @@ contract CTFExchangeTest is BaseExchangeTest {
         Order memory order = _createOrder(bob, yes, 50_000_000, 100_000_000, Side.BUY);
         order.signature = hex"";
         vm.expectRevert("ECDSA: invalid signature length");
-        exchange.validateOrder(order);
-    }
-
-    function testValidateInvalidNonce() public {
-        Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
-        vm.prank(bob);
-        exchange.incrementNonce();
-        vm.expectRevert(InvalidNonce.selector);
-        exchange.validateOrder(order);
-
-        order.nonce = 1;
-        order.signature = _signMessage(bobPK, exchange.hashOrder(order));
         exchange.validateOrder(order);
     }
 

@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { OrderStatus, Order } from "../libraries/OrderStructs.sol";
+import { OrderStatus, Order } from "../libraries/Structs.sol";
 
 interface ITradingEE {
     error NotOwner();
     error NotTaker();
     error OrderFilledOrCancelled();
     error OrderExpired();
-    error InvalidNonce();
     error MakingGtRemaining();
     error NotCrossing();
     error TooLittleTokensReceived();

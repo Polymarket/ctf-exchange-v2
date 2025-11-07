@@ -6,15 +6,14 @@ import { IHashing } from "../interfaces/IHashing.sol";
 import { ITrading } from "../interfaces/ITrading.sol";
 import { IRegistry } from "../interfaces/IRegistry.sol";
 import { ISignatures } from "../interfaces/ISignatures.sol";
-import { INonceManager } from "../interfaces/INonceManager.sol";
 import { IAssetOperations } from "../interfaces/IAssetOperations.sol";
 
 import { CalculatorHelper } from "../libraries/CalculatorHelper.sol";
-import { Order, Side, MatchType, OrderStatus } from "../libraries/OrderStructs.sol";
+import { Order, Side, MatchType, OrderStatus } from "../libraries/Structs.sol";
 
 /// @title Trading
 /// @notice Implements logic for trading CTF assets
-abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, INonceManager, IAssetOperations {
+abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, IAssetOperations {
     /// @notice Mapping of orders to their current status
     mapping(bytes32 => OrderStatus) public orderStatus;
 
@@ -77,9 +76,6 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
 
         // Validate that the order can be filled
         if (orderStatus[orderHash].isFilledOrCancelled) revert OrderFilledOrCancelled();
-
-        // Validate nonce
-        if (!isValidNonce(order.maker, order.nonce)) revert InvalidNonce();
     }
 
     /// @notice Fills an order against the caller

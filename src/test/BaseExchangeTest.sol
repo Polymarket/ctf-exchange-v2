@@ -21,7 +21,7 @@ import { ISignaturesEE } from "src/exchange/interfaces/ISignatures.sol";
 import { IConditionalTokens } from "src/exchange/interfaces/IConditionalTokens.sol";
 
 import { CalculatorHelper } from "src/exchange/libraries/CalculatorHelper.sol";
-import { Order, Side, SignatureType } from "src/exchange/libraries/OrderStructs.sol";
+import { Order, Side, SignatureType } from "src/exchange/libraries/Structs.sol";
 
 contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IRegistryEE, IPausableEE, ITradingEE, ISignaturesEE {
     mapping(address => mapping(address => mapping(uint256 => uint256))) private _checkpoints1155;
@@ -139,7 +139,6 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IRegistryEE, IPausabl
             makerAmount: makerAmount,
             takerAmount: takerAmount,
             expiration: 0,
-            nonce: 0,
             feeRateBps: 0,
             signatureType: SignatureType.EOA,
             side: side,

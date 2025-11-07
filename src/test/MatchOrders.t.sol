@@ -3,7 +3,7 @@ pragma solidity <0.9.0;
 
 import { BaseExchangeTest } from "./BaseExchangeTest.sol";
 
-import { Order, Side } from "src/exchange/libraries/OrderStructs.sol";
+import { Order, Side } from "src/exchange/libraries/Structs.sol";
 
 contract MatchOrdersTest is BaseExchangeTest {
     function setUp() public override {

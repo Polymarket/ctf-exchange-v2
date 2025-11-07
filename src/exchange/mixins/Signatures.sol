@@ -4,7 +4,7 @@ pragma solidity ^0.8.10;
 import { SignatureCheckerLib } from "lib/solady/src/utils/SignatureCheckerLib.sol";
 import { ECDSA } from "lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 
-import { SignatureType, Order } from "../libraries/OrderStructs.sol";
+import { SignatureType, Order } from "../libraries/Structs.sol";
 
 import { ISignatures } from "../interfaces/ISignatures.sol";
 
