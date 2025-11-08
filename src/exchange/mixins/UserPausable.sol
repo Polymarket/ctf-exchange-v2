@@ -19,6 +19,7 @@ abstract contract UserPausable is IUserPausable {
         emit UserPaused(msg.sender);
     }
 
+    /// @notice Allows a user to unpause their account
     function unpauseUser() external override {
         _paused[msg.sender] = false;
         emit UserUnpaused(msg.sender);
