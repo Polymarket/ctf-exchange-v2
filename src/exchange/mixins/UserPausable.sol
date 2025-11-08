@@ -9,7 +9,7 @@ import { IUserPausable } from "../interfaces/IUserPausable.sol";
 abstract contract UserPausable is IUserPausable {
     mapping(address => bool) internal _paused;
 
-    function isPaused(address usr) public override view returns (bool) {
+    function isPaused(address usr) public view override returns (bool) {
         return _paused[usr];
     }
 

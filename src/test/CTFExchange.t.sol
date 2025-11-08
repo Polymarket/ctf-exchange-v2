@@ -183,6 +183,20 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.fillOrder(order, 50_000_000);
     }
 
+    function testValidateUserPaused() public {
+        Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+
+        vm.prank(bob);
+        exchange.pauseUser();
+
+        vm.expectRevert(UserIsPaused.selector);
+        exchange.validateOrder(order);
+
+        vm.prank(bob);
+        exchange.unpauseUser();
+        exchange.validateOrder(order);
+    }
+
     function testValidateFeeTooHigh() public {
         Order memory order = _createAndSignOrderWithFee(
             bobPK,
