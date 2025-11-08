@@ -6,6 +6,7 @@ import { IHashing } from "../interfaces/IHashing.sol";
 import { ITrading } from "../interfaces/ITrading.sol";
 import { IRegistry } from "../interfaces/IRegistry.sol";
 import { ISignatures } from "../interfaces/ISignatures.sol";
+import { IUserPausable } from "../interfaces/IUserPausable.sol";
 import { IAssetOperations } from "../interfaces/IAssetOperations.sol";
 
 import { CalculatorHelper } from "../libraries/CalculatorHelper.sol";
@@ -13,7 +14,7 @@ import { Order, Side, MatchType, OrderStatus } from "../libraries/Structs.sol";
 
 /// @title Trading
 /// @notice Implements logic for trading CTF assets
-abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, IAssetOperations {
+abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, IAssetOperations, IUserPausable {
     /// @notice Mapping of orders to their current status
     mapping(bytes32 => OrderStatus) public orderStatus;
 
@@ -30,37 +31,6 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         _validateOrder(orderHash, order);
     }
 
-    /// @notice Cancels an order
-    /// An order can only be cancelled by its maker, the address which holds funds for the order
-    /// @notice order - The order to be cancelled
-    function cancelOrder(Order memory order) external {
-        _cancelOrder(order);
-    }
-
-    /// @notice Cancels a set of orders
-    /// @notice orders - The set of orders to be cancelled
-    function cancelOrders(Order[] memory orders) external {
-        uint256 length = orders.length;
-        uint256 i = 0;
-        for (; i < length;) {
-            _cancelOrder(orders[i]);
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
-    function _cancelOrder(Order memory order) internal {
-        if (order.maker != msg.sender) revert NotOwner();
-
-        bytes32 orderHash = hashOrder(order);
-        OrderStatus storage status = orderStatus[orderHash];
-        if (status.isFilledOrCancelled) revert OrderFilledOrCancelled();
-
-        status.isFilledOrCancelled = true;
-        emit OrderCancelled(orderHash);
-    }
-
     function _validateOrder(bytes32 orderHash, Order memory order) internal view {
         // Validate order expiration
         if (order.expiration > 0 && order.expiration < block.timestamp) revert OrderExpired();
@@ -71,11 +41,14 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         // Validate fee
         if (order.feeRateBps > getMaxFeeRate()) revert FeeTooHigh();
 
+        // Validate that the user is not paused
+        if (isPaused(order.maker)) revert UserIsPaused();
+
         // Validate the token to be traded
         validateTokenId(order.tokenId);
 
         // Validate that the order can be filled
-        if (orderStatus[orderHash].isFilledOrCancelled) revert OrderFilledOrCancelled();
+        if (orderStatus[orderHash].filled) revert OrderAlreadyFilled();
     }
 
     /// @notice Fills an order against the caller
@@ -351,8 +324,8 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         // Update remaining using the makingAmount
         remaining = remaining - makingAmount;
 
-        // If order is completely filled, update isFilledOrCancelled in storage
-        if (remaining == 0) status.isFilledOrCancelled = true;
+        // If order is completely filled, update filled in storage
+        if (remaining == 0) status.filled = true;
 
         // Update remaining in storage
         status.remaining = remaining;

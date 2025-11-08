@@ -54,7 +54,7 @@ contract MatchOrdersTest is BaseExchangeTest {
         // Ensure onchain state for orders is as expected
         bytes32 buyHash = exchange.hashOrder(buy);
         assertEq(exchange.getOrderStatus(buyHash).remaining, 0);
-        assertTrue(exchange.getOrderStatus(buyHash).isFilledOrCancelled);
+        assertTrue(exchange.getOrderStatus(buyHash).filled);
     }
 
     function testMatchTypeMint() public {
@@ -90,14 +90,14 @@ contract MatchOrdersTest is BaseExchangeTest {
         // Ensure onchain state for orders is as expected
         // The taker order is partially filled
         assertEq(exchange.getOrderStatus(exchange.hashOrder(buy)).remaining, 11_000_000);
-        assertFalse(exchange.getOrderStatus(exchange.hashOrder(buy)).isFilledOrCancelled);
+        assertFalse(exchange.getOrderStatus(exchange.hashOrder(buy)).filled);
 
         // The maker orders get completely filled
         assertEq(exchange.getOrderStatus(exchange.hashOrder(yesSell)).remaining, 0);
-        assertTrue(exchange.getOrderStatus(exchange.hashOrder(yesSell)).isFilledOrCancelled);
+        assertTrue(exchange.getOrderStatus(exchange.hashOrder(yesSell)).filled);
 
         assertEq(exchange.getOrderStatus(exchange.hashOrder(noBuy)).remaining, 0);
-        assertTrue(exchange.getOrderStatus(exchange.hashOrder(noBuy)).isFilledOrCancelled);
+        assertTrue(exchange.getOrderStatus(exchange.hashOrder(noBuy)).filled);
     }
 
     function testMatchTypeMerge() public {
@@ -136,15 +136,15 @@ contract MatchOrdersTest is BaseExchangeTest {
         // Ensure onchain state for orders is as expected
         // The taker order is fully filled
         assertEq(exchange.getOrderStatus(exchange.hashOrder(yesSell)).remaining, 0);
-        assertTrue(exchange.getOrderStatus(exchange.hashOrder(yesSell)).isFilledOrCancelled);
+        assertTrue(exchange.getOrderStatus(exchange.hashOrder(yesSell)).filled);
 
         // The first maker order gets completely filled
         assertEq(exchange.getOrderStatus(exchange.hashOrder(noSell)).remaining, 0);
-        assertTrue(exchange.getOrderStatus(exchange.hashOrder(noSell)).isFilledOrCancelled);
+        assertTrue(exchange.getOrderStatus(exchange.hashOrder(noSell)).filled);
 
         // The second maker order is partially filled
         assertEq(exchange.getOrderStatus(exchange.hashOrder(yesBuy)).remaining, 9_000_000);
-        assertFalse(exchange.getOrderStatus(exchange.hashOrder(yesBuy)).isFilledOrCancelled);
+        assertFalse(exchange.getOrderStatus(exchange.hashOrder(yesBuy)).filled);
     }
 
     function testMatchTypeComplementaryFuzz(uint128 fillAmount, uint16 takerFeeRateBps, uint16 makerFeeRateBps) public {

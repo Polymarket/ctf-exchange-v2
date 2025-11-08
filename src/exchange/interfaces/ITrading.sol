@@ -6,7 +6,7 @@ import { OrderStatus, Order } from "../libraries/Structs.sol";
 interface ITradingEE {
     error NotOwner();
     error NotTaker();
-    error OrderFilledOrCancelled();
+    error OrderAlreadyFilled();
     error OrderExpired();
     error MakingGtRemaining();
     error NotCrossing();

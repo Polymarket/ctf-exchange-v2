@@ -5,7 +5,6 @@ import { Test } from "lib/forge-std/src/Test.sol";
 import { ERC20 } from "./token/ERC20.sol";
 
 abstract contract TestHelper is Test {
-
     mapping(address => mapping(address => uint256)) private balanceCheckpoints;
 
     address alice = address(1);

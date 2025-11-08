@@ -62,6 +62,6 @@ enum MatchType {
 }
 
 struct OrderStatus {
-    bool isFilledOrCancelled;
+    bool filled;
     uint256 remaining;
 }

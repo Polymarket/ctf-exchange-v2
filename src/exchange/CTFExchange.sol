@@ -9,6 +9,7 @@ import { Trading } from "./mixins/Trading.sol";
 import { Registry } from "./mixins/Registry.sol";
 import { Pausable } from "./mixins/Pausable.sol";
 import { Signatures } from "./mixins/Signatures.sol";
+import { UserPausable } from "./mixins/UserPausable.sol";
 import { AssetOperations } from "./mixins/AssetOperations.sol";
 
 import { BaseExchange } from "./BaseExchange.sol";
@@ -28,6 +29,7 @@ contract CTFExchange is
     Hashing("Polymarket CTF Exchange", "2"),
     Registry,
     Signatures,
+    UserPausable,
     Trading
 {
     constructor(address _collateral, address _ctf, address _proxyFactory, address _safeFactory)
