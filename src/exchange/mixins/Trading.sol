@@ -38,9 +38,6 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         // Validate signature
         validateOrderSignature(orderHash, order);
 
-        // Validate fee
-        if (order.feeRateBps > getMaxFeeRate()) revert FeeTooHigh();
-
         // Validate that the user is not paused
         if (isUserPaused(order.maker)) revert UserIsPaused();
 
@@ -51,99 +48,112 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         if (orderStatus[orderHash].filled) revert OrderAlreadyFilled();
     }
 
-    /// @notice Fills an order against the caller
-    /// @param order        - The order to be filled
-    /// @param fillAmount   - The amount to be filled, always in terms of the maker amount
-    /// @param to           - The address to receive assets from filling the order
-    function _fillOrder(Order memory order, uint256 fillAmount, address to) internal {
-        uint256 making = fillAmount;
-        (uint256 taking, bytes32 orderHash) = _performOrderChecks(order, making);
-
-        uint256 fee = CalculatorHelper.calculateFee(
-            order.feeRateBps, order.side == Side.BUY ? taking : making, order.makerAmount, order.takerAmount, order.side
-        );
-
-        (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(order);
-
-        // Transfer order proceeds minus fees from msg.sender to order maker
-        _transfer(msg.sender, order.maker, takerAssetId, taking - fee);
-
-        // Transfer makingAmount from order maker to `to`
-        _transfer(order.maker, to, makerAssetId, making);
-
-        // NOTE: Fees are "collected" by the Operator implicitly,
-        // since the fee is deducted from the assets paid by the Operator
-
-        emit OrderFilled(orderHash, order.maker, msg.sender, makerAssetId, takerAssetId, making, taking, fee);
-    }
-
-    /// @notice Fills a set of orders against the caller
-    /// @param orders       - The order to be filled
-    /// @param fillAmounts  - The amounts to be filled, always in terms of the maker amount
-    /// @param to           - The address to receive assets from filling the order
-    function _fillOrders(Order[] memory orders, uint256[] memory fillAmounts, address to) internal {
-        uint256 length = orders.length;
-        uint256 i = 0;
-        for (; i < length;) {
-            _fillOrder(orders[i], fillAmounts[i], to);
-            unchecked {
-                ++i;
-            }
-        }
-    }
-
     /// @notice Matches orders against each other
-    /// Matches a taker order against a list of maker orders
-    /// @param takerOrder       - The active order to be matched
-    /// @param makerOrders      - The array of passive orders to be matched against the active order
-    /// @param takerFillAmount  - The amount to fill on the taker order, in terms of the maker amount
-    /// @param makerFillAmounts - The array of amounts to fill on the maker orders, in terms of the maker amount
+    /// @param takerOrder           - The active order to be matched
+    /// @param makerOrders          - The array of maker orders to be matched against the active order
+    /// @param takerFillAmount      - The amount to fill on the taker order, always in terms of the maker amount
+    /// @param makerFillAmounts     - The array of amounts to fill on the maker orders, always in terms of
+    /// the maker amount
+    /// @param takerFeeAmount       - The fee to be charged to the taker order
+    /// @param makerFeeAmounts      - The fee to be charged to the maker orders
     function _matchOrders(
         Order memory takerOrder,
         Order[] memory makerOrders,
         uint256 takerFillAmount,
-        uint256[] memory makerFillAmounts
+        uint256[] memory makerFillAmounts,
+        uint256 takerFeeAmount,
+        uint256[] memory makerFeeAmounts
     ) internal {
         uint256 making = takerFillAmount;
 
-        (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, making);
+        (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, making, takerFeeAmount);
         (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(takerOrder);
 
         // Transfer takerOrder making amount from taker order to the Exchange
         _transfer(takerOrder.maker, address(this), makerAssetId, making);
 
         // Fill the maker orders
-        _fillMakerOrders(takerOrder, makerOrders, makerFillAmounts);
+        _fillMakerOrders(takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts);
 
         taking = _updateTakingWithSurplus(taking, takerAssetId);
-        uint256 fee = CalculatorHelper.calculateFee(
-            takerOrder.feeRateBps, takerOrder.side == Side.BUY ? taking : making, making, taking, takerOrder.side
-        );
 
-        // Execute transfers
+        if (takerOrder.side == Side.BUY) {
+            _fillTakerBuy(orderHash, making, taking, takerOrder.maker, makerAssetId, takerAssetId, takerFeeAmount);
+        } else {
+            _fillTakerSell(orderHash, making, taking, takerOrder.maker, makerAssetId, takerAssetId, takerFeeAmount);
+        }
+    }
 
-        // Transfer order proceeds post fees from the Exchange to the taker order maker
-        _transfer(address(this), takerOrder.maker, takerAssetId, taking - fee);
+    /// @notice Fills a Taker buy order
+    /// @dev Fees are charged in collateral, with the collateral fee being pulled from the order maker
+    /// @dev Transfer proceeds, Outcome tokens, from Exchange to maker
+    /// @dev Transfer fees in Collateral from the maker to the Operator
+    function _fillTakerBuy(
+        bytes32 orderHash,
+        uint256 makingAmount,
+        uint256 takingAmount,
+        address maker,
+        uint256 makerAssetId,
+        uint256 takerAssetId,
+        uint256 feeAmount
+    ) internal {
+        // Transfer order proceeds from the Exchange to the taker order maker
+        _transfer(address(this), maker, takerAssetId, takingAmount);
 
-        // Charge the fee to taker order maker, explicitly transferring the fee from the Exchange to the Operator
-        _chargeFee(address(this), msg.sender, takerAssetId, fee);
+        // Transfer the fee from the order maker to the operator, if any
+        _chargeFee(maker, msg.sender, takerAssetId, feeAmount);
 
         // Refund any leftover tokens pulled from the taker to the taker order
         uint256 refund = _getBalance(makerAssetId);
-        if (refund > 0) _transfer(address(this), takerOrder.maker, makerAssetId, refund);
+        if (refund > 0) _transfer(address(this), maker, makerAssetId, refund);
 
-        emit OrderFilled(orderHash, takerOrder.maker, address(this), makerAssetId, takerAssetId, making, taking, fee);
+        emit OrderFilled(
+            orderHash, maker, address(this), makerAssetId, takerAssetId, makingAmount, takingAmount, feeAmount
+        );
 
-        emit OrdersMatched(orderHash, takerOrder.maker, makerAssetId, takerAssetId, making, taking);
+        emit OrdersMatched(orderHash, maker, makerAssetId, takerAssetId, makingAmount, takingAmount);
     }
 
-    function _fillMakerOrders(Order memory takerOrder, Order[] memory makerOrders, uint256[] memory makerFillAmounts)
-        internal
-    {
+    /// @notice Fills a Taker sell order
+    /// @dev Transfer Outcome tokens from maker to Exchange
+    /// @dev Transfer Collateral from Exchange to maker minus fees
+    /// @dev Transfer fees in Collateral from Exchange to Operator
+    function _fillTakerSell(
+        bytes32 orderHash,
+        uint256 makingAmount,
+        uint256 takingAmount,
+        address maker,
+        uint256 makerAssetId,
+        uint256 takerAssetId,
+        uint256 feeAmount
+    ) internal {
+        // Transfer order proceeds from the Exchange to the taker order maker
+        _transfer(address(this), maker, takerAssetId, takingAmount - feeAmount);
+
+        // Charge the fee to taker order maker, transferring the fee from the Exchange to the Operator
+        _chargeFee(address(this), msg.sender, takerAssetId, feeAmount);
+
+        // Refund any leftover tokens pulled from the taker to the taker order
+        uint256 refund = _getBalance(makerAssetId);
+        if (refund > 0) _transfer(address(this), maker, makerAssetId, refund);
+
+        emit OrderFilled(
+            orderHash, maker, address(this), makerAssetId, takerAssetId, makingAmount, takingAmount, feeAmount
+        );
+
+        emit OrdersMatched(orderHash, maker, makerAssetId, takerAssetId, makingAmount, takingAmount);
+    }
+
+    function _fillMakerOrders(
+        Order memory takerOrder,
+        Order[] memory makerOrders,
+        uint256[] memory makerFillAmounts,
+        uint256[] memory makerFeeAmounts
+    ) internal {
         uint256 length = makerOrders.length;
         uint256 i = 0;
         for (; i < length;) {
-            _fillMakerOrder(takerOrder, makerOrders[i], makerFillAmounts[i]);
+            _fillMakerOrder(takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i]);
             unchecked {
                 ++i;
             }
@@ -154,26 +164,27 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @param takerOrder   - The taker order
     /// @param makerOrder   - The maker order
     /// @param fillAmount   - The fill amount
-    function _fillMakerOrder(Order memory takerOrder, Order memory makerOrder, uint256 fillAmount) internal {
+    /// @param feeAmount    - The fee amount
+    function _fillMakerOrder(Order memory takerOrder, Order memory makerOrder, uint256 fillAmount, uint256 feeAmount)
+        internal
+    {
         MatchType matchType = _deriveMatchType(takerOrder, makerOrder);
 
         // Ensure taker order and maker order match
         _validateTakerAndMaker(takerOrder, makerOrder, matchType);
 
         uint256 making = fillAmount;
-        (uint256 taking, bytes32 orderHash) = _performOrderChecks(makerOrder, making);
-        uint256 fee = CalculatorHelper.calculateFee(
-            makerOrder.feeRateBps,
-            makerOrder.side == Side.BUY ? taking : making,
-            makerOrder.makerAmount,
-            makerOrder.takerAmount,
-            makerOrder.side
-        );
+        (uint256 taking, bytes32 orderHash) = _performOrderChecks(makerOrder, making, feeAmount);
+
         (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(makerOrder);
 
-        _fillFacingExchange(making, taking, makerOrder.maker, makerAssetId, takerAssetId, matchType, fee);
+        _fillFacingExchange(
+            making, taking, makerOrder.maker, makerAssetId, takerAssetId, makerOrder.side, matchType, feeAmount
+        );
 
-        emit OrderFilled(orderHash, makerOrder.maker, takerOrder.maker, makerAssetId, takerAssetId, making, taking, fee);
+        emit OrderFilled(
+            orderHash, makerOrder.maker, takerOrder.maker, makerAssetId, takerAssetId, making, taking, feeAmount
+        );
     }
 
     /// @notice Performs common order computations and validation
@@ -184,11 +195,16 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// 5) Updates the order status in storage
     /// @param order    - The order being prepared
     /// @param making   - The amount of the order being filled, in terms of maker amount
-    function _performOrderChecks(Order memory order, uint256 making)
+    /// @param fee      - The fee charged to the order
+    function _performOrderChecks(Order memory order, uint256 making, uint256 fee)
         internal
         returns (uint256 takingAmount, bytes32 orderHash)
     {
+        // Validate taker
         _validateTaker(order.taker);
+
+        // Validate order fee
+        validateOrderFee(order.maxFee, fee);
 
         orderHash = hashOrder(order);
 
@@ -216,10 +232,36 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         address maker,
         uint256 makerAssetId,
         uint256 takerAssetId,
+        Side side,
         MatchType matchType,
         uint256 fee
     ) internal {
-        // Transfer makingAmount tokens from order maker to Exchange
+        if (side == Side.BUY) {
+            return _fillMakerBuyFacingExchange(
+                makingAmount, takingAmount, maker, makerAssetId, takerAssetId, matchType, fee
+            );
+        } else {
+            return _fillMakerSellFacingExchange(
+                makingAmount, takingAmount, maker, makerAssetId, takerAssetId, matchType, fee
+            );
+        }
+    }
+
+    /// @notice Fills a maker buy order using the Exchange as the counterparty
+    /// @dev Fees are charged in collateral, as the collateral fee is pulled from the order maker
+    /// @dev Transfer Collateral from order maker to Exchange
+    /// @dev Transfer Outcome tokens from Exchange to order maker
+    /// @dev Transfer fees in Collateral from the order maker to the Operator
+    function _fillMakerBuyFacingExchange(
+        uint256 makingAmount,
+        uint256 takingAmount,
+        address maker,
+        uint256 makerAssetId,
+        uint256 takerAssetId,
+        MatchType matchType,
+        uint256 fee
+    ) internal {
+        // Transfer makingAmount tokens, collateral, from order maker to Exchange
         _transfer(maker, address(this), makerAssetId, makingAmount);
 
         // Executes a match call based on match type
@@ -228,7 +270,37 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         // Ensure match action generated enough tokens to fill the order
         if (_getBalance(takerAssetId) < takingAmount) revert TooLittleTokensReceived();
 
-        // Transfer order proceeds minus fees from the Exchange to the order maker
+        // Transfer order proceeds, Outcome Tokens, from the Exchange to the order maker
+        _transfer(address(this), maker, takerAssetId, takingAmount);
+
+        // Transfer fees from the order maker to the Operator
+        _chargeFee(maker, msg.sender, takerAssetId, fee);
+    }
+
+    /// @notice Fills a maker sell order using the Exchange as the counterparty
+    /// @dev Fees are charged in collateral, as fee is deducted from proceeds
+    /// @dev Transfer Outcome tokens from order maker to Exchange
+    /// @dev Transfer Collateral from Exchange to order maker minus fees
+    /// @dev Transfer fees in Collateral from Exchange to Operator
+    function _fillMakerSellFacingExchange(
+        uint256 makingAmount,
+        uint256 takingAmount,
+        address maker,
+        uint256 makerAssetId,
+        uint256 takerAssetId,
+        MatchType matchType,
+        uint256 fee
+    ) internal {
+        // Transfer makingAmount, Outcome Tokens, tokens from order maker to Exchange
+        _transfer(maker, address(this), makerAssetId, makingAmount);
+
+        // Executes a match call based on match type
+        _executeMatchCall(makingAmount, takingAmount, makerAssetId, takerAssetId, matchType);
+
+        // Ensure match action generated enough tokens to fill the order
+        if (_getBalance(takerAssetId) < takingAmount) revert TooLittleTokensReceived();
+
+        // Transfer order proceeds, Collateral, minus fees from the Exchange to the order maker
         _transfer(address(this), maker, takerAssetId, takingAmount - fee);
 
         // Transfer fees from Exchange to the Operator

@@ -101,12 +101,12 @@ contract BaseExchangeTest is
         uint256 tokenId,
         uint256 makerAmount,
         uint256 takerAmount,
-        uint256 feeRateBps,
+        uint256 maxFee,
         Side side
     ) internal returns (Order memory) {
         address maker = vm.addr(pk);
         Order memory order = _createOrder(maker, tokenId, makerAmount, takerAmount, side);
-        order.feeRateBps = feeRateBps;
+        order.maxFee = maxFee;
         order.signature = _signMessage(pk, exchange.hashOrder(order));
         return order;
     }
@@ -149,7 +149,7 @@ contract BaseExchangeTest is
             makerAmount: makerAmount,
             takerAmount: takerAmount,
             expiration: 0,
-            feeRateBps: 0,
+            maxFee: 0,
             signatureType: SignatureType.EOA,
             side: side,
             signature: new bytes(0)
