@@ -111,4 +111,10 @@ contract CTFExchange is
     function registerToken(uint256 token, uint256 complement, bytes32 conditionId) external onlyAdmin {
         _registerToken(token, complement, conditionId);
     }
+
+    /// @notice Sets the user pause block interval
+    /// @param _interval - The new user pause block interval
+    function setUserPauseBlockInterval(uint256 _interval) external onlyAdmin {
+        _setUserPauseBlockInterval(_interval);
+    }
 }

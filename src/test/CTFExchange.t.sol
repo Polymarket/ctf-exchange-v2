@@ -186,14 +186,43 @@ contract CTFExchangeTest is BaseExchangeTest {
     function testValidateUserPaused() public {
         Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
+        uint256 blockInterval = exchange.userPauseBlockInterval();
+
+        vm.expectEmit(true, true, true, true);
+        emit UserPaused(bob, block.number + blockInterval);
+
         vm.prank(bob);
         exchange.pauseUser();
 
+        uint256 userPausedAt = exchange.userPausedBlockAt(bob);
+        assertEq(userPausedAt, block.number + exchange.userPauseBlockInterval());
+
+        // Advance 50 blocks in the future
+        advance(50);
+
+        // The user will not be paused yet
+        assertFalse(exchange.isUserPaused(bob));
+
+        // And the order is valid
+        exchange.validateOrder(order);
+
+        // Advance another 100 blocks in the future
+        advance(100);
+
+        // The user will be paused
+        assertTrue(exchange.isUserPaused(bob));
+
+        // And the order validation will correctly revert
         vm.expectRevert(UserIsPaused.selector);
         exchange.validateOrder(order);
 
+        // After unpausing the user will be unpaused and his order will be valid
+        vm.expectEmit(true, true, true, true);
+        emit UserUnpaused(bob);
         vm.prank(bob);
         exchange.unpauseUser();
+
+        assertFalse(exchange.isUserPaused(bob));
         exchange.validateOrder(order);
     }
 

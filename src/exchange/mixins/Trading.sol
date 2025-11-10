@@ -42,7 +42,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         if (order.feeRateBps > getMaxFeeRate()) revert FeeTooHigh();
 
         // Validate that the user is not paused
-        if (isPaused(order.maker)) revert UserIsPaused();
+        if (isUserPaused(order.maker)) revert UserIsPaused();
 
         // Validate the token to be traded
         validateTokenId(order.tokenId);
