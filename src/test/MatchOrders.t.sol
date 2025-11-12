@@ -29,15 +29,16 @@ contract MatchOrdersTest is BaseExchangeTest {
         // Check fill events
         // First maker order is filled completely
         vm.expectEmit(true, true, true, true);
-        emit OrderFilled(exchange.hashOrder(makerOrderA), carla, bob, yes, 0, 50_000_000, 25_000_000, 0);
+        emit OrderFilled(exchange.hashOrder(makerOrderA), carla, bob, yes, 0, 50_000_000, 25_000_000, 0, bytes32(0));
 
         // Second maker order is partially filled
         vm.expectEmit(true, true, true, true);
-        emit OrderFilled(exchange.hashOrder(makerOrderB), carla, bob, yes, 0, 70_000_000, 35_000_000, 0);
-
+        emit OrderFilled(exchange.hashOrder(makerOrderB), carla, bob, yes, 0, 70_000_000, 35_000_000, 0, bytes32(0));
         // The taker order is filled completely
         vm.expectEmit(true, true, true, true);
-        emit OrderFilled(exchange.hashOrder(takerOrder), bob, address(exchange), 0, yes, 60_000_000, 120_000_000, 0);
+        emit OrderFilled(
+            exchange.hashOrder(takerOrder), bob, address(exchange), 0, yes, 60_000_000, 120_000_000, 0, bytes32(0)
+        );
 
         vm.expectEmit(true, true, true, true);
         emit OrdersMatched(exchange.hashOrder(takerOrder), bob, 0, yes, 60_000_000, 120_000_000);
@@ -201,13 +202,23 @@ contract MatchOrdersTest is BaseExchangeTest {
         vm.expectEmit(true, true, true, true);
         emit FeeCharged(feeReceiver, makerFeeAmount);
         vm.expectEmit(true, true, true, true);
-        emit OrderFilled(exchange.hashOrder(makerOrder), carla, bob, yes, 0, 100_000_000, 50_000_000, makerFeeAmount);
+        emit OrderFilled(
+            exchange.hashOrder(makerOrder), carla, bob, yes, 0, 100_000_000, 50_000_000, makerFeeAmount, bytes32(0)
+        );
 
         vm.expectEmit(true, true, true, true);
         emit FeeCharged(feeReceiver, takerFeeAmount);
         vm.expectEmit(true, true, true, true);
         emit OrderFilled(
-            exchange.hashOrder(takerOrder), bob, address(exchange), 0, yes, 50_000_000, 100_000_000, takerFeeAmount
+            exchange.hashOrder(takerOrder),
+            bob,
+            address(exchange),
+            0,
+            yes,
+            50_000_000,
+            100_000_000,
+            takerFeeAmount,
+            bytes32(0)
         );
 
         // Assert state pre match
@@ -267,13 +278,23 @@ contract MatchOrdersTest is BaseExchangeTest {
         vm.expectEmit(true, true, true, true);
         emit FeeCharged(feeReceiver, makerFeeAmount);
         vm.expectEmit(true, true, true, true);
-        emit OrderFilled(exchange.hashOrder(makerOrder), carla, bob, 0, no, 50_000_000, 100_000_000, makerFeeAmount);
+        emit OrderFilled(
+            exchange.hashOrder(makerOrder), carla, bob, 0, no, 50_000_000, 100_000_000, makerFeeAmount, bytes32(0)
+        );
 
         vm.expectEmit(true, true, true, true);
         emit FeeCharged(feeReceiver, takerFeeAmount);
         vm.expectEmit(true, true, true, true);
         emit OrderFilled(
-            exchange.hashOrder(takerOrder), bob, address(exchange), 0, yes, 50_000_000, 100_000_000, takerFeeAmount
+            exchange.hashOrder(takerOrder),
+            bob,
+            address(exchange),
+            0,
+            yes,
+            50_000_000,
+            100_000_000,
+            takerFeeAmount,
+            bytes32(0)
         );
 
         // Assert state pre match
@@ -326,13 +347,23 @@ contract MatchOrdersTest is BaseExchangeTest {
         vm.expectEmit(true, true, true, true);
         emit FeeCharged(feeReceiver, makerFeeAmount);
         vm.expectEmit(true, true, true, true);
-        emit OrderFilled(exchange.hashOrder(makerOrder), carla, bob, no, 0, 100_000_000, 50_000_000, makerFeeAmount);
+        emit OrderFilled(
+            exchange.hashOrder(makerOrder), carla, bob, no, 0, 100_000_000, 50_000_000, makerFeeAmount, bytes32(0)
+        );
 
         vm.expectEmit(true, true, true, true);
         emit FeeCharged(feeReceiver, takerFeeAmount);
         vm.expectEmit(true, true, true, true);
         emit OrderFilled(
-            exchange.hashOrder(takerOrder), bob, address(exchange), yes, 0, 100_000_000, 50_000_000, takerFeeAmount
+            exchange.hashOrder(takerOrder),
+            bob,
+            address(exchange),
+            yes,
+            0,
+            100_000_000,
+            50_000_000,
+            takerFeeAmount,
+            bytes32(0)
         );
 
         // Assert state pre match
@@ -385,13 +416,23 @@ contract MatchOrdersTest is BaseExchangeTest {
         vm.expectEmit(true, true, true, true);
         emit FeeCharged(feeReceiver, makerFeeAmount);
         vm.expectEmit(true, true, true, true);
-        emit OrderFilled(exchange.hashOrder(makerOrder), carla, bob, 0, yes, 60_000_000, 100_000_000, makerFeeAmount);
+        emit OrderFilled(
+            exchange.hashOrder(makerOrder), carla, bob, 0, yes, 60_000_000, 100_000_000, makerFeeAmount, bytes32(0)
+        );
 
         vm.expectEmit(true, true, true, true);
         emit FeeCharged(feeReceiver, takerFeeAmount);
         vm.expectEmit(true, true, true, true);
         emit OrderFilled(
-            exchange.hashOrder(takerOrder), bob, address(exchange), yes, 0, 100_000_000, 60_000_000, takerFeeAmount
+            exchange.hashOrder(takerOrder),
+            bob,
+            address(exchange),
+            yes,
+            0,
+            100_000_000,
+            60_000_000,
+            takerFeeAmount,
+            bytes32(0)
         );
 
         // Assert state pre match

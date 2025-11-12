@@ -18,6 +18,19 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @notice Mapping of orders to their current status
     mapping(bytes32 => OrderStatus) public orderStatus;
 
+    /// @notice Parameters for the OrderFilled event
+    struct OrderFilledParams {
+        bytes32 orderHash;
+        address maker;
+        address taker;
+        uint256 makerAssetId;
+        uint256 takerAssetId;
+        uint256 makerAmountFilled;
+        uint256 takerAmountFilled;
+        uint256 fee;
+        bytes32 builder;
+    }
+
     /// @notice Gets the status of an order
     /// @param orderHash    - The hash of the order
     function getOrderStatus(bytes32 orderHash) public view returns (OrderStatus memory) {
@@ -84,11 +97,19 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         // Settle the taker order
         _settleTakerOrder(takerOrder.side, taking, takerOrder.maker, makerAssetId, takerAssetId, takerFeeAmount);
 
-        emit OrderFilled(
-            orderHash, takerOrder.maker, address(this), makerAssetId, takerAssetId, making, taking, takerFeeAmount
-        );
+        OrderFilledParams memory params = OrderFilledParams({
+            orderHash: orderHash,
+            maker: takerOrder.maker,
+            taker: address(this),
+            makerAssetId: makerAssetId,
+            takerAssetId: takerAssetId,
+            makerAmountFilled: making,
+            takerAmountFilled: taking,
+            fee: takerFeeAmount,
+            builder: takerOrder.builder
+        });
 
-        emit OrdersMatched(orderHash, takerOrder.maker, makerAssetId, takerAssetId, making, taking);
+        _emitTakerFilledEvents(params);
     }
 
     /// @notice Settles a Taker order
@@ -131,11 +152,8 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     ) internal {
         uint256 length = makerOrders.length;
         uint256 i = 0;
-        for (; i < length;) {
+        for (; i < length; ++i) {
             _settleMakerOrder(takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i]);
-            unchecked {
-                ++i;
-            }
         }
     }
 
@@ -161,9 +179,19 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
             making, taking, makerOrder.maker, makerAssetId, takerAssetId, makerOrder.side, matchType, feeAmount
         );
 
-        emit OrderFilled(
-            orderHash, makerOrder.maker, takerOrder.maker, makerAssetId, takerAssetId, making, taking, feeAmount
-        );
+        OrderFilledParams memory params = OrderFilledParams({
+            orderHash: orderHash,
+            maker: makerOrder.maker,
+            taker: takerOrder.maker,
+            makerAssetId: makerAssetId,
+            takerAssetId: takerAssetId,
+            makerAmountFilled: making,
+            takerAmountFilled: taking,
+            fee: feeAmount,
+            builder: makerOrder.builder
+        });
+
+        _emitOrderFilledEvent(params);
     }
 
     /// @notice Settle a maker order using the Exchange as the counterparty
@@ -209,6 +237,33 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
 
         // Charge the fee, if any
         _chargeFee(feePayer, feeAmount);
+    }
+
+    function _emitTakerFilledEvents(OrderFilledParams memory params) internal {
+        _emitOrderFilledEvent(params);
+
+        emit OrdersMatched(
+            params.orderHash,
+            params.maker,
+            params.makerAssetId,
+            params.takerAssetId,
+            params.makerAmountFilled,
+            params.takerAmountFilled
+        );
+    }
+
+    function _emitOrderFilledEvent(OrderFilledParams memory params) internal {
+        emit OrderFilled(
+            params.orderHash,
+            params.maker,
+            params.taker,
+            params.makerAssetId,
+            params.takerAssetId,
+            params.makerAmountFilled,
+            params.takerAmountFilled,
+            params.fee,
+            params.builder
+        );
     }
 
     /// @notice Performs common order computations and validation

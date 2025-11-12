@@ -18,11 +18,14 @@ interface ITradingEE {
         bytes32 indexed orderHash,
         address indexed maker,
         address indexed taker,
+        // uint8 side,
+        // uint256 tokenId,
         uint256 makerAssetId,
         uint256 takerAssetId,
         uint256 makerAmountFilled,
         uint256 takerAmountFilled,
-        uint256 fee
+        uint256 fee,
+        bytes32 builder
     );
 
     /// @notice Emitted when a set of orders is matched
