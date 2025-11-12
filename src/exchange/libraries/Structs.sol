@@ -35,7 +35,7 @@ struct Order {
     uint256 makerAmount;
     /// @notice Taker amount, i.e the minimum amount of tokens to be received
     uint256 takerAmount;
-    /// @notice Timestamp after which the order is expired
+    /// @notice Unix timestamp in seconds after which the order is expired
     uint256 expiration;
     /// @notice The maximum fee that can be charged to the order
     uint256 maxFee;
@@ -43,7 +43,7 @@ struct Order {
     Side side;
     /// @notice Signature type used by the Order: EOA, POLY_PROXY, POLY_GNOSIS_SAFE or POLY_1271
     SignatureType signatureType;
-    /// @notice Timestamp at which the order was created
+    /// @notice Unix Timestamp in seconds at which the order was created
     uint256 timestamp;
     /// @notice The metadata associated with the order, hashed
     bytes32 metadata;
