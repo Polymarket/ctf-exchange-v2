@@ -82,14 +82,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         taking = _updateTakingWithSurplus(taking, takerAssetId);
 
         // Settle the taker order
-        _settleTakerOrder(
-            takerOrder.side,
-            taking,
-            takerOrder.maker,
-            makerAssetId,
-            takerAssetId,
-            takerFeeAmount
-        );
+        _settleTakerOrder(takerOrder.side, taking, takerOrder.maker, makerAssetId, takerAssetId, takerFeeAmount);
 
         emit OrderFilled(
             orderHash, takerOrder.maker, address(this), makerAssetId, takerAssetId, making, taking, takerFeeAmount
