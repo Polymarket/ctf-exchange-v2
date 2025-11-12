@@ -165,6 +165,7 @@ contract BaseExchangeTest is
             side: side,
             timestamp: 0,
             metadata: bytes32(0),
+            builder: bytes32(0),
             signature: new bytes(0)
         });
         return order;
