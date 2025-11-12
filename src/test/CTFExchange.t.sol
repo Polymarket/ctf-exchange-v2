@@ -146,7 +146,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(order);
     }
 
-    function test_ValidateOrder_InvalidSig() public {
+    function test_ValidateOrder_revert_InvalidSig() public {
         Order memory order = _createOrder(bob, yes, 50_000_000, 100_000_000, Side.BUY);
 
         // Incorrect signature(note: signed by carla)
@@ -155,14 +155,14 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(order);
     }
 
-    function test_ValidateOrder_InvalidSigLength() public {
+    function test_ValidateOrder_revert_InvalidSigLength() public {
         Order memory order = _createOrder(bob, yes, 50_000_000, 100_000_000, Side.BUY);
         order.signature = hex"";
         vm.expectRevert("ECDSA: invalid signature length");
         exchange.validateOrder(order);
     }
 
-    function test_ValidateOrder_InvalidSignerMaker() public {
+    function test_ValidateOrder_revert_InvalidSignerMaker() public {
         Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
         // For EOA signature type, signer and maker MUST be the same
         order.maker = carla;
@@ -173,7 +173,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(order);
     }
 
-    function test_ValidateOrder_InvalidExpiration() public {
+    function test_ValidateOrder_revert_InvalidExpiration() public {
         Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
         vm.warp(block.timestamp + 1000);
         order.expiration = 50;
@@ -181,7 +181,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(order);
     }
 
-    function test_ValidateOrder_DuplicateOrder() public {
+    function test_ValidateOrder_revert_DuplicateOrder() public {
         uint256 usdcAmount = 50_000_000;
         uint256 tokenAmount = 100_000_000;
 
@@ -251,7 +251,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(order);
     }
 
-    function test_ValidateOrderFee_MaxFeeExceeded() public {
+    function test_ValidateOrderFee_revert_MaxFeeExceeded() public {
         uint256 maxFee = 5_000_000; // max fee of 5 USDC
         vm.expectRevert(MaxFeeExceeded.selector);
         exchange.validateOrderFee(maxFee, 10_000_000); // operator fee of 10 USDC

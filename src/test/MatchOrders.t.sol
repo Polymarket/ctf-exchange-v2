@@ -459,7 +459,7 @@ contract MatchOrdersTest is BaseExchangeTest {
     //                            FAIL CASES
     // //////////////////////////////////////////////////////////////*/
 
-    function test_MatchOrders_NotCrossingSells() public {
+    function test_MatchOrders_revert_NotCrossingSells() public {
         // Deals
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), no, 100_000_000);
@@ -487,7 +487,7 @@ contract MatchOrdersTest is BaseExchangeTest {
         exchange.matchOrders(yesSell, makerOrders, takerOrderFillAmount, fillAmounts, 0, makerFeeAmounts);
     }
 
-    function test_MatchOrders_NotCrossingBuys() public {
+    function test_MatchOrders_revert_NotCrossingBuys() public {
         // Deals
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealUsdcAndApprove(carla, address(exchange), 40_000_000);
@@ -515,7 +515,7 @@ contract MatchOrdersTest is BaseExchangeTest {
         exchange.matchOrders(yesBuy, makerOrders, takerOrderFillAmount, fillAmounts, 0, makerFeeAmounts);
     }
 
-    function test_MatchOrders_NotCrossingBuyVsSell() public {
+    function test_MatchOrders_revert_NotCrossingBuyVsSell() public {
         // Deals
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
@@ -542,7 +542,7 @@ contract MatchOrdersTest is BaseExchangeTest {
         exchange.matchOrders(buy, makerOrders, takerOrderFillAmount, fillAmounts, 0, makerFeeAmounts);
     }
 
-    function test_MatchOrders_InvalidTrade() public {
+    function test_MatchOrders_revert_InvalidTrade() public {
         // Deals
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), no, 100_000_000);
@@ -629,7 +629,7 @@ contract MatchOrdersTest is BaseExchangeTest {
         exchange.matchOrders(buy, makerOrders, takerOrderFillAmount, fillAmounts, 0, makerFeeAmounts);
     }
 
-    function test_MatchOrders_InvalidFillAmount() public {
+    function test_MatchOrders_revert_InvalidFillAmount() public {
         // Deals
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 1_000_000_000);
