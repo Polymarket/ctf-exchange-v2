@@ -108,7 +108,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
 
         uint256 proceeds = takingAmount;
         if (side == Side.SELL) {
-            if (feeAmount >= takingAmount) revert FeeExceedsProceeds();
+            if (feeAmount > takingAmount) revert FeeExceedsProceeds();
             proceeds = takingAmount - feeAmount;
         }
 
@@ -200,7 +200,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
 
         uint256 proceeds = takingAmount;
         if (side == Side.SELL) {
-            if (feeAmount >= takingAmount) revert FeeExceedsProceeds();
+            if (feeAmount > takingAmount) revert FeeExceedsProceeds();
             proceeds = takingAmount - feeAmount;
         }
 
@@ -310,8 +310,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         // Charge fee to the payer if any
         if (fee > 0) {
             address receiver = getFeeReceiver();
-            uint256 tokenId = 0; // Collateral tokenId is always 0
-            _transfer(payer, receiver, tokenId, fee);
+            _transfer(payer, receiver, 0, fee);
             emit FeeCharged(receiver, fee);
         }
     }

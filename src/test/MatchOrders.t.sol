@@ -459,6 +459,70 @@ contract MatchOrdersTest is BaseExchangeTest {
     //                            FAIL CASES
     // //////////////////////////////////////////////////////////////*/
 
+    function test_MatchOrders_revert_FeeExceedsProceeds() public {
+        // Deals
+        dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
+        dealUsdcAndApprove(carla, address(exchange), 50_000_000);
+
+        // Initialize a YES SELL taker order, selling 100 YES at 50c with a 100 USDC max fee
+        // an absurdly high max fee
+        uint256 takerMaxFeeAmount = 100_000_000;
+        Order memory takerOrder =
+            _createAndSignOrderWithFee(bobPK, yes, 100_000_000, 50_000_000, takerMaxFeeAmount, Side.SELL);
+
+        // Initialiaze a YES BUY order at 50c
+        Order memory makerOrder = _createAndSignOrderWithFee(carlaPK, yes, 50_000_000, 100_000_000, 0, Side.BUY);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 50_000_000;
+
+        uint256 takerFillAmount = 100_000_000;
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        // The operator levys an absurdly high taker fee of 60 USDC that exceeds the proceeds from the trade
+        uint256 takerFeeAmount = 60_000_000;
+
+        vm.expectRevert(FeeExceedsProceeds.selector);
+        // Match the orders
+        vm.prank(admin);
+        exchange.matchOrders(takerOrder, makerOrders, takerFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts);
+    }
+
+    function test_MatchOrders_revert_MaxFeeExceeded() public {
+        // Deals
+        dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
+        dealUsdcAndApprove(carla, address(exchange), 50_000_000);
+
+        // Initialize a YES SELL taker order, selling 100 YES at 50c with a 5 USDC max fee
+        // an absurdly high max fee
+        uint256 takerMaxFeeAmount = 5_000_000;
+        Order memory takerOrder =
+            _createAndSignOrderWithFee(bobPK, yes, 100_000_000, 50_000_000, takerMaxFeeAmount, Side.SELL);
+
+        // Initialiaze a YES BUY order at 50c
+        Order memory makerOrder = _createAndSignOrderWithFee(carlaPK, yes, 50_000_000, 100_000_000, 0, Side.BUY);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 50_000_000;
+
+        uint256 takerFillAmount = 100_000_000;
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        // The operator levys an absurdly high taker fee of 60 USDC that exceeds the taker's max fee
+        uint256 takerFeeAmount = 60_000_000;
+
+        vm.expectRevert(MaxFeeExceeded.selector);
+        // Match the orders
+        vm.prank(admin);
+        exchange.matchOrders(takerOrder, makerOrders, takerFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts);
+    }
+
     function test_MatchOrders_revert_NotCrossingSells() public {
         // Deals
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
