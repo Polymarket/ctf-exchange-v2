@@ -14,7 +14,7 @@ import { AssetOperations } from "./mixins/AssetOperations.sol";
 
 import { BaseExchange } from "./BaseExchange.sol";
 
-import { Order } from "./libraries/Structs.sol";
+import { ExchangeInitParams, Order } from "./libraries/Structs.sol";
 
 /// @title CTF Exchange
 /// @notice Implements logic for trading CTF assets
@@ -32,9 +32,10 @@ contract CTFExchange is
     UserPausable,
     Trading
 {
-    constructor(address _collateral, address _ctf, address _proxyFactory, address _safeFactory)
-        Assets(_collateral, _ctf)
-        Signatures(_proxyFactory, _safeFactory)
+    constructor(ExchangeInitParams memory params)
+        Assets(params.collateral, params.ctf)
+        Signatures(params.proxyFactory, params.safeFactory)
+        Fees(params.feeReceiver)
     { }
 
     /*//////////////////////////////////////////////////////////////
@@ -103,5 +104,9 @@ contract CTFExchange is
     /// @param _interval - The new user pause block interval
     function setUserPauseBlockInterval(uint256 _interval) external onlyAdmin {
         _setUserPauseBlockInterval(_interval);
+    }
+
+    function setFeeReceiver(address receiver) external onlyAdmin {
+        _setFeeReceiver(receiver);
     }
 }

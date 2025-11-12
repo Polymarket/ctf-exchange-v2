@@ -1,6 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
+struct ExchangeInitParams {
+    /// @notice The collateral token address
+    address collateral;
+    /// @notice The Conditional Tokens Framework address
+    address ctf;
+    /// @notice The Polymarket proxy factory address
+    address proxyFactory;
+    /// @notice The Polymarket Gnosis Safe factory address
+    address safeFactory;
+    /// @notice The address which will receive fees
+    address feeReceiver;
+}
+
 bytes32 constant ORDER_TYPEHASH = keccak256(
     "Order(uint256 salt,address maker,address signer,address taker,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint256 expiration,uint256 maxFee,uint8 side,uint8 signatureType)"
 );

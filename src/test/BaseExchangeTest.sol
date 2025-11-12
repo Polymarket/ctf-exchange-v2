@@ -22,7 +22,7 @@ import { IUserPausableEE } from "src/exchange/interfaces/IUserPausable.sol";
 import { IConditionalTokens } from "src/exchange/interfaces/IConditionalTokens.sol";
 
 import { CalculatorHelper } from "src/exchange/libraries/CalculatorHelper.sol";
-import { Order, Side, SignatureType } from "src/exchange/libraries/Structs.sol";
+import { ExchangeInitParams, Order, Side, SignatureType } from "src/exchange/libraries/Structs.sol";
 
 contract BaseExchangeTest is
     TestHelper,
@@ -50,6 +50,7 @@ contract BaseExchangeTest is
     uint256 internal carlaPK = 0xCA414;
     address public bob;
     address public carla;
+    address public feeReceiver = address(9);
 
     ERC1271Mock public contractWallet;
 
@@ -62,10 +63,12 @@ contract BaseExchangeTest is
     );
 
     function setUp() public virtual {
+        vm.label(admin, "admin");
         bob = vm.addr(bobPK);
         vm.label(bob, "bob");
         carla = vm.addr(carlaPK);
         vm.label(carla, "carla");
+        vm.label(feeReceiver, "feeReceiver");
 
         usdc = new USDC();
         vm.label(address(usdc), "USDC");
@@ -80,7 +83,15 @@ contract BaseExchangeTest is
         contractWallet = new ERC1271Mock(carla);
 
         vm.startPrank(admin);
-        exchange = new CTFExchange(address(usdc), address(ctf), address(0), address(0));
+        ExchangeInitParams memory p = ExchangeInitParams({
+            collateral: address(usdc),
+            ctf: address(ctf),
+            proxyFactory: address(0),
+            safeFactory: address(0),
+            feeReceiver: feeReceiver
+        });
+
+        exchange = new CTFExchange(p);
         exchange.registerToken(yes, no, conditionId);
         exchange.addOperator(bob);
         exchange.addOperator(carla);
@@ -162,20 +173,27 @@ contract BaseExchangeTest is
         sig = abi.encodePacked(r, s, v);
     }
 
-    function _mintTestTokens(address to, address spender, uint256 amount) internal {
+    function dealUsdcAndApprove(address to, address spender, uint256 amount) internal {
+        vm.startPrank(to);
+        dealAndApprove(address(usdc), to, spender, amount);
+        vm.stopPrank();
+    }
+
+    function dealOutcomeTokensAndApprove(address to, address spender, uint256 tokenId, uint256 amount) internal {
+        vm.startPrank(admin);
+        approve(address(usdc), address(ctf), type(uint256).max);
+        deal(address(usdc), admin, amount);
+
         uint256[] memory partition = new uint256[](2);
         partition[0] = 1;
         partition[1] = 2;
 
-        vm.startPrank(to);
-        approve(address(usdc), address(ctf), type(uint256).max);
-
-        dealAndApprove(address(usdc), to, spender, amount);
-        IERC1155(address(ctf)).setApprovalForAll(spender, true);
-
-        uint256 splitAmount = amount / 2;
-        IConditionalTokens(ctf).splitPosition(address(usdc), bytes32(0), conditionId, partition, splitAmount);
+        IConditionalTokens(ctf).splitPosition(address(usdc), bytes32(0), conditionId, partition, amount);
+        IERC1155(address(ctf)).safeTransferFrom(admin, to, tokenId, amount, "");
         vm.stopPrank();
+
+        vm.prank(to);
+        IERC1155(address(ctf)).setApprovalForAll(spender, true);
     }
 
     function assertCollateralBalance(address _who, uint256 _amount) public {

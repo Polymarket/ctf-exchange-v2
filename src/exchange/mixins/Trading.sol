@@ -87,7 +87,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @notice Fills a Taker buy order
     /// @dev Fees are charged in collateral, with the collateral fee being pulled from the order maker
     /// @dev Transfer proceeds, Outcome tokens, from Exchange to maker
-    /// @dev Transfer fees in Collateral from the maker to the Operator
+    /// @dev Transfer fees in Collateral from the maker to the fee receiver
     function _fillTakerBuy(
         bytes32 orderHash,
         uint256 makingAmount,
@@ -100,8 +100,8 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         // Transfer order proceeds from the Exchange to the taker order maker
         _transfer(address(this), maker, takerAssetId, takingAmount);
 
-        // Transfer the fee from the order maker to the operator, if any
-        _chargeFee(maker, msg.sender, takerAssetId, feeAmount);
+        // Charge the fee to the order maker, transferring the fee from the maker to the fee receiver
+        _chargeFee(maker, feeAmount);
 
         // Refund any leftover tokens pulled from the taker to the taker order
         uint256 refund = _getBalance(makerAssetId);
@@ -117,7 +117,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @notice Fills a Taker sell order
     /// @dev Transfer Outcome tokens from maker to Exchange
     /// @dev Transfer Collateral from Exchange to maker minus fees
-    /// @dev Transfer fees in Collateral from Exchange to Operator
+    /// @dev Transfer fees in Collateral from Exchange to fee receiver
     function _fillTakerSell(
         bytes32 orderHash,
         uint256 makingAmount,
@@ -130,8 +130,8 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         // Transfer order proceeds from the Exchange to the taker order maker
         _transfer(address(this), maker, takerAssetId, takingAmount - feeAmount);
 
-        // Charge the fee to taker order maker, transferring the fee from the Exchange to the Operator
-        _chargeFee(address(this), msg.sender, takerAssetId, feeAmount);
+        // Charge the fee to taker order maker, transferring the fee from the Exchange to the fee receiver
+        _chargeFee(address(this), feeAmount);
 
         // Refund any leftover tokens pulled from the taker to the taker order
         uint256 refund = _getBalance(makerAssetId);
@@ -251,7 +251,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @dev Fees are charged in collateral, as the collateral fee is pulled from the order maker
     /// @dev Transfer Collateral from order maker to Exchange
     /// @dev Transfer Outcome tokens from Exchange to order maker
-    /// @dev Transfer fees in Collateral from the order maker to the Operator
+    /// @dev Transfer fees in Collateral from the order maker to the fee receiver
     function _fillMakerBuyFacingExchange(
         uint256 makingAmount,
         uint256 takingAmount,
@@ -259,7 +259,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         uint256 makerAssetId,
         uint256 takerAssetId,
         MatchType matchType,
-        uint256 fee
+        uint256 feeAmount
     ) internal {
         // Transfer makingAmount tokens, collateral, from order maker to Exchange
         _transfer(maker, address(this), makerAssetId, makingAmount);
@@ -273,15 +273,15 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         // Transfer order proceeds, Outcome Tokens, from the Exchange to the order maker
         _transfer(address(this), maker, takerAssetId, takingAmount);
 
-        // Transfer fees from the order maker to the Operator
-        _chargeFee(maker, msg.sender, takerAssetId, fee);
+        // Charge the fee to the order maker, transferring the fee from the maker to the fee receiver
+        _chargeFee(maker, feeAmount);
     }
 
     /// @notice Fills a maker sell order using the Exchange as the counterparty
     /// @dev Fees are charged in collateral, as fee is deducted from proceeds
     /// @dev Transfer Outcome tokens from order maker to Exchange
     /// @dev Transfer Collateral from Exchange to order maker minus fees
-    /// @dev Transfer fees in Collateral from Exchange to Operator
+    /// @dev Transfer fees in Collateral from Exchange to fee receiver
     function _fillMakerSellFacingExchange(
         uint256 makingAmount,
         uint256 takingAmount,
@@ -289,7 +289,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         uint256 makerAssetId,
         uint256 takerAssetId,
         MatchType matchType,
-        uint256 fee
+        uint256 feeAmount
     ) internal {
         // Transfer makingAmount, Outcome Tokens, tokens from order maker to Exchange
         _transfer(maker, address(this), makerAssetId, makingAmount);
@@ -301,10 +301,10 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         if (_getBalance(takerAssetId) < takingAmount) revert TooLittleTokensReceived();
 
         // Transfer order proceeds, Collateral, minus fees from the Exchange to the order maker
-        _transfer(address(this), maker, takerAssetId, takingAmount - fee);
+        _transfer(address(this), maker, takerAssetId, takingAmount - feeAmount);
 
-        // Transfer fees from Exchange to the Operator
-        _chargeFee(address(this), msg.sender, takerAssetId, fee);
+        // Charge the fee to the order maker, transferring the fee from the Exchange to the fee receiver
+        _chargeFee(address(this), feeAmount);
     }
 
     function _deriveMatchType(Order memory takerOrder, Order memory makerOrder) internal pure returns (MatchType) {
@@ -371,11 +371,13 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         if (taker != address(0) && taker != msg.sender) revert NotTaker();
     }
 
-    function _chargeFee(address payer, address receiver, uint256 tokenId, uint256 fee) internal {
+    function _chargeFee(address payer, uint256 fee) internal {
         // Charge fee to the payer if any
         if (fee > 0) {
+            address receiver = getFeeReceiver();
+            uint256 tokenId = 0; // Collateral tokenId is always 0
             _transfer(payer, receiver, tokenId, fee);
-            emit FeeCharged(receiver, tokenId, fee);
+            emit FeeCharged(receiver, fee);
         }
     }
 
