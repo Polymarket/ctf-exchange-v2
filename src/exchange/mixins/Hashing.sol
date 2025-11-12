@@ -29,7 +29,7 @@ abstract contract Hashing is EIP712, IHashing {
                     order.makerAmount,
                     order.takerAmount,
                     order.expiration,
-                    order.feeRateBps,
+                    order.maxFee,
                     order.side,
                     order.signatureType
                 )

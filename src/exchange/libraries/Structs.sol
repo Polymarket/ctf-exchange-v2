@@ -1,8 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
+struct ExchangeInitParams {
+    /// @notice The collateral token address
+    address collateral;
+    /// @notice The Conditional Tokens Framework address
+    address ctf;
+    /// @notice The Polymarket proxy factory address
+    address proxyFactory;
+    /// @notice The Polymarket Gnosis Safe factory address
+    address safeFactory;
+    /// @notice The address which will receive fees
+    address feeReceiver;
+}
+
 bytes32 constant ORDER_TYPEHASH = keccak256(
-    "Order(uint256 salt,address maker,address signer,address taker,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint256 expiration,uint256 feeRateBps,uint8 side,uint8 signatureType)"
+    "Order(uint256 salt,address maker,address signer,address taker,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint256 expiration,uint256 maxFee,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata)"
 );
 
 struct Order {
@@ -22,14 +35,18 @@ struct Order {
     uint256 makerAmount;
     /// @notice Taker amount, i.e the minimum amount of tokens to be received
     uint256 takerAmount;
-    /// @notice Timestamp after which the order is expired
+    /// @notice Unix timestamp in seconds after which the order is expired
     uint256 expiration;
-    /// @notice Fee rate, in basis points, charged to the order maker, charged on proceeds
-    uint256 feeRateBps;
+    /// @notice The maximum fee that can be charged to the order
+    uint256 maxFee;
     /// @notice The side of the order: BUY or SELL
     Side side;
     /// @notice Signature type used by the Order: EOA, POLY_PROXY, POLY_GNOSIS_SAFE or POLY_1271
     SignatureType signatureType;
+    /// @notice Unix Timestamp in seconds at which the order was created
+    uint256 timestamp;
+    /// @notice The metadata associated with the order, hashed
+    bytes32 metadata;
     /// @notice The order signature
     bytes signature;
 }

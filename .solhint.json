@@ -2,6 +2,9 @@
   "rules": {
     "private-vars-leading-underscore": "off",
     "const-name-snakecase": "off",
-    "func-name-mixedcase": "off"
+    "func-name-mixedcase": "off",
+    "mixed-case-functions": "off",
+    "screaming-snake-case-const": "off",
+    "mixed-case-variable": "off"
   }
 }
