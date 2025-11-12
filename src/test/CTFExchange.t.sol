@@ -146,7 +146,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(order);
     }
 
-    function test_ValidateInvalidSig() public {
+    function test_ValidateOrder_InvalidSig() public {
         Order memory order = _createOrder(bob, yes, 50_000_000, 100_000_000, Side.BUY);
 
         // Incorrect signature(note: signed by carla)
@@ -155,14 +155,14 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(order);
     }
 
-    function test_ValidateInvalidSigLength() public {
+    function test_ValidateOrder_InvalidSigLength() public {
         Order memory order = _createOrder(bob, yes, 50_000_000, 100_000_000, Side.BUY);
         order.signature = hex"";
         vm.expectRevert("ECDSA: invalid signature length");
         exchange.validateOrder(order);
     }
 
-    function test_ValidateInvalidSignerMaker() public {
+    function test_ValidateOrder_InvalidSignerMaker() public {
         Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
         // For EOA signature type, signer and maker MUST be the same
         order.maker = carla;
@@ -173,7 +173,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(order);
     }
 
-    function test_ValidateInvalidExpiration() public {
+    function test_ValidateOrder_InvalidExpiration() public {
         Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
         vm.warp(block.timestamp + 1000);
         order.expiration = 50;
@@ -181,7 +181,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(order);
     }
 
-    function test_ValidateDuplicateOrder() public {
+    function test_ValidateOrder_DuplicateOrder() public {
         uint256 usdcAmount = 50_000_000;
         uint256 tokenAmount = 100_000_000;
 
@@ -208,7 +208,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(takerOrder);
     }
 
-    function test_ValidateUserPaused() public {
+    function test_ValidateOrder_UserPaused() public {
         Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
         uint256 blockInterval = exchange.userPauseBlockInterval();

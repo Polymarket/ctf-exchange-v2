@@ -11,6 +11,7 @@ interface ITradingEE {
     error NotCrossing();
     error TooLittleTokensReceived();
     error MismatchedTokenIds();
+    error FeeExceedsProceeds();
 
     /// @notice Emitted when an order is filled
     event OrderFilled(
