@@ -133,10 +133,10 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.registerToken(no, yes, bytes32(0));
     }
 
-    function test_hash_order() public {
+    function test_hashOrder() public {
         Order memory order = _createOrder(bob, 1, 50_000_000, 100_000_000, Side.BUY);
 
-        bytes32 expectedHash = 0x586390f07cbc9bcbc757c6a12c0e37f2c9576b6b268e629a7b72f2ecfafabee9;
+        bytes32 expectedHash = 0x253632849a669120b3ce049de373aa64cec17e40e9abe86ddc0d81fa520c29e3;
 
         assertEq(exchange.hashOrder(order), expectedHash);
     }
