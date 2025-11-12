@@ -163,6 +163,8 @@ contract BaseExchangeTest is
             maxFee: 0,
             signatureType: SignatureType.EOA,
             side: side,
+            timestamp: 0,
+            metadata: bytes32(0),
             signature: new bytes(0)
         });
         return order;
