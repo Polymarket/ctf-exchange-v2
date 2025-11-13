@@ -23,8 +23,8 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         bytes32 orderHash;
         address maker;
         address taker;
-        uint256 makerAssetId;
-        uint256 takerAssetId;
+        Side side;
+        uint256 tokenId;
         uint256 makerAmountFilled;
         uint256 takerAmountFilled;
         uint256 fee;
@@ -101,8 +101,8 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
             orderHash: orderHash,
             maker: takerOrder.maker,
             taker: address(this),
-            makerAssetId: makerAssetId,
-            takerAssetId: takerAssetId,
+            side: takerOrder.side,
+            tokenId: takerOrder.tokenId,
             makerAmountFilled: making,
             takerAmountFilled: taking,
             fee: takerFeeAmount,
@@ -183,8 +183,8 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
             orderHash: orderHash,
             maker: makerOrder.maker,
             taker: takerOrder.maker,
-            makerAssetId: makerAssetId,
-            takerAssetId: takerAssetId,
+            side: makerOrder.side,
+            tokenId: makerOrder.tokenId,
             makerAmountFilled: making,
             takerAmountFilled: taking,
             fee: feeAmount,
@@ -245,8 +245,8 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         emit OrdersMatched(
             params.orderHash,
             params.maker,
-            params.makerAssetId,
-            params.takerAssetId,
+            params.side,
+            params.tokenId,
             params.makerAmountFilled,
             params.takerAmountFilled
         );
@@ -257,8 +257,8 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
             params.orderHash,
             params.maker,
             params.taker,
-            params.makerAssetId,
-            params.takerAssetId,
+            params.side,
+            params.tokenId,
             params.makerAmountFilled,
             params.takerAmountFilled,
             params.fee,

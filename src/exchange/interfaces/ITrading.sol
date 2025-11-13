@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { OrderStatus, Order } from "../libraries/Structs.sol";
+import { OrderStatus, Order, Side } from "../libraries/Structs.sol";
 
 interface ITradingEE {
     error NotTaker();
@@ -18,10 +18,8 @@ interface ITradingEE {
         bytes32 indexed orderHash,
         address indexed maker,
         address indexed taker,
-        // uint8 side,
-        // uint256 tokenId,
-        uint256 makerAssetId,
-        uint256 takerAssetId,
+        Side side,
+        uint256 tokenId,
         uint256 makerAmountFilled,
         uint256 takerAmountFilled,
         uint256 fee,
@@ -32,8 +30,8 @@ interface ITradingEE {
     event OrdersMatched(
         bytes32 indexed takerOrderHash,
         address indexed takerOrderMaker,
-        uint256 makerAssetId,
-        uint256 takerAssetId,
+        Side side,
+        uint256 tokenId,
         uint256 makerAmountFilled,
         uint256 takerAmountFilled
     );
