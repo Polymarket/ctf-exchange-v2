@@ -15,7 +15,7 @@ struct ExchangeInitParams {
 }
 
 bytes32 constant ORDER_TYPEHASH = keccak256(
-    "Order(uint256 salt,address maker,address signer,address taker,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint256 expiration,uint256 maxFee,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata)"
+    "Order(uint256 salt,address maker,address signer,address taker,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint256 expiration,uint256 maxFee,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)"
 );
 
 struct Order {
@@ -47,8 +47,29 @@ struct Order {
     uint256 timestamp;
     /// @notice The metadata associated with the order, hashed
     bytes32 metadata;
+    /// @notice The builder code associated with the order, indicating its origin
+    bytes32 builder;
     /// @notice The order signature
     bytes signature;
+}
+
+/// @notice Represents an order without a signature
+/// Used for order hashing to avoid stack-too-deep errors
+struct UnsignedOrder {
+    uint256 salt;
+    address maker;
+    address signer;
+    address taker;
+    uint256 tokenId;
+    uint256 makerAmount;
+    uint256 takerAmount;
+    uint256 expiration;
+    uint256 maxFee;
+    Side side;
+    SignatureType signatureType;
+    uint256 timestamp;
+    bytes32 metadata;
+    bytes32 builder;
 }
 
 enum SignatureType {

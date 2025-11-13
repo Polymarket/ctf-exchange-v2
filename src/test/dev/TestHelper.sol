@@ -2,7 +2,8 @@
 pragma solidity 0.8.30;
 
 import { Test } from "lib/forge-std/src/Test.sol";
-import { ERC20 } from "./token/ERC20.sol";
+
+import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
 
 abstract contract TestHelper is Test {
     mapping(address => mapping(address => uint256)) private balanceCheckpoints;
@@ -37,7 +38,7 @@ abstract contract TestHelper is Test {
         return address(uint160(uint256(keccak256(_digest))));
     }
 
-    function assertBalance(address _token, address _who, uint256 _amount) internal {
+    function assertBalance(address _token, address _who, uint256 _amount) internal view {
         assertEq(ERC20(_token).balanceOf(_who), balanceCheckpoints[_token][_who] + _amount);
     }
 
