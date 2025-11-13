@@ -5,7 +5,7 @@ import { BaseExchangeTest } from "./BaseExchangeTest.sol";
 import { Order, Side, SignatureType } from "src/exchange/libraries/Structs.sol";
 
 contract ERC1271SignatureTest is BaseExchangeTest {
-    function test_validate1271Signature() public {
+    function test_validate1271Signature() public view {
         Order memory order =
             _createAndSign1271Order(carlaPK, address(contractWallet), yes, 50_000_000, 100_000_000, Side.BUY);
         exchange.validateOrderSignature(exchange.hashOrder(order), order);

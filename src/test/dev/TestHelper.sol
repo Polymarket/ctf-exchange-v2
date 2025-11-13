@@ -38,7 +38,7 @@ abstract contract TestHelper is Test {
         return address(uint160(uint256(keccak256(_digest))));
     }
 
-    function assertBalance(address _token, address _who, uint256 _amount) internal {
+    function assertBalance(address _token, address _who, uint256 _amount) internal view {
         assertEq(ERC20(_token).balanceOf(_who), balanceCheckpoints[_token][_who] + _amount);
     }
 
