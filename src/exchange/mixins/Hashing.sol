@@ -1,23 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { EIP712 } from "lib/openzeppelin-contracts/contracts/utils/cryptography/draft-EIP712.sol";
+import { EIP712 } from "lib/solady/src/utils/EIP712.sol";
 
 import { IHashing } from "../interfaces/IHashing.sol";
 
 import { Order, ORDER_TYPEHASH } from "../libraries/Structs.sol";
 
 abstract contract Hashing is EIP712, IHashing {
-    bytes32 public immutable domainSeparator;
+    string internal constant domainName = "Polymarket CTF Exchange";
+    string internal constant domainVersion = "2";
 
-    constructor(string memory name, string memory version) EIP712(name, version) {
-        domainSeparator = _domainSeparatorV4();
+    constructor() EIP712() { }
+
+    function _domainNameAndVersion() internal pure override returns (string memory name, string memory version) {
+        return (domainName, domainVersion);
     }
 
     /// @notice Computes the hash for an order
     /// @param order - The order to be hashed
     function hashOrder(Order memory order) public view override returns (bytes32) {
-        return _hashTypedDataV4(
+        return _hashTypedData(
             keccak256(
                 abi.encode(
                     ORDER_TYPEHASH,

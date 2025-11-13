@@ -158,7 +158,7 @@ contract CTFExchangeTest is BaseExchangeTest {
     function test_ValidateOrder_revert_InvalidSigLength() public {
         Order memory order = _createOrder(bob, yes, 50_000_000, 100_000_000, Side.BUY);
         order.signature = hex"";
-        vm.expectRevert("ECDSA: invalid signature length");
+        vm.expectRevert(InvalidSignature.selector);
         exchange.validateOrder(order);
     }
 

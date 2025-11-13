@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
+import { ECDSA } from "lib/solady/src/utils/ECDSA.sol";
 import { SignatureCheckerLib } from "lib/solady/src/utils/SignatureCheckerLib.sol";
-import { ECDSA } from "lib/openzeppelin-contracts/contracts/utils/cryptography/ECDSA.sol";
 
 import { SignatureType, Order } from "../libraries/Structs.sol";
 
@@ -66,7 +66,7 @@ abstract contract Signatures is ISignatures, PolyFactoryHelper {
     /// @param signature   - The signature to be verified
     function verifyEOASignature(address signer, address maker, bytes32 structHash, bytes memory signature)
         internal
-        pure
+        view
         returns (bool)
     {
         return (signer == maker) && verifyECDSASignature(signer, structHash, signature);
@@ -79,7 +79,7 @@ abstract contract Signatures is ISignatures, PolyFactoryHelper {
     /// @param signature   - The signature to be verified
     function verifyECDSASignature(address signer, bytes32 structHash, bytes memory signature)
         internal
-        pure
+        view
         returns (bool)
     {
         return ECDSA.recover(structHash, signature) == signer;

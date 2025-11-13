@@ -8,7 +8,7 @@ import { ERC1271Mock } from "./dev/mocks/ERC1271Mock.sol";
 
 import { Deployer } from "./dev/util/Deployer.sol";
 
-import { IERC1155 } from "lib/openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
+import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
 
 import { CTFExchange } from "src/exchange/CTFExchange.sol";
 import { IAuthEE } from "src/exchange/interfaces/IAuth.sol";
@@ -192,11 +192,11 @@ contract BaseExchangeTest is
         partition[1] = 2;
 
         IConditionalTokens(ctf).splitPosition(address(usdc), bytes32(0), conditionId, partition, amount);
-        IERC1155(address(ctf)).safeTransferFrom(admin, to, tokenId, amount, "");
+        ERC1155(address(ctf)).safeTransferFrom(admin, to, tokenId, amount, "");
         vm.stopPrank();
 
         vm.prank(to);
-        IERC1155(address(ctf)).setApprovalForAll(spender, true);
+        ERC1155(address(ctf)).setApprovalForAll(spender, true);
     }
 
     function assertCollateralBalance(address _who, uint256 _amount) public {
@@ -216,7 +216,7 @@ contract BaseExchangeTest is
     }
 
     function getCTFBalance(address _who, uint256 _tokenId) public view returns (uint256) {
-        return IERC1155(address(ctf)).balanceOf(_who, _tokenId);
+        return ERC1155(address(ctf)).balanceOf(_who, _tokenId);
     }
 
     function assertBalance1155(address _token, address _who, uint256 _tokenId, uint256 _amount) public {
