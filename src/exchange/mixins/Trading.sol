@@ -97,6 +97,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         // Settle the taker order
         _settleTakerOrder(takerOrder.side, taking, takerOrder.maker, makerAssetId, takerAssetId, takerFeeAmount);
 
+        // necessary for stack too deep
         OrderFilledParams memory params = OrderFilledParams({
             orderHash: orderHash,
             maker: takerOrder.maker,
@@ -179,6 +180,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
             making, taking, makerOrder.maker, makerAssetId, takerAssetId, makerOrder.side, matchType, feeAmount
         );
 
+        // necessary for stack too deep
         OrderFilledParams memory params = OrderFilledParams({
             orderHash: orderHash,
             maker: makerOrder.maker,
