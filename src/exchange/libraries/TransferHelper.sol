@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
 import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
 import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 
