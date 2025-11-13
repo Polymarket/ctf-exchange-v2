@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { IERC20 } from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
 
 import { IAssets } from "../interfaces/IAssets.sol";
 
@@ -12,7 +12,7 @@ abstract contract Assets is IAssets {
     constructor(address _collateral, address _ctf) {
         collateral = _collateral;
         ctf = _ctf;
-        IERC20(collateral).approve(ctf, type(uint256).max);
+        ERC20(collateral).approve(ctf, type(uint256).max);
     }
 
     function getCollateral() public view override returns (address) {

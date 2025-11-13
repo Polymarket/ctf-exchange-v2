@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { IERC20 } from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
-import { IERC1155 } from "lib/openzeppelin-contracts/contracts/token/ERC1155/IERC1155.sol";
+import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
+import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
 
 import { IAssets } from "../interfaces/IAssets.sol";
 import { IAssetOperations } from "../interfaces/IAssetOperations.sol";
@@ -16,8 +16,8 @@ abstract contract AssetOperations is IAssetOperations, IAssets {
     bytes32 public constant parentCollectionId = bytes32(0);
 
     function _getBalance(uint256 tokenId) internal override returns (uint256) {
-        if (tokenId == 0) return IERC20(getCollateral()).balanceOf(address(this));
-        return IERC1155(getCtf()).balanceOf(address(this), tokenId);
+        if (tokenId == 0) return ERC20(getCollateral()).balanceOf(address(this));
+        return ERC1155(getCtf()).balanceOf(address(this), tokenId);
     }
 
     function _transfer(address from, address to, uint256 id, uint256 value) internal override {

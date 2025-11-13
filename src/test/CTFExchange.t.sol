@@ -5,7 +5,7 @@ import { BaseExchangeTest } from "./BaseExchangeTest.sol";
 import { Order, Side, MatchType, OrderStatus, SignatureType } from "src/exchange/libraries/Structs.sol";
 
 contract CTFExchangeTest is BaseExchangeTest {
-    function test_setup() public {
+    function test_setup() public view {
         assertTrue(exchange.isAdmin(admin));
         assertTrue(exchange.isOperator(admin));
         assertFalse(exchange.isAdmin(brian));
@@ -133,15 +133,15 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.registerToken(no, yes, bytes32(0));
     }
 
-    function test_hashOrder() public {
+    function test_hashOrder() public view {
         Order memory order = _createOrder(bob, 1, 50_000_000, 100_000_000, Side.BUY);
 
-        bytes32 expectedHash = 0xa62e78c1831e9ab2c48a34b65cb4c297feb07444ce992b2ef52a20fbef0c8824;
+        bytes32 expectedHash = _generateOrderHash(address(exchange), order);
 
         assertEq(exchange.hashOrder(order), expectedHash);
     }
 
-    function test_ValidateOrder() public {
+    function test_ValidateOrder() public view {
         Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
         exchange.validateOrder(order);
     }
@@ -158,7 +158,7 @@ contract CTFExchangeTest is BaseExchangeTest {
     function test_ValidateOrder_revert_InvalidSigLength() public {
         Order memory order = _createOrder(bob, yes, 50_000_000, 100_000_000, Side.BUY);
         order.signature = hex"";
-        vm.expectRevert("ECDSA: invalid signature length");
+        vm.expectRevert(InvalidSignature.selector);
         exchange.validateOrder(order);
     }
 

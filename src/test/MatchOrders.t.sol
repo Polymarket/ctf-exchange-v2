@@ -7,9 +7,11 @@ import { Order, Side } from "src/exchange/libraries/Structs.sol";
 
 contract MatchOrdersTest is BaseExchangeTest {
     function test_MatchOrders_Complementary() public {
+        vm.pauseGasMetering();
         // Deals
         dealUsdcAndApprove(bob, address(exchange), 60_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 150_000_000);
+        vm.resumeGasMetering();
 
         // Init a match with a yes buy against a list of yes sells
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 60_000_000, 100_000_000, Side.BUY);
@@ -30,13 +32,31 @@ contract MatchOrdersTest is BaseExchangeTest {
         // First maker order is filled completely
         vm.expectEmit(true, true, true, true);
         emit OrderFilled(
-            exchange.hashOrder(makerOrderA), carla, bob, Side.SELL, yes, 50_000_000, 25_000_000, 0, bytes32(0)
+            exchange.hashOrder(makerOrderA),
+            carla,
+            bob,
+            Side.SELL,
+            yes,
+            50_000_000,
+            25_000_000,
+            0,
+            bytes32(0),
+            bytes32(0)
         );
 
         // Second maker order is partially filled
         vm.expectEmit(true, true, true, true);
         emit OrderFilled(
-            exchange.hashOrder(makerOrderB), carla, bob, Side.SELL, yes, 70_000_000, 35_000_000, 0, bytes32(0)
+            exchange.hashOrder(makerOrderB),
+            carla,
+            bob,
+            Side.SELL,
+            yes,
+            70_000_000,
+            35_000_000,
+            0,
+            bytes32(0),
+            bytes32(0)
         );
         // The taker order is filled completely
         vm.expectEmit(true, true, true, true);
@@ -49,6 +69,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             60_000_000,
             120_000_000,
             0,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -75,10 +96,12 @@ contract MatchOrdersTest is BaseExchangeTest {
     }
 
     function test_MatchOrders_Mint() public {
+        vm.pauseGasMetering();
         // Deals
         dealUsdcAndApprove(bob, address(exchange), 60_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 50_000_000);
         dealUsdcAndApprove(carla, address(exchange), 16_000_000);
+        vm.resumeGasMetering();
 
         // Init Match with YES buy against a YES sell and a NO buy
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 60_000_000, 100_000_000, Side.BUY);
@@ -129,9 +152,11 @@ contract MatchOrdersTest is BaseExchangeTest {
 
     function test_MatchOrders_Merge() public {
         // Deals
+        vm.pauseGasMetering();
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), no, 75_000_000);
         dealUsdcAndApprove(carla, address(exchange), 24_000_000);
+        vm.resumeGasMetering();
 
         // Init Match with YES sell against a NO sell and a Yes buy
         // To match the YES sell with the NO sell, CTF Exchange will MERGE Outcome tokens into collateral
@@ -187,9 +212,11 @@ contract MatchOrdersTest is BaseExchangeTest {
     }
 
     function test_MatchOrders_Complementary_Fees() public {
+        vm.pauseGasMetering();
         // Deals
         dealUsdcAndApprove(bob, address(exchange), 55_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
+        vm.resumeGasMetering();
 
         // Initialize a YES BUY taker order at 50c with a 5 USDC max fee
         uint256 takerFeeAmount = 5_000_000;
@@ -223,6 +250,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             100_000_000,
             50_000_000,
             makerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -238,6 +266,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             50_000_000,
             100_000_000,
             takerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -271,9 +300,11 @@ contract MatchOrdersTest is BaseExchangeTest {
     }
 
     function test_MatchOrders_Mint_Fees() public {
+        vm.pauseGasMetering();
         // Deals
         dealUsdcAndApprove(bob, address(exchange), 55_000_000);
         dealUsdcAndApprove(carla, address(exchange), 50_100_000);
+        vm.resumeGasMetering();
 
         // Initialize a YES BUY taker order at 50c with a 5 USDC max fee
         uint256 takerFeeAmount = 5_000_000;
@@ -307,6 +338,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             50_000_000,
             100_000_000,
             makerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -322,6 +354,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             50_000_000,
             100_000_000,
             takerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -348,9 +381,11 @@ contract MatchOrdersTest is BaseExchangeTest {
     }
 
     function test_MatchOrders_Merge_Fees() public {
+        vm.pauseGasMetering();
         // Deals
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), no, 100_000_000);
+        vm.resumeGasMetering();
 
         // Initialize a YES SELL taker order at 50c with a 5 USDC max fee
         uint256 takerFeeAmount = 5_000_000;
@@ -384,6 +419,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             100_000_000,
             50_000_000,
             makerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -399,6 +435,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             100_000_000,
             50_000_000,
             takerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -425,9 +462,11 @@ contract MatchOrdersTest is BaseExchangeTest {
     }
 
     function test_MatchOrders_Complementary_Fees_Surplus() public {
+        vm.pauseGasMetering();
         // Deals
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealUsdcAndApprove(carla, address(exchange), 60_100_000);
+        vm.resumeGasMetering();
 
         // Initialize a YES SELL taker order at 50c with a 5 USDC max fee
         uint256 takerFeeAmount = 5_000_000;
@@ -461,6 +500,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             60_000_000,
             100_000_000,
             makerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -476,6 +516,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             100_000_000,
             60_000_000,
             takerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -504,9 +545,11 @@ contract MatchOrdersTest is BaseExchangeTest {
     }
 
     function test_MatchOrders_TakerRefund() public {
+        vm.pauseGasMetering();
         // Deals
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
+        vm.resumeGasMetering();
 
         // Init match with takerFillAmount >> amount needed to fill the maker orders
         // The excess tokens should be refunded to the taker

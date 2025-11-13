@@ -11,8 +11,7 @@ import { Pausable } from "./mixins/Pausable.sol";
 import { Signatures } from "./mixins/Signatures.sol";
 import { UserPausable } from "./mixins/UserPausable.sol";
 import { AssetOperations } from "./mixins/AssetOperations.sol";
-
-import { BaseExchange } from "./BaseExchange.sol";
+import { ERC1155TokenReceiver } from "./mixins/ERC1155TokenReceiver.sol";
 
 import { ExchangeInitParams, Order } from "./libraries/Structs.sol";
 
@@ -20,13 +19,13 @@ import { ExchangeInitParams, Order } from "./libraries/Structs.sol";
 /// @notice Implements logic for trading CTF assets
 /// @author Polymarket
 contract CTFExchange is
-    BaseExchange,
     Auth,
     Assets,
+    ERC1155TokenReceiver,
     Fees,
     Pausable,
     AssetOperations,
-    Hashing("Polymarket CTF Exchange", "2"),
+    Hashing,
     Registry,
     Signatures,
     UserPausable,
@@ -72,7 +71,7 @@ contract CTFExchange is
         uint256[] memory makerFillAmounts,
         uint256 takerFeeAmount,
         uint256[] memory makerFeeAmounts
-    ) external nonReentrant onlyOperator notPaused {
+    ) external onlyOperator notPaused {
         _matchOrders(takerOrder, makerOrders, takerFillAmount, makerFillAmounts, takerFeeAmount, makerFeeAmounts);
     }
 

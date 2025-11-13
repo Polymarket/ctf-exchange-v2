@@ -23,7 +23,8 @@ interface ITradingEE {
         uint256 makerAmountFilled,
         uint256 takerAmountFilled,
         uint256 fee,
-        bytes32 builder
+        bytes32 builder,
+        bytes32 metadata
     );
 
     /// @notice Emitted when a set of orders is matched

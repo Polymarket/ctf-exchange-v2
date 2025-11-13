@@ -29,6 +29,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         uint256 takerAmountFilled;
         uint256 fee;
         bytes32 builder;
+        bytes32 metadata;
     }
 
     /// @notice Gets the status of an order
@@ -107,7 +108,8 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
             makerAmountFilled: making,
             takerAmountFilled: taking,
             fee: takerFeeAmount,
-            builder: takerOrder.builder
+            builder: takerOrder.builder,
+            metadata: takerOrder.metadata
         });
 
         _emitTakerFilledEvents(params);
@@ -190,7 +192,8 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
             makerAmountFilled: making,
             takerAmountFilled: taking,
             fee: feeAmount,
-            builder: makerOrder.builder
+            builder: makerOrder.builder,
+            metadata: makerOrder.metadata
         });
 
         _emitOrderFilledEvent(params);
@@ -264,7 +267,8 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
             params.makerAmountFilled,
             params.takerAmountFilled,
             params.fee,
-            params.builder
+            params.builder,
+            params.metadata
         );
     }
 

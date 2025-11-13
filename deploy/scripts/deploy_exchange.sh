@@ -32,6 +32,7 @@ Collateral: $COLLATERAL
 ConditionalTokensFramework: $CTF
 ProxyFactory: $PROXY_FACTORY
 SafeFactory: $SAFE_FACTORY
+FeeReceiver: $FEE_RECEIVER
 "
 
 OUTPUT="$(forge script ExchangeDeployment \
@@ -40,7 +41,7 @@ OUTPUT="$(forge script ExchangeDeployment \
     --json \
     --broadcast \
     --with-gas-price 200000000000 \
-    -s "deployExchange(address,address,address,address,address)" $ADMIN $COLLATERAL $CTF $PROXY_FACTORY $SAFE_FACTORY)"
+    -s "deployExchange(address,address,address,address,address,address)" $ADMIN $COLLATERAL $CTF $PROXY_FACTORY $SAFE_FACTORY $FEE_RECEIVER)"
 
 EXCHANGE=$(echo "$OUTPUT" | grep "{" | jq -r .returns.exchange.value)
 echo "Exchange deployed: $EXCHANGE"
