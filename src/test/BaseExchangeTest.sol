@@ -247,7 +247,7 @@ contract BaseExchangeTest is
         ERC1155(address(ctf)).setApprovalForAll(spender, true);
     }
 
-    function assertCollateralBalance(address _who, uint256 _amount) public view {    
+    function assertCollateralBalance(address _who, uint256 _amount) public view {
         assertBalance(address(usdc), _who, _amount);
     }
 

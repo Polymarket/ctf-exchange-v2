@@ -32,13 +32,31 @@ contract MatchOrdersTest is BaseExchangeTest {
         // First maker order is filled completely
         vm.expectEmit(true, true, true, true);
         emit OrderFilled(
-            exchange.hashOrder(makerOrderA), carla, bob, Side.SELL, yes, 50_000_000, 25_000_000, 0, bytes32(0)
+            exchange.hashOrder(makerOrderA),
+            carla,
+            bob,
+            Side.SELL,
+            yes,
+            50_000_000,
+            25_000_000,
+            0,
+            bytes32(0),
+            bytes32(0)
         );
 
         // Second maker order is partially filled
         vm.expectEmit(true, true, true, true);
         emit OrderFilled(
-            exchange.hashOrder(makerOrderB), carla, bob, Side.SELL, yes, 70_000_000, 35_000_000, 0, bytes32(0)
+            exchange.hashOrder(makerOrderB),
+            carla,
+            bob,
+            Side.SELL,
+            yes,
+            70_000_000,
+            35_000_000,
+            0,
+            bytes32(0),
+            bytes32(0)
         );
         // The taker order is filled completely
         vm.expectEmit(true, true, true, true);
@@ -51,6 +69,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             60_000_000,
             120_000_000,
             0,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -231,6 +250,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             100_000_000,
             50_000_000,
             makerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -246,6 +266,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             50_000_000,
             100_000_000,
             takerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -317,6 +338,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             50_000_000,
             100_000_000,
             makerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -332,6 +354,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             50_000_000,
             100_000_000,
             takerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -396,6 +419,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             100_000_000,
             50_000_000,
             makerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -411,6 +435,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             100_000_000,
             50_000_000,
             takerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -475,6 +500,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             60_000_000,
             100_000_000,
             makerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
@@ -490,6 +516,7 @@ contract MatchOrdersTest is BaseExchangeTest {
             100_000_000,
             60_000_000,
             takerFeeAmount,
+            bytes32(0),
             bytes32(0)
         );
 
