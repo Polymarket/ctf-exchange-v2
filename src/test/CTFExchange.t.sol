@@ -5,6 +5,10 @@ import { BaseExchangeTest } from "./BaseExchangeTest.sol";
 import { Order, Side, MatchType, OrderStatus, SignatureType } from "src/exchange/libraries/Structs.sol";
 
 contract CTFExchangeTest is BaseExchangeTest {
+
+    event ProxyFactoryUpdated(address indexed oldProxyFactory, address indexed newProxyFactory);
+    event SafeFactoryUpdated(address indexed oldSafeFactory, address indexed newSafeFactory);
+
     function test_setup() public view {
         assertTrue(exchange.isAdmin(admin));
         assertTrue(exchange.isOperator(admin));
@@ -131,6 +135,57 @@ contract CTFExchangeTest is BaseExchangeTest {
 
         vm.expectRevert(AlreadyRegistered.selector);
         exchange.registerToken(no, yes, bytes32(0));
+    }
+
+    function test_SetProxyFactory() public {
+        address oldProxyFactory = exchange.getProxyFactory();
+        address newProxyFactory = address(0x12345);
+
+        vm.expectEmit(true, true, true, true);
+        emit ProxyFactoryUpdated(oldProxyFactory, newProxyFactory);
+
+        vm.prank(admin);
+        exchange.setProxyFactory(newProxyFactory);
+
+        assertEq(exchange.getProxyFactory(), newProxyFactory);
+    }
+
+    function test_SetSafeFactory() public {
+        address oldSafeFactory = exchange.getSafeFactory();
+        address newSafeFactory = address(0x98765);
+
+        vm.expectEmit(true, true, true, true);
+        emit SafeFactoryUpdated(oldSafeFactory, newSafeFactory);
+
+        vm.prank(admin);
+        exchange.setSafeFactory(newSafeFactory);
+
+        assertEq(exchange.getSafeFactory(), newSafeFactory);
+    }
+
+    function test_SetUserPauseBlockInterval() public {
+        uint256 oldInterval = exchange.userPauseBlockInterval();
+        uint256 newInterval = oldInterval + 50;
+
+        vm.expectEmit(true, true, true, true);
+        emit UserPauseBlockIntervalUpdated(oldInterval, newInterval);
+
+        vm.prank(admin);
+        exchange.setUserPauseBlockInterval(newInterval);
+
+        assertEq(exchange.userPauseBlockInterval(), newInterval);
+    }
+
+    function test_SetFeeReceiver() public {
+        address newFeeReceiver = address(0xBEEF);
+
+        vm.expectEmit(true, true, true, true);
+        emit FeeReceiverUpdated(newFeeReceiver);
+
+        vm.prank(admin);
+        exchange.setFeeReceiver(newFeeReceiver);
+
+        assertEq(exchange.getFeeReceiver(), newFeeReceiver);
     }
 
     function test_hashOrder() public view {
