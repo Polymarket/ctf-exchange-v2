@@ -5,4 +5,6 @@ abstract contract IAssets {
     function getCollateral() public virtual returns (address);
 
     function getCtf() public virtual returns (address);
+
+    function getOutcomeTokenFactory() public virtual returns (address);
 }

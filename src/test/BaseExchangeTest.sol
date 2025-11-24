@@ -93,6 +93,7 @@ contract BaseExchangeTest is
         ExchangeInitParams memory p = ExchangeInitParams({
             collateral: address(usdc),
             ctf: address(ctf),
+            outcomeTokenFactory: address(ctf),
             proxyFactory: address(0),
             safeFactory: address(0),
             feeReceiver: feeReceiver

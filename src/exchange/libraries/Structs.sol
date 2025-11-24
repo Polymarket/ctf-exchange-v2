@@ -6,6 +6,9 @@ struct ExchangeInitParams {
     address collateral;
     /// @notice The Conditional Tokens Framework address
     address ctf;
+    /// @notice The Outcome Token Factory
+    /// @dev Must be the Conditional Tokens Framework address or the Neg Risk Adapter address
+    address outcomeTokenFactory;
     /// @notice The Polymarket proxy factory address
     address proxyFactory;
     /// @notice The Polymarket Gnosis Safe factory address

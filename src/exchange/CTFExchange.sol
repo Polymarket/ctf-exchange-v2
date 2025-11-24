@@ -32,7 +32,7 @@ contract CTFExchange is
     Trading
 {
     constructor(ExchangeInitParams memory params)
-        Assets(params.collateral, params.ctf)
+        Assets(params.collateral, params.ctf, params.outcomeTokenFactory)
         Signatures(params.proxyFactory, params.safeFactory)
         Fees(params.feeReceiver)
     { }

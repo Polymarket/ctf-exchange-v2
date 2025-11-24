@@ -6,12 +6,20 @@ import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
 import { IAssets } from "../interfaces/IAssets.sol";
 
 abstract contract Assets is IAssets {
+    /// @notice The Collateral token address
     address internal immutable collateral;
+
+    /// @notice The Conditional Tokens Framework address
     address internal immutable ctf;
 
-    constructor(address _collateral, address _ctf) {
+    /// @notice The address that facilitates Outcome Token splitting or merging
+    /// @dev Must be the Conditional Tokens Framework address or the Neg Risk Adapter address
+    address internal immutable outcomeTokenFactory;
+
+    constructor(address _collateral, address _ctf, address _outcomeTokenFactory) {
         collateral = _collateral;
         ctf = _ctf;
+        outcomeTokenFactory = _outcomeTokenFactory;
         ERC20(collateral).approve(ctf, type(uint256).max);
     }
 
@@ -21,5 +29,9 @@ abstract contract Assets is IAssets {
 
     function getCtf() public view override returns (address) {
         return ctf;
+    }
+
+    function getOutcomeTokenFactory() public view override returns (address) {
+        return outcomeTokenFactory;
     }
 }
