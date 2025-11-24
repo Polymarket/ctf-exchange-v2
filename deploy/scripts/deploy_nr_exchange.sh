@@ -6,7 +6,7 @@ MAINNET=.env
 
 if [ -z $1 ]
 then
-  echo "usage: deploy_exchange.sh [local || testnet || mainnet]"
+  echo "usage: deploy_nr_exchange.sh [local || testnet || mainnet]"
   exit 1
 elif [ $1 == "local" ]
 then
@@ -18,7 +18,7 @@ elif [ $1 == "mainnet" ]
 then
   ENV=$MAINNET
 else
-  echo "usage: deploy_exchange.sh [local || testnet || mainnet]"
+  echo "usage: deploy_nr_exchange.sh [local || testnet || mainnet]"
   exit 1
 fi
 
