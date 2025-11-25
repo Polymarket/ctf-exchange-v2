@@ -12,7 +12,7 @@ abstract contract Assets is IAssets {
     /// @notice The Conditional Tokens Framework address
     address internal immutable ctf;
 
-    /// @notice The address that facilitates Outcome Token splitting or merging
+    /// @notice The address that facilitates Outcome Token minting or merging
     /// @dev Must be the Conditional Tokens Framework address or the Neg Risk Adapter address
     address internal immutable outcomeTokenFactory;
 
