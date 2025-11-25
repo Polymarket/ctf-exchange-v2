@@ -20,7 +20,7 @@ abstract contract Assets is IAssets {
         collateral = _collateral;
         ctf = _ctf;
         outcomeTokenFactory = _outcomeTokenFactory;
-        ERC20(collateral).approve(ctf, type(uint256).max);
+        ERC20(collateral).approve(_outcomeTokenFactory, type(uint256).max);
     }
 
     function getCollateral() public view override returns (address) {
