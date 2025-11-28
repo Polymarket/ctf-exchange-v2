@@ -759,40 +759,6 @@ contract MatchOrdersTest is BaseExchangeTest {
         exchange.matchOrders(buy, makerOrders, takerOrderFillAmount, fillAmounts, 0, makerFeeAmounts);
     }
 
-    function test_MatchOrders_NonTaker() public {
-        // Deals
-        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
-        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
-
-        Order memory buy = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
-        buy.taker = carla;
-        buy.signature = _signMessage(bobPK, exchange.hashOrder(buy));
-
-        // Sell with taker zero
-        Order memory sell = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
-
-        Order[] memory makerOrders = new Order[](1);
-        makerOrders[0] = sell;
-
-        uint256[] memory fillAmounts = new uint256[](1);
-        fillAmounts[0] = 100_000_000;
-
-        uint256[] memory makerFeeAmounts = new uint256[](1);
-        makerFeeAmounts[0] = 0;
-
-        uint256 takerOrderFillAmount = 50_000_000;
-
-        // Attempt to match orders with admin, incompatible with the taker for the buy order
-        // Reverts
-        vm.expectRevert(NotTaker.selector);
-        vm.prank(admin);
-        exchange.matchOrders(buy, makerOrders, takerOrderFillAmount, fillAmounts, 0, makerFeeAmounts);
-
-        // Matching with carla suceeds as expected
-        vm.prank(carla);
-        exchange.matchOrders(buy, makerOrders, takerOrderFillAmount, fillAmounts, 0, makerFeeAmounts);
-    }
-
     function test_MatchOrders_ZeroTakerAmount() public {
         // Deals
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);

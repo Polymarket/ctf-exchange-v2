@@ -18,7 +18,7 @@ struct ExchangeInitParams {
 }
 
 bytes32 constant ORDER_TYPEHASH = keccak256(
-    "Order(uint256 salt,address maker,address signer,address taker,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint256 expiration,uint256 maxFee,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)"
+    "Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint256 expiration,uint256 maxFee,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)"
 );
 
 struct Order {
@@ -28,8 +28,6 @@ struct Order {
     address maker;
     /// @notice Signer of the order
     address signer;
-    /// @notice Address of the order taker. The zero address is used to indicate a public order
-    address taker;
     /// @notice Token Id of the CTF ERC1155 asset to be bought or sold
     /// If BUY, this is the tokenId of the asset to be bought, i.e the makerAssetId
     /// If SELL, this is the tokenId of the asset to be sold, i.e the takerAssetId
@@ -62,7 +60,6 @@ struct UnsignedOrder {
     uint256 salt;
     address maker;
     address signer;
-    address taker;
     uint256 tokenId;
     uint256 makerAmount;
     uint256 takerAmount;

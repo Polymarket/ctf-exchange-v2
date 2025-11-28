@@ -28,7 +28,6 @@ abstract contract Hashing is EIP712, IHashing {
             salt: order.salt,
             maker: order.maker,
             signer: order.signer,
-            taker: order.taker,
             tokenId: order.tokenId,
             makerAmount: order.makerAmount,
             takerAmount: order.takerAmount,

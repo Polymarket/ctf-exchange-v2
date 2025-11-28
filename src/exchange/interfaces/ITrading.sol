@@ -4,7 +4,6 @@ pragma solidity <0.9.0;
 import { OrderStatus, Order, Side } from "../libraries/Structs.sol";
 
 interface ITradingEE {
-    error NotTaker();
     error OrderAlreadyFilled();
     error OrderExpired();
     error MakingGtRemaining();

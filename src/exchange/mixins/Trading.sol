@@ -285,9 +285,6 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         internal
         returns (uint256 takingAmount, bytes32 orderHash)
     {
-        // Validate taker
-        _validateTaker(order.taker);
-
         // Validate order fee
         validateOrderFee(order.maxFee, fee);
 
@@ -361,10 +358,6 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
             // both bids or both asks
             validateComplement(takerOrder.tokenId, makerOrder.tokenId);
         }
-    }
-
-    function _validateTaker(address taker) internal view {
-        if (taker != address(0) && taker != msg.sender) revert NotTaker();
     }
 
     function _chargeFee(address payer, uint256 fee) internal {
