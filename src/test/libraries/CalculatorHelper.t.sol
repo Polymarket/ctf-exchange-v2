@@ -39,4 +39,10 @@ contract CalculatorHelperTest is Test {
         // Asserts not needed, test checks that we can check isCrossing safely without unexpected reverts
         CalculatorHelper._isCrossing(priceA, priceB, sideA, sideB);
     }
+
+    function testFuzzCalculateMaxFillFee(uint64 maxFee, uint64 fillAmount, uint64 makerAmount) public pure {
+        vm.assume(makerAmount > 0 && fillAmount <= makerAmount);
+        uint256 expected = uint256(maxFee) * uint256(fillAmount) / uint256(makerAmount);
+        assertEq(CalculatorHelper.calculateMaxFeeForFill(maxFee, fillAmount, makerAmount), expected);
+    }
 }

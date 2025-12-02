@@ -69,8 +69,7 @@ contract PolyProxyLibTest is Test {
 
     function test_getProxyWalletAddressMatchesManualDerivation() public {
         address signer = makeAddr("manual-derivation");
-        address predicted =
-            PolyProxyLib.getProxyWalletAddress(signer, address(implementation), address(factory));
+        address predicted = PolyProxyLib.getProxyWalletAddress(signer, address(implementation), address(factory));
 
         address expected = _manualCreate2(signer, address(implementation));
         assertEq(predicted, expected);
@@ -94,8 +93,7 @@ contract PolyProxyLibTest is Test {
     ///      3. Initializer was called during deployment (event log verification)
     function testProxyDeploymentMatchesPredictionAndDelegates() public {
         address signer = makeAddr("deployment-check");
-        address predicted =
-            PolyProxyLib.getProxyWalletAddress(signer, address(implementation), address(factory));
+        address predicted = PolyProxyLib.getProxyWalletAddress(signer, address(implementation), address(factory));
 
         vm.recordLogs();
         assertEq(predicted.code.length, 0, "proxy already deployed");

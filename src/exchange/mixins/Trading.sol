@@ -280,13 +280,14 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// 5) Updates the order status in storage
     /// @param order    - The order being prepared
     /// @param making   - The amount of the order being filled, in terms of maker amount
-    /// @param fee      - The fee charged to the order
+    /// @param fee      - The fee charged to the order by the operator
     function _performOrderChecks(Order memory order, uint256 making, uint256 fee)
         internal
         returns (uint256 takingAmount, bytes32 orderHash)
     {
-        // Validate order fee
-        validateOrderFee(order.maxFee, fee);
+        // Validate order fee per fill
+        uint256 maxFillFee = CalculatorHelper.calculateMaxFeeForFill(order.maxFee, making, order.makerAmount);
+        validateOrderFee(maxFillFee, fee);
 
         orderHash = hashOrder(order);
 

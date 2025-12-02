@@ -5,7 +5,6 @@ import { BaseExchangeTest } from "./BaseExchangeTest.sol";
 import { Order, Side, MatchType, OrderStatus, SignatureType } from "src/exchange/libraries/Structs.sol";
 
 contract CTFExchangeTest is BaseExchangeTest {
-
     event ProxyFactoryUpdated(address indexed oldProxyFactory, address indexed newProxyFactory);
     event SafeFactoryUpdated(address indexed oldSafeFactory, address indexed newSafeFactory);
 

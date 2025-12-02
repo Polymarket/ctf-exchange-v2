@@ -8,7 +8,8 @@ import { PolySafeLib } from "src/exchange/libraries/PolySafeLib.sol";
 
 contract MockSafeImplementation {
     // Intentionally empty: acts as a stand-in for the real Gnosis Safe master copy.
-}
+
+    }
 
 contract PolySafeFactoryHarness {
     error DeploymentFailed();

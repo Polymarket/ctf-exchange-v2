@@ -12,7 +12,7 @@ interface IFeesEE {
 }
 
 abstract contract IFees is IFeesEE {
-    function validateOrderFee(uint256 maxFee, uint256 fee) public pure virtual;
+    function validateOrderFee(uint256 maxFillFee, uint256 fee) public pure virtual;
 
     function getFeeReceiver() public view virtual returns (address);
 
