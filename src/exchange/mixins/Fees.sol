@@ -15,8 +15,8 @@ abstract contract Fees is IFees {
         return feeReceiver;
     }
 
-    /// @notice Validates that the operator fee does not exceed the maximum fee implied by the fill
-    /// @param maxFillFee       - The maximum fee allowed for the order, implied by the fill
+    /// @notice Validates that the operator fee does not exceed the maximum fee implied by the fill amount
+    /// @param maxFillFee   - The maximum fee allowed for the order, implied by the fill amount
     /// @param operatorFee  - The fee being charged to the order, by the operator
     function validateOrderFee(uint256 maxFillFee, uint256 operatorFee) public pure override {
         if (operatorFee > maxFillFee) revert MaxFeeExceeded();

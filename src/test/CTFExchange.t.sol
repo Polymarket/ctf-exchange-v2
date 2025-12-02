@@ -306,8 +306,8 @@ contract CTFExchangeTest is BaseExchangeTest {
     }
 
     function test_ValidateOrderFee_revert_MaxFeeExceeded() public {
-        uint256 maxFee = 5_000_000; // max fee of 5 USDC
+        uint256 maxFillFee = 5_000_000; // max fill fee of 5 USDC
         vm.expectRevert(MaxFeeExceeded.selector);
-        exchange.validateOrderFee(maxFee, 10_000_000); // operator fee of 10 USDC
+        exchange.validateOrderFee(maxFillFee, 10_000_000); // operator fee of 10 USDC
     }
 }
