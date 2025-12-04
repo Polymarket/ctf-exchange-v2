@@ -36,9 +36,16 @@ library CalculatorHelper {
     }
 
     function isCrossing(Order memory a, Order memory b) internal pure returns (bool) {
-        if (a.takerAmount == 0 || b.takerAmount == 0) return true;
+        uint256 priceA = calculatePrice(a);
+        uint256 priceB = calculatePrice(b);
 
-        return _isCrossing(calculatePrice(a), calculatePrice(b), a.side, b.side);
+        if (a.side == Side.SELL && b.side == Side.SELL) {
+            if (a.takerAmount == 0) return priceB < ONE;
+            if (b.takerAmount == 0) return priceA < ONE;
+        }
+
+        if (a.takerAmount == 0 || b.takerAmount == 0) return true;
+        return _isCrossing(priceA, priceB, a.side, b.side);
     }
 
     function _isCrossing(uint256 priceA, uint256 priceB, Side sideA, Side sideB) internal pure returns (bool) {
