@@ -278,14 +278,6 @@ contract BaseExchangeTest is
         return CalculatorHelper._calculatePrice(makerAmount, takerAmount, side);
     }
 
-    function calculateFee(uint256 _feeRate, uint256 _amount, uint256 makerAmount, uint256 takerAmount, Side side)
-        internal
-        pure
-        returns (uint256)
-    {
-        return CalculatorHelper.calculateFee(_feeRate, _amount, makerAmount, takerAmount, side);
-    }
-
     function _getTakingAmount(uint256 _making, uint256 _makerAmount, uint256 _takerAmount)
         internal
         pure
