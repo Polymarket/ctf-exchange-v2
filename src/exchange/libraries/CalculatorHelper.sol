@@ -17,40 +17,6 @@ library CalculatorHelper {
         return makingAmount * takerAmount / makerAmount;
     }
 
-    /// @notice Calculates the fee for an order
-    /// @dev Fees are calculated based on amount of outcome tokens and the order's feeRate
-    /// @param feeRateBps       - Fee rate, in basis points
-    /// @param outcomeTokens    - The number of outcome tokens
-    /// @param makerAmount      - The maker amount of the order
-    /// @param takerAmount      - The taker amount of the order
-    /// @param side             - The side of the order
-    function calculateFee(
-        uint256 feeRateBps,
-        uint256 outcomeTokens,
-        uint256 makerAmount,
-        uint256 takerAmount,
-        Side side
-    ) internal pure returns (uint256 fee) {
-        if (feeRateBps > 0) {
-            uint256 price = _calculatePrice(makerAmount, takerAmount, side);
-            if (price > 0 && price <= ONE) {
-                if (side == Side.BUY) {
-                    // Fee charged on Token Proceeds:
-                    // baseRate * min(price, 1-price) * (outcomeTokens/price)
-                    fee = (feeRateBps * min(price, ONE - price) * outcomeTokens) / (price * BPS_DIVISOR);
-                } else {
-                    // Fee charged on Collateral proceeds:
-                    // baseRate * min(price, 1-price) * outcomeTokens
-                    fee = feeRateBps * min(price, ONE - price) * outcomeTokens / (BPS_DIVISOR * ONE);
-                }
-            }
-        }
-    }
-
-    function min(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a < b ? a : b;
-    }
-
     function calculatePrice(Order memory order) internal pure returns (uint256) {
         return _calculatePrice(order.makerAmount, order.takerAmount, order.side);
     }
