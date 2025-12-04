@@ -29,8 +29,8 @@ struct Order {
     /// @notice Signer of the order
     address signer;
     /// @notice Token Id of the CTF ERC1155 asset to be bought or sold
-    /// If BUY, this is the tokenId of the asset to be bought, i.e the makerAssetId
-    /// If SELL, this is the tokenId of the asset to be sold, i.e the takerAssetId
+    /// If BUY, this is the tokenId of the asset to be bought, i.e the takerAssetId
+    /// If SELL, this is the tokenId of the asset to be sold, i.e the makerAssetId
     uint256 tokenId;
     /// @notice Maker amount, i.e the maximum amount of tokens to be sold
     uint256 makerAmount;
