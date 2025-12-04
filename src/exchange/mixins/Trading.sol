@@ -142,7 +142,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         // Charge the fee, if any
         _chargeFee(feePayer, feeAmount);
 
-        // Refund any leftover tokens pulled from the taker to the taker order
+        // Refund any leftover tokens
         uint256 refund = _getBalance(makerAssetId);
         if (refund > 0) _transfer(address(this), maker, makerAssetId, refund);
     }
