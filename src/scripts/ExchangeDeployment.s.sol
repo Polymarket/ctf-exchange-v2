@@ -26,7 +26,7 @@ contract ExchangeDeployment is Script {
     ) public returns (address exchange) {
         vm.startBroadcast();
 
-        ExchangeInitParams memory p = ExchangeInitParams({
+        ExchangeInitParams memory initParams = ExchangeInitParams({
             admin: admin,
             collateral: collateral,
             ctf: ctf,
@@ -36,7 +36,7 @@ contract ExchangeDeployment is Script {
             feeReceiver: feeReceiver
         });
 
-        CTFExchange exch = new CTFExchange(p);
+        CTFExchange exch = new CTFExchange(initParams);
         exchange = address(exch);
     }
 
@@ -59,7 +59,7 @@ contract ExchangeDeployment is Script {
     ) public returns (address exchange) {
         vm.startBroadcast();
 
-        ExchangeInitParams memory p = ExchangeInitParams({
+        ExchangeInitParams memory initParams = ExchangeInitParams({
             admin: admin,
             collateral: collateral,
             ctf: ctf,
@@ -69,7 +69,7 @@ contract ExchangeDeployment is Script {
             feeReceiver: feeReceiver
         });
 
-        CTFExchange exch = new CTFExchange(p);
+        CTFExchange exch = new CTFExchange(initParams);
         exchange = address(exch);
     }
 }
