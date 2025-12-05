@@ -2,6 +2,8 @@
 pragma solidity <0.9.0;
 
 struct ExchangeInitParams {
+    /// @notice The admin of the exchange
+    address admin;
     /// @notice The collateral token address
     address collateral;
     /// @notice The Conditional Tokens Framework address

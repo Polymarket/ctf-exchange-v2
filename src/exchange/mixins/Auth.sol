@@ -22,9 +22,9 @@ abstract contract Auth is IAuth {
         _;
     }
 
-    constructor() {
-        admins[msg.sender] = 1;
-        operators[msg.sender] = 1;
+    constructor(address admin) {
+        admins[admin] = 1;
+        operators[admin] = 1;
     }
 
     function isAdmin(address usr) external view returns (bool) {

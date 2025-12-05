@@ -91,6 +91,7 @@ contract BaseExchangeTest is
 
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({
+            admin: admin,
             collateral: address(usdc),
             ctf: address(ctf),
             outcomeTokenFactory: address(ctf),

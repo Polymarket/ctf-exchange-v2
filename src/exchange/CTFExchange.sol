@@ -32,6 +32,7 @@ contract CTFExchange is
     Trading
 {
     constructor(ExchangeInitParams memory params)
+        Auth(params.admin)
         Assets(params.collateral, params.ctf, params.outcomeTokenFactory)
         Signatures(params.proxyFactory, params.safeFactory)
         Fees(params.feeReceiver)

@@ -27,6 +27,7 @@ contract ExchangeDeployment is Script {
         vm.startBroadcast();
 
         ExchangeInitParams memory p = ExchangeInitParams({
+            admin: admin,
             collateral: collateral,
             ctf: ctf,
             outcomeTokenFactory: ctf,
@@ -36,15 +37,6 @@ contract ExchangeDeployment is Script {
         });
 
         CTFExchange exch = new CTFExchange(p);
-
-        // Grant Auth privileges to the Admin address
-        exch.addAdmin(admin);
-        exch.addOperator(admin);
-
-        // Revoke the deployer's authorization
-        exch.renounceAdminRole();
-        exch.renounceOperatorRole();
-
         exchange = address(exch);
     }
 
@@ -68,6 +60,7 @@ contract ExchangeDeployment is Script {
         vm.startBroadcast();
 
         ExchangeInitParams memory p = ExchangeInitParams({
+            admin: admin,
             collateral: collateral,
             ctf: ctf,
             outcomeTokenFactory: negRiskAdapter,
@@ -77,15 +70,6 @@ contract ExchangeDeployment is Script {
         });
 
         CTFExchange exch = new CTFExchange(p);
-
-        // Grant Auth privileges to the Admin address
-        exch.addAdmin(admin);
-        exch.addOperator(admin);
-
-        // Revoke the deployer's authorization
-        exch.renounceAdminRole();
-        exch.renounceOperatorRole();
-
         exchange = address(exch);
     }
 }
