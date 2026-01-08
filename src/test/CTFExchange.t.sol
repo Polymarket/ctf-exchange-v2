@@ -207,17 +207,10 @@ contract CTFExchangeTest is BaseExchangeTest {
     }
 
     function test_SetMaxFeeRate_revert_ExceedsCeiling() public {
-        // Cannot set rate > 10000 bps (100%)
+        // Cannot set rate >= 10000 bps (100%)
         vm.expectRevert(MaxFeeRateExceedsCeiling.selector);
         vm.prank(admin);
-        exchange.setMaxFeeRate(10001);
-    }
-
-    function test_SetMaxFeeRate_AtCeiling() public {
-        // Can set rate to exactly 10000 bps (100%)
-        vm.prank(admin);
         exchange.setMaxFeeRate(10000);
-        assertEq(exchange.getMaxFeeRate(), 10000);
     }
 
     function test_ValidateFee() public {
