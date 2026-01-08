@@ -219,7 +219,6 @@ contract CTFExchangeTest is BaseExchangeTest {
     }
 
     function test_ValidateFee() public view {
-        // Default max fee rate is 5% (500 bps)
         // Fee of 5 USDC on a 100 USDC trade = 5%, should pass
         exchange.validateFee(5_000_000, 100_000_000);
 
@@ -228,7 +227,6 @@ contract CTFExchangeTest is BaseExchangeTest {
     }
 
     function test_ValidateFee_revert_FeeExceedsMaxRate() public {
-        // Default max fee rate is 5% (500 bps)
         // Fee of 6 USDC on a 100 USDC trade = 6%, should revert
         vm.expectRevert(FeeExceedsMaxRate.selector);
         exchange.validateFee(6_000_000, 100_000_000);

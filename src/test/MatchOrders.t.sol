@@ -872,8 +872,6 @@ contract MatchOrdersTest is BaseExchangeTest {
         dealUsdcAndApprove(bob, address(exchange), 52_500_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
 
-        // Default max fee rate is 5% (500 bps)
-
         // Initialize a YES BUY taker order, buying 100 YES at 50c
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
