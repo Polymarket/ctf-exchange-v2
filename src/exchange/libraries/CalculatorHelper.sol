@@ -21,15 +21,6 @@ library CalculatorHelper {
         return _calculatePrice(order.makerAmount, order.takerAmount, order.side);
     }
 
-    function calculateMaxFeeForFill(uint256 maxFee, uint256 fillAmount, uint256 makerAmount)
-        internal
-        pure
-        returns (uint256)
-    {
-        if (makerAmount == 0) return 0;
-        return (maxFee * fillAmount) / makerAmount;
-    }
-
     function _calculatePrice(uint256 makerAmount, uint256 takerAmount, Side side) internal pure returns (uint256) {
         if (side == Side.BUY) return takerAmount != 0 ? makerAmount * ONE / takerAmount : 0;
         return makerAmount != 0 ? takerAmount * ONE / makerAmount : 0;

@@ -285,10 +285,6 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         internal
         returns (uint256 takingAmount, bytes32 orderHash)
     {
-        // Validate order fee per fill
-        uint256 maxFillFee = CalculatorHelper.calculateMaxFeeForFill(order.maxFee, making, order.makerAmount);
-        validateOrderFee(maxFillFee, fee);
-
         orderHash = hashOrder(order);
 
         // Validate order

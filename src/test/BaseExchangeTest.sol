@@ -116,21 +116,6 @@ contract BaseExchangeTest is
         return ctf.getPositionId(address(usdc), ctf.getCollectionId(bytes32(0), conditionId, indexSet));
     }
 
-    function _createAndSignOrderWithFee(
-        uint256 pk,
-        uint256 tokenId,
-        uint256 makerAmount,
-        uint256 takerAmount,
-        uint256 maxFee,
-        Side side
-    ) internal view returns (Order memory) {
-        address maker = vm.addr(pk);
-        Order memory order = _createOrder(maker, tokenId, makerAmount, takerAmount, side);
-        order.maxFee = maxFee;
-        order.signature = _signMessage(pk, exchange.hashOrder(order));
-        return order;
-    }
-
     function _createAndSignOrder(uint256 pk, uint256 tokenId, uint256 makerAmount, uint256 takerAmount, Side side)
         internal
         view
@@ -169,7 +154,6 @@ contract BaseExchangeTest is
             makerAmount: makerAmount,
             takerAmount: takerAmount,
             expiration: 0,
-            maxFee: 0,
             signatureType: SignatureType.EOA,
             side: side,
             timestamp: 0,
@@ -213,7 +197,6 @@ contract BaseExchangeTest is
             makerAmount: order.makerAmount,
             takerAmount: order.takerAmount,
             expiration: order.expiration,
-            maxFee: order.maxFee,
             side: order.side,
             signatureType: order.signatureType,
             timestamp: order.timestamp,
