@@ -219,13 +219,11 @@ contract MatchOrdersTest is BaseExchangeTest {
 
         // Initialize a YES BUY taker order at 50c with a 5 USDC max fee
         uint256 takerFeeAmount = 5_000_000;
-        Order memory takerOrder =
-            _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
         // Initialiaze a YES SELL order at 50c with a 10c USDC max fee
         uint256 makerFeeAmount = 100_000;
-        Order memory makerOrder =
-            _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
@@ -307,13 +305,11 @@ contract MatchOrdersTest is BaseExchangeTest {
 
         // Initialize a YES BUY taker order at 50c with a 5 USDC max fee
         uint256 takerFeeAmount = 5_000_000;
-        Order memory takerOrder =
-            _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
         // Initialiaze a NO BUY order at 50c with a 10c USDC max fee
         uint256 makerFeeAmount = 100_000;
-        Order memory makerOrder =
-            _createAndSignOrder(carlaPK, no, 50_000_000, 100_000_000, Side.BUY);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, no, 50_000_000, 100_000_000, Side.BUY);
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
@@ -388,13 +384,11 @@ contract MatchOrdersTest is BaseExchangeTest {
 
         // Initialize a YES SELL taker order at 50c with a 5 USDC max fee
         uint256 takerFeeAmount = 5_000_000;
-        Order memory takerOrder =
-            _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
         // Initialiaze a NO SELL order at 50c with a 10c USDC max fee
         uint256 makerFeeAmount = 100_000;
-        Order memory makerOrder =
-            _createAndSignOrder(carlaPK, no, 100_000_000, 50_000_000, Side.SELL);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, no, 100_000_000, 50_000_000, Side.SELL);
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
@@ -469,13 +463,11 @@ contract MatchOrdersTest is BaseExchangeTest {
 
         // Initialize a YES SELL taker order at 50c with a 5 USDC max fee
         uint256 takerFeeAmount = 5_000_000;
-        Order memory takerOrder =
-            _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
         // Initialiaze a YES BUY order at 60c with a 10c USDC max fee, creating a surplus
         uint256 makerFeeAmount = 100_000;
-        Order memory makerOrder =
-            _createAndSignOrder(carlaPK, yes, 60_000_000, 100_000_000, Side.BUY);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 60_000_000, 100_000_000, Side.BUY);
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
