@@ -213,15 +213,15 @@ contract MatchOrdersTest is BaseExchangeTest {
     function test_MatchOrders_Complementary_Fees() public {
         vm.pauseGasMetering();
         // Deals
-        dealUsdcAndApprove(bob, address(exchange), 55_000_000);
+        dealUsdcAndApprove(bob, address(exchange), 52_500_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
         vm.resumeGasMetering();
 
-        // Initialize a YES BUY taker order at 50c with a 5 USDC max fee
-        uint256 takerFeeAmount = 5_000_000;
+        // Initialize a YES BUY taker order at 50c with a 2.5 USDC fee
+        uint256 takerFeeAmount = 2_500_000;
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
-        // Initialiaze a YES SELL order at 50c with a 10c USDC max fee
+        // Initialize a YES SELL order at 50c with a 10c USDC fee
         uint256 makerFeeAmount = 100_000;
         Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
@@ -268,7 +268,7 @@ contract MatchOrdersTest is BaseExchangeTest {
         );
 
         // Assert state pre match
-        assertCollateralBalance(bob, 55_000_000);
+        assertCollateralBalance(bob, 52_500_000);
         assertCTFBalance(carla, yes, 100_000_000);
 
         assertCTFBalance(bob, yes, 0);
@@ -299,15 +299,15 @@ contract MatchOrdersTest is BaseExchangeTest {
     function test_MatchOrders_Mint_Fees() public {
         vm.pauseGasMetering();
         // Deals
-        dealUsdcAndApprove(bob, address(exchange), 55_000_000);
+        dealUsdcAndApprove(bob, address(exchange), 52_500_000);
         dealUsdcAndApprove(carla, address(exchange), 50_100_000);
         vm.resumeGasMetering();
 
-        // Initialize a YES BUY taker order at 50c with a 5 USDC max fee
-        uint256 takerFeeAmount = 5_000_000;
+        // Initialize a YES BUY taker order at 50c with a 2.5 USDC fee
+        uint256 takerFeeAmount = 2_500_000;
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
-        // Initialiaze a NO BUY order at 50c with a 10c USDC max fee
+        // Initialize a NO BUY order at 50c with a 10c USDC fee
         uint256 makerFeeAmount = 100_000;
         Order memory makerOrder = _createAndSignOrder(carlaPK, no, 50_000_000, 100_000_000, Side.BUY);
 
@@ -354,7 +354,7 @@ contract MatchOrdersTest is BaseExchangeTest {
         );
 
         // Assert state pre match
-        assertCollateralBalance(bob, 55_000_000);
+        assertCollateralBalance(bob, 52_500_000);
         assertCollateralBalance(carla, 50_100_000);
 
         assertCTFBalance(bob, yes, 0);
@@ -382,11 +382,11 @@ contract MatchOrdersTest is BaseExchangeTest {
         dealOutcomeTokensAndApprove(carla, address(exchange), no, 100_000_000);
         vm.resumeGasMetering();
 
-        // Initialize a YES SELL taker order at 50c with a 5 USDC max fee
-        uint256 takerFeeAmount = 5_000_000;
+        // Initialize a YES SELL taker order at 50c with a 2.5 USDC fee
+        uint256 takerFeeAmount = 2_500_000;
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
-        // Initialiaze a NO SELL order at 50c with a 10c USDC max fee
+        // Initialize a NO SELL order at 50c with a 10c USDC fee
         uint256 makerFeeAmount = 100_000;
         Order memory makerOrder = _createAndSignOrder(carlaPK, no, 100_000_000, 50_000_000, Side.SELL);
 
@@ -445,7 +445,7 @@ contract MatchOrdersTest is BaseExchangeTest {
 
         // Assert state changes post match
         assertCTFBalance(bob, yes, 0);
-        assertCollateralBalance(bob, 45_000_000);
+        assertCollateralBalance(bob, 47_500_000);
 
         assertCTFBalance(carla, no, 0);
         assertCollateralBalance(carla, 49_900_000);
@@ -461,11 +461,11 @@ contract MatchOrdersTest is BaseExchangeTest {
         dealUsdcAndApprove(carla, address(exchange), 60_100_000);
         vm.resumeGasMetering();
 
-        // Initialize a YES SELL taker order at 50c with a 5 USDC max fee
-        uint256 takerFeeAmount = 5_000_000;
+        // Initialize a YES SELL taker order at 50c with a 2.5 USDC fee
+        uint256 takerFeeAmount = 2_500_000;
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
-        // Initialiaze a YES BUY order at 60c with a 10c USDC max fee, creating a surplus
+        // Initialize a YES BUY order at 60c with a 10c USDC fee, creating a surplus
         uint256 makerFeeAmount = 100_000;
         Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 60_000_000, 100_000_000, Side.BUY);
 
@@ -524,8 +524,8 @@ contract MatchOrdersTest is BaseExchangeTest {
 
         // Assert state changes post match
         assertCTFBalance(bob, yes, 0);
-        // Receives 50 USDC from sale + 10 USDC surplus from maker buy order - 5 USDC taker fee
-        assertCollateralBalance(bob, 55_000_000);
+        // Receives 50 USDC from sale + 10 USDC surplus from maker buy order - 2.5 USDC taker fee
+        assertCollateralBalance(bob, 57_500_000);
 
         // Deducted both 60 USDC buy cost + 0.1 USDC maker fee
         assertCollateralBalance(carla, 0);
@@ -778,9 +778,6 @@ contract MatchOrdersTest is BaseExchangeTest {
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealUsdcAndApprove(carla, address(exchange), 50_000_000);
 
-        // Set max fee rate to 5%
-        vm.prank(admin);
-        exchange.setMaxFeeRate(500);
 
         // Initialize a YES SELL taker order, selling 100 YES at 50c
         // For SELL: cash value = takingAmount = 50 USDC
@@ -812,9 +809,6 @@ contract MatchOrdersTest is BaseExchangeTest {
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
 
-        // Set max fee rate to 5% (500 bps)
-        vm.prank(admin);
-        exchange.setMaxFeeRate(500);
 
         // Initialize a YES BUY taker order, buying 100 YES at 50c
         // For BUY: cash value = makingAmount = 50 USDC
@@ -845,10 +839,6 @@ contract MatchOrdersTest is BaseExchangeTest {
         // Deals
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealUsdcAndApprove(carla, address(exchange), 50_000_000);
-
-        // Set max fee rate to 5% (500 bps)
-        vm.prank(admin);
-        exchange.setMaxFeeRate(500);
 
         // Initialize a YES SELL taker order, selling 100 YES at 50c
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
@@ -881,12 +871,10 @@ contract MatchOrdersTest is BaseExchangeTest {
 
     function test_MatchOrders_WithMaxFeeRate_Buy() public {
         // Deals
-        dealUsdcAndApprove(bob, address(exchange), 53_000_000);
+        dealUsdcAndApprove(bob, address(exchange), 52_500_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
 
-        // Set max fee rate to 5% (500 bps)
-        vm.prank(admin);
-        exchange.setMaxFeeRate(500);
+        // Default max fee rate is 5% (500 bps)
 
         // Initialize a YES BUY taker order, buying 100 YES at 50c
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);

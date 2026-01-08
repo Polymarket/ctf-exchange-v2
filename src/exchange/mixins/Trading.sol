@@ -84,14 +84,16 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     ) internal {
         uint256 making = takerFillAmount;
 
-        (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, making, takerFeeAmount);
+        uint256 maxFeeRate = getMaxFeeRate();
+
+        (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, making, takerFeeAmount, maxFeeRate);
         (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(takerOrder);
 
         // Transfer takerOrder making amount from taker order to the Exchange
         _transfer(takerOrder.maker, address(this), makerAssetId, making);
 
         // Settle the maker orders
-        _settleMakerOrders(takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts);
+        _settleMakerOrders(takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, maxFeeRate);
 
         taking = _updateTakingWithSurplus(taking, takerAssetId);
 
@@ -151,12 +153,13 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         Order memory takerOrder,
         Order[] memory makerOrders,
         uint256[] memory makerFillAmounts,
-        uint256[] memory makerFeeAmounts
+        uint256[] memory makerFeeAmounts,
+        uint256 maxFeeRate
     ) internal {
         uint256 length = makerOrders.length;
         uint256 i = 0;
         for (; i < length; ++i) {
-            _settleMakerOrder(takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i]);
+            _settleMakerOrder(takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i], maxFeeRate);
         }
     }
 
@@ -165,16 +168,21 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @param makerOrder   - The maker order
     /// @param fillAmount   - The fill amount
     /// @param feeAmount    - The fee amount
-    function _settleMakerOrder(Order memory takerOrder, Order memory makerOrder, uint256 fillAmount, uint256 feeAmount)
-        internal
-    {
+    /// @param maxFeeRate   - The maximum fee rate allowed
+    function _settleMakerOrder(
+        Order memory takerOrder,
+        Order memory makerOrder,
+        uint256 fillAmount,
+        uint256 feeAmount,
+        uint256 maxFeeRate
+    ) internal {
         MatchType matchType = _deriveMatchType(takerOrder, makerOrder);
 
         // Ensure taker order and maker order match
         _validateTakerAndMaker(takerOrder, makerOrder, matchType);
 
         uint256 making = fillAmount;
-        (uint256 taking, bytes32 orderHash) = _performOrderChecks(makerOrder, making, feeAmount);
+        (uint256 taking, bytes32 orderHash) = _performOrderChecks(makerOrder, making, feeAmount, maxFeeRate);
 
         (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(makerOrder);
 
@@ -279,10 +287,11 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// 4) Computes taking amount
     /// 5) Validates fee against max fee rate
     /// 6) Updates the order status in storage
-    /// @param order    - The order being prepared
-    /// @param making   - The amount of the order being filled, in terms of maker amount
-    /// @param fee      - The fee charged to the order by the operator
-    function _performOrderChecks(Order memory order, uint256 making, uint256 fee)
+    /// @param order        - The order being prepared
+    /// @param making       - The amount of the order being filled, in terms of maker amount
+    /// @param fee          - The fee charged to the order by the operator
+    /// @param maxFeeRate   - The maximum fee rate allowed in basis points
+    function _performOrderChecks(Order memory order, uint256 making, uint256 fee, uint256 maxFeeRate)
         internal
         returns (uint256 takingAmount, bytes32 orderHash)
     {
@@ -296,7 +305,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
 
         // Validate fee against max fee rate
         uint256 cashValue = order.side == Side.BUY ? making : takingAmount;
-        validateFee(fee, cashValue);
+        validateFeeWithMaxFeeRate(fee, cashValue, maxFeeRate);
 
         // Update the order status in storage
         _updateOrderStatus(orderHash, order, making);

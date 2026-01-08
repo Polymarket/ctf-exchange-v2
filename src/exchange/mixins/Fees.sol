@@ -14,7 +14,7 @@ abstract contract Fees is IFees {
     address internal feeReceiver;
 
     /// @notice The maximum fee rate allowed in basis points
-    uint256 internal maxFeeRateBps = 1000; // Default to 10%
+    uint256 internal maxFeeRateBps = 500; // Default to 5%
 
     constructor(address _feeReceiver) {
         feeReceiver = _feeReceiver;
@@ -34,19 +34,32 @@ abstract contract Fees is IFees {
     /// @param fee       - The fee amount being charged, denominated in collateral
     /// @param cashValue - The value of the trade, denominated in collateral
     function validateFee(uint256 fee, uint256 cashValue) public view override {
-        if (maxFeeRateBps == 0) return; // No limit enforced if rate is 0
+        validateFeeWithMaxFeeRate(fee, cashValue, maxFeeRateBps);
+    }
+
+    /// @notice Validates that the fee does not exceed the specified maximum fee rate
+    /// @param fee           - The fee amount being charged, denominated in collateral
+    /// @param cashValue     - The value of the trade, denominated in collateral
+    /// @param maxFeeRate    - The maximum fee rate allowed in basis points
+    function validateFeeWithMaxFeeRate(uint256 fee, uint256 cashValue, uint256 maxFeeRate) internal pure override {
+        if (fee == 0) return;
+
+        // No limit enforced if rate is 0
+        if (maxFeeRate == 0) return;
         if (cashValue == 0) return;
-        uint256 maxAllowedFee = (cashValue * maxFeeRateBps) / BPS_DENOMINATOR;
+        uint256 maxAllowedFee = (cashValue * maxFeeRate) / BPS_DENOMINATOR;
         if (fee > maxAllowedFee) revert FeeExceedsMaxRate();
     }
 
+    /// @notice Sets the fee receiver address
+    /// @param _feeReceiver - The new fee receiver address
     function _setFeeReceiver(address _feeReceiver) internal override {
         feeReceiver = _feeReceiver;
         emit FeeReceiverUpdated(_feeReceiver);
     }
 
     /// @notice Sets the maximum fee rate in basis points
-    /// @param _maxFeeRateBps - The new max fee rate in bps (e.g., 500 = 5%), max (99%)
+    /// @param _maxFeeRateBps - The new max fee rate in bps (e.g., 500 = 5%), max (99.99%)
     function _setMaxFeeRate(uint256 _maxFeeRateBps) internal override {
         if (_maxFeeRateBps >= MAX_FEE_RATE_BPS_CAP) revert MaxFeeRateExceedsCeiling();
         maxFeeRateBps = _maxFeeRateBps;

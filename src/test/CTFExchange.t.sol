@@ -187,9 +187,14 @@ contract CTFExchangeTest is BaseExchangeTest {
         assertEq(exchange.getFeeReceiver(), newFeeReceiver);
     }
 
+    function test_DefaultMaxFeeRate() public view {
+        // Default max fee rate should be 5% (500 bps)
+        assertEq(exchange.getMaxFeeRate(), 500);
+    }
+
     function test_SetMaxFeeRate() public {
-        // 5% in bps
-        uint256 newMaxFeeRate = 500;
+        // 10% in bps
+        uint256 newMaxFeeRate = 1000;
 
         vm.expectEmit(true, true, true, true);
         emit MaxFeeRateUpdated(newMaxFeeRate);
@@ -213,11 +218,8 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.setMaxFeeRate(10000);
     }
 
-    function test_ValidateFee() public {
-        // Set max fee rate to 5%
-        vm.prank(admin);
-        exchange.setMaxFeeRate(500);
-
+    function test_ValidateFee() public view {
+        // Default max fee rate is 5% (500 bps)
         // Fee of 5 USDC on a 100 USDC trade = 5%, should pass
         exchange.validateFee(5_000_000, 100_000_000);
 
@@ -226,10 +228,7 @@ contract CTFExchangeTest is BaseExchangeTest {
     }
 
     function test_ValidateFee_revert_FeeExceedsMaxRate() public {
-        // Set max fee rate to 5% (500 bps)
-        vm.prank(admin);
-        exchange.setMaxFeeRate(500);
-
+        // Default max fee rate is 5% (500 bps)
         // Fee of 6 USDC on a 100 USDC trade = 6%, should revert
         vm.expectRevert(FeeExceedsMaxRate.selector);
         exchange.validateFee(6_000_000, 100_000_000);
