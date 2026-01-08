@@ -187,6 +187,69 @@ contract CTFExchangeTest is BaseExchangeTest {
         assertEq(exchange.getFeeReceiver(), newFeeReceiver);
     }
 
+    function test_SetMaxFeeRate() public {
+        // 5% in bps
+        uint256 newMaxFeeRate = 500;
+
+        vm.expectEmit(true, true, true, true);
+        emit MaxFeeRateUpdated(newMaxFeeRate);
+
+        vm.prank(admin);
+        exchange.setMaxFeeRate(newMaxFeeRate);
+
+        assertEq(exchange.getMaxFeeRate(), newMaxFeeRate);
+    }
+
+    function test_SetMaxFeeRate_revert_NotAdmin() public {
+        vm.expectRevert(NotAdmin.selector);
+        vm.prank(bob);
+        exchange.setMaxFeeRate(500);
+    }
+
+    function test_SetMaxFeeRate_revert_ExceedsCeiling() public {
+        // Cannot set rate > 10000 bps (100%)
+        vm.expectRevert(MaxFeeRateExceedsCeiling.selector);
+        vm.prank(admin);
+        exchange.setMaxFeeRate(10001);
+    }
+
+    function test_SetMaxFeeRate_AtCeiling() public {
+        // Can set rate to exactly 10000 bps (100%)
+        vm.prank(admin);
+        exchange.setMaxFeeRate(10000);
+        assertEq(exchange.getMaxFeeRate(), 10000);
+    }
+
+    function test_ValidateFee() public {
+        // Set max fee rate to 5%
+        vm.prank(admin);
+        exchange.setMaxFeeRate(500);
+
+        // Fee of 5 USDC on a 100 USDC trade = 5%, should pass
+        exchange.validateFee(5_000_000, 100_000_000);
+
+        // Fee of 4 USDC on a 100 USDC trade = 4%, should pass
+        exchange.validateFee(4_000_000, 100_000_000);
+    }
+
+    function test_ValidateFee_revert_FeeExceedsMaxRate() public {
+        // Set max fee rate to 5% (500 bps)
+        vm.prank(admin);
+        exchange.setMaxFeeRate(500);
+
+        // Fee of 6 USDC on a 100 USDC trade = 6%, should revert
+        vm.expectRevert(FeeExceedsMaxRate.selector);
+        exchange.validateFee(6_000_000, 100_000_000);
+    }
+
+    function test_ValidateFee_ZeroRate() public {
+        vm.prank(admin);
+        exchange.setMaxFeeRate(0);
+        assertEq(exchange.getMaxFeeRate(), 0);
+
+        exchange.validateFee(99_000_000, 100_000_000);
+    }
+
     function test_hashOrder() public view {
         Order memory order = _createOrder(bob, 1, 50_000_000, 100_000_000, Side.BUY);
 

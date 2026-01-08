@@ -111,4 +111,10 @@ contract CTFExchange is
     function setFeeReceiver(address receiver) external onlyAdmin {
         _setFeeReceiver(receiver);
     }
+
+    /// @notice Sets the maximum fee rate for trades
+    /// @param rate - The new max fee rate in basis points
+    function setMaxFeeRate(uint256 rate) external onlyAdmin {
+        _setMaxFeeRate(rate);
+    }
 }

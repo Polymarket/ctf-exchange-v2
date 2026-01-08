@@ -13,6 +13,7 @@ buffer
 .env.local
 .env.testnet
 .env.mainnet
+*.txt
 
 !/broadcast
 /broadcast/*/31337/

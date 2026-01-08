@@ -277,7 +277,8 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// 2) Computes the order hash
     /// 3) Validates the order
     /// 4) Computes taking amount
-    /// 5) Updates the order status in storage
+    /// 5) Validates fee against max fee rate
+    /// 6) Updates the order status in storage
     /// @param order    - The order being prepared
     /// @param making   - The amount of the order being filled, in terms of maker amount
     /// @param fee      - The fee charged to the order by the operator
@@ -292,6 +293,10 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
 
         // Calculate taking amount
         takingAmount = CalculatorHelper.calculateTakingAmount(making, order.makerAmount, order.takerAmount);
+
+        // Validate fee against max fee rate
+        uint256 cashValue = order.side == Side.BUY ? making : takingAmount;
+        validateFee(fee, cashValue);
 
         // Update the order status in storage
         _updateOrderStatus(orderHash, order, making);
