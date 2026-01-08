@@ -778,7 +778,6 @@ contract MatchOrdersTest is BaseExchangeTest {
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealUsdcAndApprove(carla, address(exchange), 50_000_000);
 
-
         // Initialize a YES SELL taker order, selling 100 YES at 50c
         // For SELL: cash value = takingAmount = 50 USDC
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
@@ -808,7 +807,6 @@ contract MatchOrdersTest is BaseExchangeTest {
         // Deals
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
-
 
         // Initialize a YES BUY taker order, buying 100 YES at 50c
         // For BUY: cash value = makingAmount = 50 USDC
