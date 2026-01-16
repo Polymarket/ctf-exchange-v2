@@ -67,6 +67,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @dev Pulls assets from the taker order to the Exchange
     /// @dev Settles maker orders against the Exchange, using the assets received from the taker order
     /// @dev Settles the taker order against the Exchange, using the assets received from the maker orders
+    /// @param market               - The conditionId of the market being traded
     /// @param takerOrder           - The active order to be matched
     /// @param makerOrders          - The array of maker orders to be matched against the active order
     /// @param takerFillAmount      - The amount to fill on the taker order, always in terms of the maker amount
@@ -75,6 +76,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @param takerFeeAmount       - The fee to be charged to the taker order
     /// @param makerFeeAmounts      - The fee to be charged to the maker orders
     function _matchOrders(
+        bytes32 market,
         Order memory takerOrder,
         Order[] memory makerOrders,
         uint256 takerFillAmount,
@@ -93,7 +95,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         _transfer(takerOrder.maker, address(this), makerAssetId, making);
 
         // Settle the maker orders
-        _settleMakerOrders(takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, maxFeeRate);
+        _settleMakerOrders(market, takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, maxFeeRate);
 
         taking = _updateTakingWithSurplus(taking, takerAssetId);
 
@@ -150,6 +152,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     }
 
     function _settleMakerOrders(
+        bytes32 market,
         Order memory takerOrder,
         Order[] memory makerOrders,
         uint256[] memory makerFillAmounts,
@@ -159,17 +162,19 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         uint256 length = makerOrders.length;
         uint256 i = 0;
         for (; i < length; ++i) {
-            _settleMakerOrder(takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i], maxFeeRate);
+            _settleMakerOrder(market, takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i], maxFeeRate);
         }
     }
 
     /// @notice Settles a Maker order
+    /// @param market       - The conditionId of the market being traded
     /// @param takerOrder   - The taker order
     /// @param makerOrder   - The maker order
     /// @param fillAmount   - The fill amount
     /// @param feeAmount    - The fee amount
     /// @param maxFeeRate   - The maximum fee rate allowed
     function _settleMakerOrder(
+        bytes32 market,
         Order memory takerOrder,
         Order memory makerOrder,
         uint256 fillAmount,
@@ -187,7 +192,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(makerOrder);
 
         _settleFacingExchange(
-            making, taking, makerOrder.maker, makerAssetId, takerAssetId, makerOrder.side, matchType, feeAmount
+            market, making, taking, makerOrder.maker, makerAssetId, takerAssetId, makerOrder.side, matchType, feeAmount
         );
 
         // necessary for stack too deep
@@ -208,6 +213,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     }
 
     /// @notice Settle a maker order using the Exchange as the counterparty
+    /// @param market       - The conditionId of the market being traded
     /// @param makingAmount - Amount to be filled in terms of maker amount
     /// @param takingAmount - Amount to be filled in terms of taker amount
     /// @param maker        - The order maker
@@ -216,6 +222,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @param matchType    - The match type
     /// @param feeAmount    - The fee charged to the Order maker
     function _settleFacingExchange(
+        bytes32 market,
         uint256 makingAmount,
         uint256 takingAmount,
         address maker,
@@ -229,7 +236,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         _transfer(maker, address(this), makerAssetId, makingAmount);
 
         // Executes a match call based on match type
-        _executeMatchCall(makingAmount, takingAmount, makerAssetId, takerAssetId, matchType);
+        _executeMatchCall(market, makingAmount, takingAmount, makerAssetId, takerAssetId, matchType);
 
         // Ensure match action generated enough tokens to fill the order
         if (_getBalance(takerAssetId) < takingAmount) revert TooLittleTokensReceived();
@@ -330,6 +337,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @param takerAssetId - The Token Id of the Asset to be received
     /// @param matchType    - The match type
     function _executeMatchCall(
+        bytes32 market,
         uint256 makingAmount,
         uint256 takingAmount,
         uint256 makerAssetId,
@@ -344,12 +352,12 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         if (matchType == MatchType.MINT) {
             // Indicates matching 2 buy orders
             // Mint new Outcome tokens using Exchange collateral balance and fill buys
-            return _mint(getConditionId(takerAssetId), takingAmount);
+            return _mint(market, takingAmount);
         }
         if (matchType == MatchType.MERGE) {
             // Indicates matching 2 sell orders
             // Merge the Exchange Outcome token balance into collateral and fill sells
-            return _merge(getConditionId(makerAssetId), makingAmount);
+            return _merge(market, makingAmount);
         }
     }
 

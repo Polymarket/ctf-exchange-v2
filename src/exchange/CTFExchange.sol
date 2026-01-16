@@ -57,6 +57,7 @@ contract CTFExchange is
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Matches a taker order against a list of maker orders
+    /// @param market               - The conditionId of the market being traded
     /// @param takerOrder           - The active order to be matched
     /// @param makerOrders          - The array of maker orders to be matched against the active order
     /// @param takerFillAmount      - The amount to fill on the taker order, always in terms of the maker amount
@@ -66,6 +67,7 @@ contract CTFExchange is
     /// @param takerFeeAmount       - The fee to be charged to the taker order
     /// @param makerFeeAmounts      - The fee to be charged to the maker orders
     function matchOrders(
+        bytes32 market,
         Order memory takerOrder,
         Order[] memory makerOrders,
         uint256 takerFillAmount,
@@ -73,7 +75,7 @@ contract CTFExchange is
         uint256 takerFeeAmount,
         uint256[] memory makerFeeAmounts
     ) external onlyOperator notPaused {
-        _matchOrders(takerOrder, makerOrders, takerFillAmount, makerFillAmounts, takerFeeAmount, makerFeeAmounts);
+        _matchOrders(market, takerOrder, makerOrders, takerFillAmount, makerFillAmounts, takerFeeAmount, makerFeeAmounts);
     }
 
     /*//////////////////////////////////////////////////////////////
