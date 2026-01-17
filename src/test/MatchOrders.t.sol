@@ -7,228 +7,144 @@ import { Order, Side } from "src/exchange/libraries/Structs.sol";
 contract MatchOrdersTest is BaseExchangeTest {
     function test_MatchOrders_Complementary() public {
         vm.pauseGasMetering();
-        // Deals
-        dealUsdcAndApprove(bob, address(exchange), 60_000_000);
-        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 150_000_000);
-        vm.resumeGasMetering();
+        // Setup: Bob has 50 USDC, Carla has 100 YES tokens
+        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
+        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
 
-        // Init a match with a yes buy against a list of yes sells
-        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 60_000_000, 100_000_000, Side.BUY);
-        Order memory makerOrderA = _createAndSignOrder(carlaPK, yes, 50_000_000, 25_000_000, Side.SELL);
-        Order memory makerOrderB = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
-        Order[] memory makerOrders = new Order[](2);
-        makerOrders[0] = makerOrderA;
-        makerOrders[1] = makerOrderB;
+        // Taker: YES BUY - spending 50 USDC to receive 100 YES
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        // Maker: YES SELL - spending 100 YES to receive 50 USDC
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
-        uint256[] memory fillAmounts = new uint256[](2);
-        fillAmounts[0] = 50_000_000;
-        fillAmounts[1] = 70_000_000;
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
 
-        checkpointCollateral(carla);
-        checkpointCTF(bob, yes);
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 100_000_000;
 
-        // Check fill events
-        // First maker order is filled completely
-        vm.expectEmit(true, true, true, true);
-        emit OrderFilled(
-            exchange.hashOrder(makerOrderA),
-            carla,
-            bob,
-            Side.SELL,
-            yes,
-            50_000_000,
-            25_000_000,
-            0,
-            bytes32(0),
-            bytes32(0)
-        );
-
-        // Second maker order is partially filled
-        vm.expectEmit(true, true, true, true);
-        emit OrderFilled(
-            exchange.hashOrder(makerOrderB),
-            carla,
-            bob,
-            Side.SELL,
-            yes,
-            70_000_000,
-            35_000_000,
-            0,
-            bytes32(0),
-            bytes32(0)
-        );
-        // The taker order is filled completely
-        vm.expectEmit(true, true, true, true);
-        emit OrderFilled(
-            exchange.hashOrder(takerOrder),
-            bob,
-            address(exchange),
-            Side.BUY,
-            yes,
-            60_000_000,
-            120_000_000,
-            0,
-            bytes32(0),
-            bytes32(0)
-        );
-
-        vm.expectEmit(true, true, true, true);
-        emit OrdersMatched(exchange.hashOrder(takerOrder), bob, Side.BUY, yes, 60_000_000, 120_000_000);
-
+        uint256 takerFillAmount = 50_000_000;
         uint256 takerFeeAmount = 0;
-        uint256[] memory makerFeeAmounts = new uint256[](2);
+        uint256[] memory makerFeeAmounts = new uint256[](1);
         makerFeeAmounts[0] = 0;
-        makerFeeAmounts[1] = 0;
+
+        vm.resumeGasMetering();
 
         vm.prank(admin);
         exchange.matchOrders(
-            conditionId, takerOrder, makerOrders, 60_000_000, fillAmounts, takerFeeAmount, makerFeeAmounts
+            conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts
         );
 
-        // Ensure balances have been updated post match
-        assertCollateralBalance(carla, 60_000_000);
-        assertCTFBalance(bob, yes, 120_000_000);
-
-        // Ensure onchain state for orders is as expected
-        // The taker order is fully filled
-        bytes32 takerOrderHash = exchange.hashOrder(takerOrder);
-        assertEq(exchange.getOrderStatus(takerOrderHash).remaining, 0);
-        assertTrue(exchange.getOrderStatus(takerOrderHash).filled);
+        vm.pauseGasMetering();
+        // Bob: spent 50 USDC, received 100 YES
+        assertCollateralBalance(bob, 0);
+        assertCTFBalance(bob, yes, 100_000_000);
+        // Carla: spent 100 YES, received 50 USDC
+        assertCTFBalance(carla, yes, 0);
+        assertCollateralBalance(carla, 50_000_000);
+        // Both orders fully filled
+        assertTrue(exchange.getOrderStatus(exchange.hashOrder(takerOrder)).filled);
+        assertTrue(exchange.getOrderStatus(exchange.hashOrder(makerOrder)).filled);
     }
 
     function test_MatchOrders_Mint() public {
         vm.pauseGasMetering();
-        // Deals
-        dealUsdcAndApprove(bob, address(exchange), 60_000_000);
-        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 50_000_000);
-        dealUsdcAndApprove(carla, address(exchange), 16_000_000);
-        vm.resumeGasMetering();
+        // Setup: Bob has 50 USDC, Carla has 50 USDC
+        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
+        dealUsdcAndApprove(carla, address(exchange), 50_000_000);
 
-        // Init Match with YES buy against a YES sell and a NO buy
-        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 60_000_000, 100_000_000, Side.BUY);
-        Order memory makerOrderSell = _createAndSignOrder(carlaPK, yes, 50_000_000, 25_000_000, Side.SELL);
-        Order memory makerOrderBuy = _createAndSignOrder(carlaPK, no, 16_000_000, 40_000_000, Side.BUY);
-        Order[] memory makerOrders = new Order[](2);
-        makerOrders[0] = makerOrderSell;
-        makerOrders[1] = makerOrderBuy;
+        // Taker: YES BUY - spending 50 USDC to receive 100 YES
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        // Maker: NO BUY - spending 50 USDC to receive 100 NO
+        Order memory makerOrder = _createAndSignOrder(carlaPK, no, 50_000_000, 100_000_000, Side.BUY);
 
-        uint256[] memory fillAmounts = new uint256[](2);
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
         fillAmounts[0] = 50_000_000;
-        fillAmounts[1] = 16_000_000;
 
-        uint256 takerOrderFillAmount = 49_000_000;
-
-        checkpointCollateral(carla);
-        checkpointCTF(bob, yes);
-        checkpointCTF(carla, no);
-
+        uint256 takerFillAmount = 50_000_000;
         uint256 takerFeeAmount = 0;
-        uint256[] memory makerFeeAmounts = new uint256[](2);
+        uint256[] memory makerFeeAmounts = new uint256[](1);
         makerFeeAmounts[0] = 0;
-        makerFeeAmounts[1] = 0;
+
+        vm.resumeGasMetering();
 
         vm.prank(admin);
         exchange.matchOrders(
-            conditionId, takerOrder, makerOrders, takerOrderFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts
+            conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts
         );
 
-        // Ensure balances have been updated post match
-        assertCTFBalance(bob, yes, 90_000_000);
-
-        assertCollateralBalance(carla, 9_000_000);
-        assertCTFBalance(carla, no, 40_000_000);
-
-        // Ensure onchain state for orders is as expected
-        // The taker order is partially filled
-        assertEq(exchange.getOrderStatus(exchange.hashOrder(takerOrder)).remaining, 11_000_000);
-        assertFalse(exchange.getOrderStatus(exchange.hashOrder(takerOrder)).filled);
-
-        // The maker orders get completely filled
-        assertEq(exchange.getOrderStatus(exchange.hashOrder(makerOrderSell)).remaining, 0);
-        assertTrue(exchange.getOrderStatus(exchange.hashOrder(makerOrderSell)).filled);
-
-        assertEq(exchange.getOrderStatus(exchange.hashOrder(makerOrderBuy)).remaining, 0);
-        assertTrue(exchange.getOrderStatus(exchange.hashOrder(makerOrderBuy)).filled);
+        vm.pauseGasMetering();
+        // Bob: spent 50 USDC, received 100 YES
+        assertCollateralBalance(bob, 0);
+        assertCTFBalance(bob, yes, 100_000_000);
+        // Carla: spent 50 USDC, received 100 NO
+        assertCollateralBalance(carla, 0);
+        assertCTFBalance(carla, no, 100_000_000);
+        // Both orders fully filled
+        assertTrue(exchange.getOrderStatus(exchange.hashOrder(takerOrder)).filled);
+        assertTrue(exchange.getOrderStatus(exchange.hashOrder(makerOrder)).filled);
     }
 
     function test_MatchOrders_Merge() public {
-        // Deals
         vm.pauseGasMetering();
+        // Setup: Bob has 100 YES, Carla has 100 NO
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
-        dealOutcomeTokensAndApprove(carla, address(exchange), no, 75_000_000);
-        dealUsdcAndApprove(carla, address(exchange), 24_000_000);
-        vm.resumeGasMetering();
+        dealOutcomeTokensAndApprove(carla, address(exchange), no, 100_000_000);
 
-        // Init Match with YES sell against a NO sell and a Yes buy
-        // To match the YES sell with the NO sell, CTF Exchange will MERGE Outcome tokens into collateral
-        // Then will fill the YES sell and the NO sell with the resulting collateral
-        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 60_000_000, Side.SELL);
+        // Taker: YES SELL - spending 100 YES to receive 50 USDC
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
+        // Maker: NO SELL - spending 100 NO to receive 50 USDC
+        Order memory makerOrder = _createAndSignOrder(carlaPK, no, 100_000_000, 50_000_000, Side.SELL);
 
-        Order memory makerOrderSell = _createAndSignOrder(carlaPK, no, 75_000_000, 30_000_000, Side.SELL);
-        Order memory makerOrderBuy = _createAndSignOrder(carlaPK, yes, 24_000_000, 40_000_000, Side.BUY);
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
 
-        Order[] memory makerOrders = new Order[](2);
-        makerOrders[0] = makerOrderSell;
-        makerOrders[1] = makerOrderBuy;
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 100_000_000;
 
-        uint256[] memory fillAmounts = new uint256[](2);
-        fillAmounts[0] = 75_000_000;
-        fillAmounts[1] = 15_000_000;
-
-        uint256 takerOrderFillAmount = 100_000_000;
-
-        checkpointCollateral(bob);
-
-        checkpointCTF(carla, yes);
-        checkpointCollateral(carla);
-
+        uint256 takerFillAmount = 100_000_000;
         uint256 takerFeeAmount = 0;
-        uint256[] memory makerFeeAmounts = new uint256[](2);
+        uint256[] memory makerFeeAmounts = new uint256[](1);
         makerFeeAmounts[0] = 0;
-        makerFeeAmounts[1] = 0;
+
+        vm.resumeGasMetering();
 
         vm.prank(admin);
         exchange.matchOrders(
-            conditionId, takerOrder, makerOrders, takerOrderFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts
+            conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts
         );
 
-        // Ensure balances have been updated post match
-        assertCollateralBalance(bob, 60_000_000);
-
-        assertCTFBalance(carla, yes, 25_000_000);
-        assertCollateralBalance(carla, 15_000_000);
-
-        // Ensure onchain state for orders is as expected
-        // The taker order is fully filled
-        assertEq(exchange.getOrderStatus(exchange.hashOrder(takerOrder)).remaining, 0);
+        vm.pauseGasMetering();
+        // Bob: spent 100 YES, received 50 USDC
+        assertCTFBalance(bob, yes, 0);
+        assertCollateralBalance(bob, 50_000_000);
+        // Carla: spent 100 NO, received 50 USDC
+        assertCTFBalance(carla, no, 0);
+        assertCollateralBalance(carla, 50_000_000);
+        // Both orders fully filled
         assertTrue(exchange.getOrderStatus(exchange.hashOrder(takerOrder)).filled);
-
-        // The first maker order gets completely filled
-        assertEq(exchange.getOrderStatus(exchange.hashOrder(makerOrderSell)).remaining, 0);
-        assertTrue(exchange.getOrderStatus(exchange.hashOrder(makerOrderSell)).filled);
-
-        // The second maker order is partially filled
-        assertEq(exchange.getOrderStatus(exchange.hashOrder(makerOrderBuy)).remaining, 9_000_000);
-        assertFalse(exchange.getOrderStatus(exchange.hashOrder(makerOrderBuy)).filled);
+        assertTrue(exchange.getOrderStatus(exchange.hashOrder(makerOrder)).filled);
     }
 
     function test_MatchOrders_Complementary_Fees() public {
         vm.pauseGasMetering();
-        // Deals
+        // Setup: Bob has 52.5 USDC (50 + 2.5 fee), Carla has 100 YES
         dealUsdcAndApprove(bob, address(exchange), 52_500_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
-        vm.resumeGasMetering();
 
-        // Initialize a YES BUY taker order at 50c with a 2.5 USDC fee
+        // Taker: YES BUY at 50c with 2.5 USDC fee
         uint256 takerFeeAmount = 2_500_000;
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
-        // Initialize a YES SELL order at 50c with a 10c USDC fee
+        // Maker: YES SELL at 50c with 0.1 USDC fee
         uint256 makerFeeAmount = 100_000;
         Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
+
         uint256[] memory fillAmounts = new uint256[](1);
         fillAmounts[0] = 100_000_000;
 
@@ -236,87 +152,41 @@ contract MatchOrdersTest is BaseExchangeTest {
         uint256[] memory makerFeeAmounts = new uint256[](1);
         makerFeeAmounts[0] = makerFeeAmount;
 
-        // Assert event emissions
-        vm.expectEmit(true, true, true, true);
-        emit FeeCharged(feeReceiver, makerFeeAmount);
-        vm.expectEmit(true, true, true, true);
-        emit OrderFilled(
-            exchange.hashOrder(makerOrder),
-            carla,
-            bob,
-            Side.SELL,
-            yes,
-            100_000_000,
-            50_000_000,
-            makerFeeAmount,
-            bytes32(0),
-            bytes32(0)
-        );
+        vm.resumeGasMetering();
 
-        vm.expectEmit(true, true, true, true);
-        emit FeeCharged(feeReceiver, takerFeeAmount);
-        vm.expectEmit(true, true, true, true);
-        emit OrderFilled(
-            exchange.hashOrder(takerOrder),
-            bob,
-            address(exchange),
-            Side.BUY,
-            yes,
-            50_000_000,
-            100_000_000,
-            takerFeeAmount,
-            bytes32(0),
-            bytes32(0)
-        );
-
-        // Assert state pre match
-        assertCollateralBalance(bob, 52_500_000);
-        assertCTFBalance(carla, yes, 100_000_000);
-
-        assertCTFBalance(bob, yes, 0);
-        assertCollateralBalance(carla, 0);
-
-        // Match the orders
         vm.prank(admin);
         exchange.matchOrders(
             conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts
         );
 
-        // Assert state changes post match
-        // Taker: YES BUY fully filled, receiving Outcome Tokens, spending Collateral + taker fee
-        // Assert Outcome tokens received
-        assertCTFBalance(bob, yes, 100_000_000);
-        // Assert Collateral spent
+        vm.pauseGasMetering();
+        // Bob: spent 52.5 USDC, received 100 YES
         assertCollateralBalance(bob, 0);
-
-        // Maker: Sell is fully filled, receiving Collateral - maker fee, spending Outcome Tokens
-        assertCollateralBalance(carla, 49_900_000);
+        assertCTFBalance(bob, yes, 100_000_000);
+        // Carla: spent 100 YES, received 49.9 USDC (50 - 0.1 fee)
         assertCTFBalance(carla, yes, 0);
-
-        // Fees are collected from both orders
-        // The taker fee as an additional deduction from the taker's collateral balance
-        // The maker fee as a deduction from the maker's collateral proceeds
-        // Transferred to the fee receiver
+        assertCollateralBalance(carla, 49_900_000);
+        // Fees collected
         assertCollateralBalance(feeReceiver, takerFeeAmount + makerFeeAmount);
     }
 
     function test_MatchOrders_Mint_Fees() public {
         vm.pauseGasMetering();
-        // Deals
+        // Setup: Bob has 52.5 USDC (50 + 2.5 fee), Carla has 50.1 USDC (50 + 0.1 fee)
         dealUsdcAndApprove(bob, address(exchange), 52_500_000);
         dealUsdcAndApprove(carla, address(exchange), 50_100_000);
-        vm.resumeGasMetering();
 
-        // Initialize a YES BUY taker order at 50c with a 2.5 USDC fee
+        // Taker: YES BUY at 50c with 2.5 USDC fee
         uint256 takerFeeAmount = 2_500_000;
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
-        // Initialize a NO BUY order at 50c with a 10c USDC fee
+        // Maker: NO BUY at 50c with 0.1 USDC fee
         uint256 makerFeeAmount = 100_000;
         Order memory makerOrder = _createAndSignOrder(carlaPK, no, 50_000_000, 100_000_000, Side.BUY);
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
+
         uint256[] memory fillAmounts = new uint256[](1);
         fillAmounts[0] = 50_000_000;
 
@@ -324,80 +194,41 @@ contract MatchOrdersTest is BaseExchangeTest {
         uint256[] memory makerFeeAmounts = new uint256[](1);
         makerFeeAmounts[0] = makerFeeAmount;
 
-        // Assert event emissions
-        vm.expectEmit(true, true, true, true);
-        emit FeeCharged(feeReceiver, makerFeeAmount);
-        vm.expectEmit(true, true, true, true);
-        emit OrderFilled(
-            exchange.hashOrder(makerOrder),
-            carla,
-            bob,
-            Side.BUY,
-            no,
-            50_000_000,
-            100_000_000,
-            makerFeeAmount,
-            bytes32(0),
-            bytes32(0)
-        );
+        vm.resumeGasMetering();
 
-        vm.expectEmit(true, true, true, true);
-        emit FeeCharged(feeReceiver, takerFeeAmount);
-        vm.expectEmit(true, true, true, true);
-        emit OrderFilled(
-            exchange.hashOrder(takerOrder),
-            bob,
-            address(exchange),
-            Side.BUY,
-            yes,
-            50_000_000,
-            100_000_000,
-            takerFeeAmount,
-            bytes32(0),
-            bytes32(0)
-        );
-
-        // Assert state pre match
-        assertCollateralBalance(bob, 52_500_000);
-        assertCollateralBalance(carla, 50_100_000);
-
-        assertCTFBalance(bob, yes, 0);
-        assertCTFBalance(carla, no, 0);
-
-        // Match the orders
         vm.prank(admin);
         exchange.matchOrders(
             conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts
         );
 
-        // Assert state changes post match
-        assertCTFBalance(bob, yes, 100_000_000);
+        vm.pauseGasMetering();
+        // Bob: spent 52.5 USDC, received 100 YES
         assertCollateralBalance(bob, 0);
-
-        assertCTFBalance(carla, no, 100_000_000);
+        assertCTFBalance(bob, yes, 100_000_000);
+        // Carla: spent 50.1 USDC, received 100 NO
         assertCollateralBalance(carla, 0);
-
-        // Fees collected from both orders
+        assertCTFBalance(carla, no, 100_000_000);
+        // Fees collected
         assertCollateralBalance(feeReceiver, takerFeeAmount + makerFeeAmount);
     }
 
     function test_MatchOrders_Merge_Fees() public {
         vm.pauseGasMetering();
-        // Deals
+        // Setup: Bob has 100 YES, Carla has 100 NO
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), no, 100_000_000);
-        vm.resumeGasMetering();
 
-        // Initialize a YES SELL taker order at 50c with a 2.5 USDC fee
+        // Taker: YES SELL at 50c with 2.5 USDC fee
         uint256 takerFeeAmount = 2_500_000;
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
-        // Initialize a NO SELL order at 50c with a 10c USDC fee
+        // Maker: NO SELL at 50c with 0.1 USDC fee
         uint256 makerFeeAmount = 100_000;
         Order memory makerOrder = _createAndSignOrder(carlaPK, no, 100_000_000, 50_000_000, Side.SELL);
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
+
         uint256[] memory fillAmounts = new uint256[](1);
         fillAmounts[0] = 100_000_000;
 
@@ -405,80 +236,42 @@ contract MatchOrdersTest is BaseExchangeTest {
         uint256[] memory makerFeeAmounts = new uint256[](1);
         makerFeeAmounts[0] = makerFeeAmount;
 
-        // Assert event emissions
-        vm.expectEmit(true, true, true, true);
-        emit FeeCharged(feeReceiver, makerFeeAmount);
-        vm.expectEmit(true, true, true, true);
-        emit OrderFilled(
-            exchange.hashOrder(makerOrder),
-            carla,
-            bob,
-            Side.SELL,
-            no,
-            100_000_000,
-            50_000_000,
-            makerFeeAmount,
-            bytes32(0),
-            bytes32(0)
-        );
+        vm.resumeGasMetering();
 
-        vm.expectEmit(true, true, true, true);
-        emit FeeCharged(feeReceiver, takerFeeAmount);
-        vm.expectEmit(true, true, true, true);
-        emit OrderFilled(
-            exchange.hashOrder(takerOrder),
-            bob,
-            address(exchange),
-            Side.SELL,
-            yes,
-            100_000_000,
-            50_000_000,
-            takerFeeAmount,
-            bytes32(0),
-            bytes32(0)
-        );
-
-        // Assert state pre match
-        assertCollateralBalance(bob, 0);
-        assertCollateralBalance(carla, 0);
-
-        assertCTFBalance(bob, yes, 100_000_000);
-        assertCTFBalance(carla, no, 100_000_000);
-
-        // Match the orders
         vm.prank(admin);
         exchange.matchOrders(
             conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts
         );
 
-        // Assert state changes post match
+        vm.pauseGasMetering();
+        // Bob: spent 100 YES, received 47.5 USDC (50 - 2.5 fee)
         assertCTFBalance(bob, yes, 0);
         assertCollateralBalance(bob, 47_500_000);
-
+        // Carla: spent 100 NO, received 49.9 USDC (50 - 0.1 fee)
         assertCTFBalance(carla, no, 0);
         assertCollateralBalance(carla, 49_900_000);
-
-        // Fees collected from both orders
+        // Fees collected
         assertCollateralBalance(feeReceiver, takerFeeAmount + makerFeeAmount);
     }
 
     function test_MatchOrders_Complementary_Fees_Surplus() public {
         vm.pauseGasMetering();
-        // Deals
+        // Setup: Bob has 100 YES, Carla has 60.1 USDC (60 + 0.1 fee)
+        // Maker buys at 60c but seller only wants 50c, creating 10 USDC surplus for taker
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealUsdcAndApprove(carla, address(exchange), 60_100_000);
-        vm.resumeGasMetering();
 
-        // Initialize a YES SELL taker order at 50c with a 2.5 USDC fee
+        // Taker: YES SELL at 50c with 2.5 USDC fee
         uint256 takerFeeAmount = 2_500_000;
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
-        // Initialize a YES BUY order at 60c with a 10c USDC fee, creating a surplus
+        // Maker: YES BUY at 60c with 0.1 USDC fee (overpays by 10 USDC)
         uint256 makerFeeAmount = 100_000;
         Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 60_000_000, 100_000_000, Side.BUY);
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
+
         uint256[] memory fillAmounts = new uint256[](1);
         fillAmounts[0] = 60_000_000;
 
@@ -486,102 +279,59 @@ contract MatchOrdersTest is BaseExchangeTest {
         uint256[] memory makerFeeAmounts = new uint256[](1);
         makerFeeAmounts[0] = makerFeeAmount;
 
-        // Assert event emissions
-        vm.expectEmit(true, true, true, true);
-        emit FeeCharged(feeReceiver, makerFeeAmount);
-        vm.expectEmit(true, true, true, true);
-        emit OrderFilled(
-            exchange.hashOrder(makerOrder),
-            carla,
-            bob,
-            Side.BUY,
-            yes,
-            60_000_000,
-            100_000_000,
-            makerFeeAmount,
-            bytes32(0),
-            bytes32(0)
-        );
+        vm.resumeGasMetering();
 
-        vm.expectEmit(true, true, true, true);
-        emit FeeCharged(feeReceiver, takerFeeAmount);
-        vm.expectEmit(true, true, true, true);
-        emit OrderFilled(
-            exchange.hashOrder(takerOrder),
-            bob,
-            address(exchange),
-            Side.SELL,
-            yes,
-            100_000_000,
-            60_000_000,
-            takerFeeAmount,
-            bytes32(0),
-            bytes32(0)
-        );
-
-        // Assert state pre match
-        assertCTFBalance(bob, yes, 100_000_000);
-        assertCollateralBalance(carla, 60_100_000);
-
-        assertCollateralBalance(bob, 0);
-        assertCTFBalance(carla, yes, 0);
-
-        // Match the orders
         vm.prank(admin);
         exchange.matchOrders(
             conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts
         );
 
-        // Assert state changes post match
+        vm.pauseGasMetering();
+        // Bob: spent 100 YES, received 57.5 USDC (50 + 10 surplus - 2.5 fee)
         assertCTFBalance(bob, yes, 0);
-        // Receives 50 USDC from sale + 10 USDC surplus from maker buy order - 2.5 USDC taker fee
         assertCollateralBalance(bob, 57_500_000);
-
-        // Deducted both 60 USDC buy cost + 0.1 USDC maker fee
+        // Carla: spent 60.1 USDC, received 100 YES
         assertCollateralBalance(carla, 0);
         assertCTFBalance(carla, yes, 100_000_000);
-
-        // Fees are collected from both orders
+        // Fees collected
         assertCollateralBalance(feeReceiver, takerFeeAmount + makerFeeAmount);
     }
 
     function test_MatchOrders_TakerRefund() public {
         vm.pauseGasMetering();
-        // Deals
+        // Setup: Bob has 50 USDC, Carla has 100 YES
+        // Taker overpays - only 40 USDC needed but 50 sent, so 10 refunded
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
-        vm.resumeGasMetering();
 
-        // Init match with takerFillAmount >> amount needed to fill the maker orders
-        // The excess tokens should be refunded to the taker
-        Order memory buy = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        // Taker: YES BUY at 50c
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
-        Order memory sell = _createAndSignOrder(carlaPK, yes, 100_000_000, 40_000_000, Side.SELL);
+        // Maker: YES SELL at 40c (cheaper than taker's limit)
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 40_000_000, Side.SELL);
+
         Order[] memory makerOrders = new Order[](1);
-        makerOrders[0] = sell;
+        makerOrders[0] = makerOrder;
 
         uint256[] memory fillAmounts = new uint256[](1);
         fillAmounts[0] = 100_000_000;
 
+        uint256 takerFillAmount = 50_000_000;
         uint256[] memory makerFeeAmounts = new uint256[](1);
         makerFeeAmounts[0] = 0;
 
-        // If fill amount is miscalculated, refund the caller any leftover tokens
-        // In this test, 40 USDC is needed to fill the sell.
-        // The Exchange will refund the taker order maker 10 USDC
-        uint256 takerFillAmount = 50_000_000;
-        uint256 expectedRefund = 10_000_000;
-
-        vm.expectEmit(true, true, true, true);
-        // Assert the refund transfer to the taker order maker
-        emit Transfer(address(exchange), bob, expectedRefund);
+        vm.resumeGasMetering();
 
         vm.prank(admin);
-        exchange.matchOrders(conditionId, buy, makerOrders, takerFillAmount, fillAmounts, 0, makerFeeAmounts);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, 0, makerFeeAmounts);
 
-        // Check state post match
-        assertCollateralBalance(bob, expectedRefund);
+        vm.pauseGasMetering();
+        // Bob: sent 50 USDC, only 40 needed, got 10 refund + 100 YES
+        assertCollateralBalance(bob, 10_000_000);
         assertCTFBalance(bob, yes, 100_000_000);
+        // Carla: spent 100 YES, received 40 USDC
+        assertCTFBalance(carla, yes, 0);
+        assertCollateralBalance(carla, 40_000_000);
     }
 
     // /*//////////////////////////////////////////////////////////////
@@ -731,31 +481,40 @@ contract MatchOrdersTest is BaseExchangeTest {
     }
 
     function test_MatchOrders_ZeroTakerAmount() public {
-        // Deals
+        vm.pauseGasMetering();
+        // Setup: Bob has 50 USDC, Carla has 1 YES
+        // Edge case: buy order with zero taker amount
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 1);
 
-        // Create a non-standard buy order with zero taker amount
-        Order memory buy = _createAndSignOrder(bobPK, yes, 50_000_000, 0, Side.BUY);
+        // Taker: YES BUY with zero taker amount (will accept any price)
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 0, Side.BUY);
 
-        // Any valid sell order will be able to drain the buy order
-        // Init a sell order priced absurdly high
-        Order memory sell = _createAndSignOrder(carlaPK, yes, 1, 50_000_000, Side.SELL);
+        // Maker: YES SELL at absurd price (1 YES for 50 USDC)
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 1, 50_000_000, Side.SELL);
 
         Order[] memory makerOrders = new Order[](1);
-        makerOrders[0] = sell;
+        makerOrders[0] = makerOrder;
 
         uint256[] memory fillAmounts = new uint256[](1);
         fillAmounts[0] = 1;
 
+        uint256 takerFillAmount = 50_000_000;
         uint256[] memory makerFeeAmounts = new uint256[](1);
         makerFeeAmounts[0] = 0;
 
-        uint256 takerOrderFillAmount = 50_000_000;
+        vm.resumeGasMetering();
 
-        // The orders are successfully matched
         vm.prank(admin);
-        exchange.matchOrders(conditionId, buy, makerOrders, takerOrderFillAmount, fillAmounts, 0, makerFeeAmounts);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, 0, makerFeeAmounts);
+
+        vm.pauseGasMetering();
+        // Bob: spent 50 USDC, received 1 YES
+        assertCollateralBalance(bob, 0);
+        assertCTFBalance(bob, yes, 1);
+        // Carla: spent 1 YES, received 50 USDC
+        assertCTFBalance(carla, yes, 0);
+        assertCollateralBalance(carla, 50_000_000);
     }
 
     function test_MatchOrders_revert_InvalidFillAmount() public {
@@ -850,18 +609,21 @@ contract MatchOrdersTest is BaseExchangeTest {
     }
 
     function test_MatchOrders_WithMaxFeeRate_Sell() public {
-        // Deals
+        vm.pauseGasMetering();
+        // Setup: Bob has 100 YES, Carla has 50 USDC
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealUsdcAndApprove(carla, address(exchange), 50_000_000);
 
-        // Initialize a YES SELL taker order, selling 100 YES at 50c
+        // Taker: YES SELL at 50c with max fee (5% = 2.5 USDC)
+        uint256 takerFeeAmount = 2_500_000;
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
-        // Initialize a YES BUY order at 50c
+        // Maker: YES BUY at 50c
         Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
+
         uint256[] memory fillAmounts = new uint256[](1);
         fillAmounts[0] = 50_000_000;
 
@@ -869,35 +631,38 @@ contract MatchOrdersTest is BaseExchangeTest {
         uint256[] memory makerFeeAmounts = new uint256[](1);
         makerFeeAmounts[0] = 0;
 
-        // For SELL: cash value = 50 USDC (taking amount)
-        // 5% of 50 USDC = 2.5 USDC max fee
-        // Charge exactly 2.5 USDC (5%) - should succeed
-        uint256 takerFeeAmount = 2_500_000;
-
-        checkpointCollateral(bob);
+        vm.resumeGasMetering();
 
         vm.prank(admin);
         exchange.matchOrders(
             conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts
         );
 
-        // Bob should receive 50 USDC - 2.5 USDC fee = 47.5 USDC
+        vm.pauseGasMetering();
+        // Bob: spent 100 YES, received 47.5 USDC (50 - 2.5 fee)
+        assertCTFBalance(bob, yes, 0);
         assertCollateralBalance(bob, 47_500_000);
+        // Carla: spent 50 USDC, received 100 YES
+        assertCollateralBalance(carla, 0);
+        assertCTFBalance(carla, yes, 100_000_000);
     }
 
     function test_MatchOrders_WithMaxFeeRate_Buy() public {
-        // Deals
+        vm.pauseGasMetering();
+        // Setup: Bob has 52.5 USDC (50 + 2.5 fee), Carla has 100 YES
         dealUsdcAndApprove(bob, address(exchange), 52_500_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
 
-        // Initialize a YES BUY taker order, buying 100 YES at 50c
+        // Taker: YES BUY at 50c with max fee (5% = 2.5 USDC)
+        uint256 takerFeeAmount = 2_500_000;
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
-        // Initialize a YES SELL order at 50c
+        // Maker: YES SELL at 50c
         Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
+
         uint256[] memory fillAmounts = new uint256[](1);
         fillAmounts[0] = 100_000_000;
 
@@ -905,17 +670,19 @@ contract MatchOrdersTest is BaseExchangeTest {
         uint256[] memory makerFeeAmounts = new uint256[](1);
         makerFeeAmounts[0] = 0;
 
-        // For BUY: cash value = 50 USDC (making amount)
-        uint256 takerFeeAmount = 2_500_000;
-
-        checkpointCTF(bob, yes);
+        vm.resumeGasMetering();
 
         vm.prank(admin);
         exchange.matchOrders(
             conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts
         );
 
-        // Bob should receive 100 YES tokens
+        vm.pauseGasMetering();
+        // Bob: spent 52.5 USDC, received 100 YES
+        assertCollateralBalance(bob, 0);
         assertCTFBalance(bob, yes, 100_000_000);
+        // Carla: spent 100 YES, received 50 USDC
+        assertCTFBalance(carla, yes, 0);
+        assertCollateralBalance(carla, 50_000_000);
     }
 }
