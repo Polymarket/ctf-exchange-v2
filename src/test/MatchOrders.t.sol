@@ -7,7 +7,6 @@ import { Order, Side } from "src/exchange/libraries/Structs.sol";
 contract MatchOrdersTest is BaseExchangeTest {
     function test_MatchOrders_Complementary() public {
         vm.pauseGasMetering();
-        // Setup: Bob has 50 USDC, Carla has 100 YES tokens
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
 
@@ -35,10 +34,10 @@ contract MatchOrdersTest is BaseExchangeTest {
         );
 
         vm.pauseGasMetering();
-        // Bob: spent 50 USDC, received 100 YES
+        // Taker spent 50 USDC, received 100 YES
         assertCollateralBalance(bob, 0);
         assertCTFBalance(bob, yes, 100_000_000);
-        // Carla: spent 100 YES, received 50 USDC
+        // Maker spent 100 YES, received 50 USDC
         assertCTFBalance(carla, yes, 0);
         assertCollateralBalance(carla, 50_000_000);
         // Both orders fully filled
@@ -48,7 +47,6 @@ contract MatchOrdersTest is BaseExchangeTest {
 
     function test_MatchOrders_Mint() public {
         vm.pauseGasMetering();
-        // Setup: Bob has 50 USDC, Carla has 50 USDC
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealUsdcAndApprove(carla, address(exchange), 50_000_000);
 
@@ -76,10 +74,10 @@ contract MatchOrdersTest is BaseExchangeTest {
         );
 
         vm.pauseGasMetering();
-        // Bob: spent 50 USDC, received 100 YES
+        // Taker: spent 50 USDC, received 100 YES
         assertCollateralBalance(bob, 0);
         assertCTFBalance(bob, yes, 100_000_000);
-        // Carla: spent 50 USDC, received 100 NO
+        // Maker: spent 50 USDC, received 100 NO
         assertCollateralBalance(carla, 0);
         assertCTFBalance(carla, no, 100_000_000);
         // Both orders fully filled
@@ -89,7 +87,6 @@ contract MatchOrdersTest is BaseExchangeTest {
 
     function test_MatchOrders_Merge() public {
         vm.pauseGasMetering();
-        // Setup: Bob has 100 YES, Carla has 100 NO
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), no, 100_000_000);
 
@@ -117,10 +114,10 @@ contract MatchOrdersTest is BaseExchangeTest {
         );
 
         vm.pauseGasMetering();
-        // Bob: spent 100 YES, received 50 USDC
+        // Taker: spent 100 YES, received 50 USDC
         assertCTFBalance(bob, yes, 0);
         assertCollateralBalance(bob, 50_000_000);
-        // Carla: spent 100 NO, received 50 USDC
+        // Maker: spent 100 NO, received 50 USDC
         assertCTFBalance(carla, no, 0);
         assertCollateralBalance(carla, 50_000_000);
         // Both orders fully filled
@@ -130,7 +127,6 @@ contract MatchOrdersTest is BaseExchangeTest {
 
     function test_MatchOrders_Complementary_Fees() public {
         vm.pauseGasMetering();
-        // Setup: Bob has 52.5 USDC (50 + 2.5 fee), Carla has 100 YES
         dealUsdcAndApprove(bob, address(exchange), 52_500_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
 
@@ -160,10 +156,10 @@ contract MatchOrdersTest is BaseExchangeTest {
         );
 
         vm.pauseGasMetering();
-        // Bob: spent 52.5 USDC, received 100 YES
+        // Taker: spent 52.5 USDC, received 100 YES
         assertCollateralBalance(bob, 0);
         assertCTFBalance(bob, yes, 100_000_000);
-        // Carla: spent 100 YES, received 49.9 USDC (50 - 0.1 fee)
+        // Maker: spent 100 YES, received 49.9 USDC (50 - 0.1 fee)
         assertCTFBalance(carla, yes, 0);
         assertCollateralBalance(carla, 49_900_000);
         // Fees collected
@@ -172,7 +168,6 @@ contract MatchOrdersTest is BaseExchangeTest {
 
     function test_MatchOrders_Mint_Fees() public {
         vm.pauseGasMetering();
-        // Setup: Bob has 52.5 USDC (50 + 2.5 fee), Carla has 50.1 USDC (50 + 0.1 fee)
         dealUsdcAndApprove(bob, address(exchange), 52_500_000);
         dealUsdcAndApprove(carla, address(exchange), 50_100_000);
 
@@ -202,10 +197,10 @@ contract MatchOrdersTest is BaseExchangeTest {
         );
 
         vm.pauseGasMetering();
-        // Bob: spent 52.5 USDC, received 100 YES
+        // Taker: spent 52.5 USDC, received 100 YES
         assertCollateralBalance(bob, 0);
         assertCTFBalance(bob, yes, 100_000_000);
-        // Carla: spent 50.1 USDC, received 100 NO
+        // Maker: spent 50.1 USDC, received 100 NO
         assertCollateralBalance(carla, 0);
         assertCTFBalance(carla, no, 100_000_000);
         // Fees collected
@@ -214,7 +209,6 @@ contract MatchOrdersTest is BaseExchangeTest {
 
     function test_MatchOrders_Merge_Fees() public {
         vm.pauseGasMetering();
-        // Setup: Bob has 100 YES, Carla has 100 NO
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), no, 100_000_000);
 
@@ -244,10 +238,10 @@ contract MatchOrdersTest is BaseExchangeTest {
         );
 
         vm.pauseGasMetering();
-        // Bob: spent 100 YES, received 47.5 USDC (50 - 2.5 fee)
+        // Taker: spent 100 YES, received 47.5 USDC (50 - 2.5 fee)
         assertCTFBalance(bob, yes, 0);
         assertCollateralBalance(bob, 47_500_000);
-        // Carla: spent 100 NO, received 49.9 USDC (50 - 0.1 fee)
+        // Maker: spent 100 NO, received 49.9 USDC (50 - 0.1 fee)
         assertCTFBalance(carla, no, 0);
         assertCollateralBalance(carla, 49_900_000);
         // Fees collected
@@ -256,7 +250,7 @@ contract MatchOrdersTest is BaseExchangeTest {
 
     function test_MatchOrders_Complementary_Fees_Surplus() public {
         vm.pauseGasMetering();
-        // Setup: Bob has 100 YES, Carla has 60.1 USDC (60 + 0.1 fee)
+        // Taker has 100 YES, Maker has 60.1 USDC (60 + 0.1 fee)
         // Maker buys at 60c but seller only wants 50c, creating 10 USDC surplus for taker
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealUsdcAndApprove(carla, address(exchange), 60_100_000);
@@ -287,10 +281,10 @@ contract MatchOrdersTest is BaseExchangeTest {
         );
 
         vm.pauseGasMetering();
-        // Bob: spent 100 YES, received 57.5 USDC (50 + 10 surplus - 2.5 fee)
+        // Taker spent 100 YES, received 57.5 USDC (50 + 10 surplus - 2.5 fee)
         assertCTFBalance(bob, yes, 0);
         assertCollateralBalance(bob, 57_500_000);
-        // Carla: spent 60.1 USDC, received 100 YES
+        // Maker spent 60.1 USDC, received 100 YES
         assertCollateralBalance(carla, 0);
         assertCTFBalance(carla, yes, 100_000_000);
         // Fees collected
@@ -299,7 +293,6 @@ contract MatchOrdersTest is BaseExchangeTest {
 
     function test_MatchOrders_TakerRefund() public {
         vm.pauseGasMetering();
-        // Setup: Bob has 50 USDC, Carla has 100 YES
         // Taker overpays - only 40 USDC needed but 50 sent, so 10 refunded
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
@@ -326,10 +319,10 @@ contract MatchOrdersTest is BaseExchangeTest {
         exchange.matchOrders(conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, 0, makerFeeAmounts);
 
         vm.pauseGasMetering();
-        // Bob: sent 50 USDC, only 40 needed, got 10 refund + 100 YES
+        // Taker: sent 50 USDC, only 40 needed, got 10 refund + 100 YES
         assertCollateralBalance(bob, 10_000_000);
         assertCTFBalance(bob, yes, 100_000_000);
-        // Carla: spent 100 YES, received 40 USDC
+        // Maker: spent 100 YES, received 40 USDC
         assertCTFBalance(carla, yes, 0);
         assertCollateralBalance(carla, 40_000_000);
     }
@@ -482,7 +475,6 @@ contract MatchOrdersTest is BaseExchangeTest {
 
     function test_MatchOrders_ZeroTakerAmount() public {
         vm.pauseGasMetering();
-        // Setup: Bob has 50 USDC, Carla has 1 YES
         // Edge case: buy order with zero taker amount
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 1);
@@ -509,10 +501,10 @@ contract MatchOrdersTest is BaseExchangeTest {
         exchange.matchOrders(conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, 0, makerFeeAmounts);
 
         vm.pauseGasMetering();
-        // Bob: spent 50 USDC, received 1 YES
+        // Taker spent 50 USDC, received 1 YES
         assertCollateralBalance(bob, 0);
         assertCTFBalance(bob, yes, 1);
-        // Carla: spent 1 YES, received 50 USDC
+        // Maker spent 1 YES, received 50 USDC
         assertCTFBalance(carla, yes, 0);
         assertCollateralBalance(carla, 50_000_000);
     }
@@ -610,7 +602,6 @@ contract MatchOrdersTest is BaseExchangeTest {
 
     function test_MatchOrders_WithMaxFeeRate_Sell() public {
         vm.pauseGasMetering();
-        // Setup: Bob has 100 YES, Carla has 50 USDC
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealUsdcAndApprove(carla, address(exchange), 50_000_000);
 
@@ -639,17 +630,16 @@ contract MatchOrdersTest is BaseExchangeTest {
         );
 
         vm.pauseGasMetering();
-        // Bob: spent 100 YES, received 47.5 USDC (50 - 2.5 fee)
+        // Taker spent 100 YES, received 47.5 USDC (50 - 2.5 fee)
         assertCTFBalance(bob, yes, 0);
         assertCollateralBalance(bob, 47_500_000);
-        // Carla: spent 50 USDC, received 100 YES
+        // Maker spent 50 USDC, received 100 YES
         assertCollateralBalance(carla, 0);
         assertCTFBalance(carla, yes, 100_000_000);
     }
 
     function test_MatchOrders_WithMaxFeeRate_Buy() public {
         vm.pauseGasMetering();
-        // Setup: Bob has 52.5 USDC (50 + 2.5 fee), Carla has 100 YES
         dealUsdcAndApprove(bob, address(exchange), 52_500_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
 
@@ -678,10 +668,10 @@ contract MatchOrdersTest is BaseExchangeTest {
         );
 
         vm.pauseGasMetering();
-        // Bob: spent 52.5 USDC, received 100 YES
+        // Taker spent 52.5 USDC, received 100 YES
         assertCollateralBalance(bob, 0);
         assertCTFBalance(bob, yes, 100_000_000);
-        // Carla: spent 100 YES, received 50 USDC
+        // Maker spent 100 YES, received 50 USDC
         assertCTFBalance(carla, yes, 0);
         assertCollateralBalance(carla, 50_000_000);
     }
