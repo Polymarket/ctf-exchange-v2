@@ -354,11 +354,8 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         if (!CalculatorHelper.isCrossing(takerOrder, makerOrder)) revert NotCrossing();
 
         // Ensure orders match
-        if (matchType == MatchType.COMPLEMENTARY) {
-            if (takerOrder.tokenId != makerOrder.tokenId) revert MismatchedTokenIds();
-        } else {
-            // both bids or both asks
-            // validateComplement(takerOrder.tokenId, makerOrder.tokenId);
+        if (matchType == MatchType.COMPLEMENTARY && takerOrder.tokenId != makerOrder.tokenId) {
+            revert MismatchedTokenIds();
         }
     }
 
