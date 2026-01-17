@@ -75,7 +75,9 @@ contract CTFExchange is
         uint256 takerFeeAmount,
         uint256[] memory makerFeeAmounts
     ) external onlyOperator notPaused {
-        _matchOrders(conditionId, takerOrder, makerOrders, takerFillAmount, makerFillAmounts, takerFeeAmount, makerFeeAmounts);
+        _matchOrders(
+            conditionId, takerOrder, makerOrders, takerFillAmount, makerFillAmounts, takerFeeAmount, makerFeeAmounts
+        );
     }
 
     /*//////////////////////////////////////////////////////////////

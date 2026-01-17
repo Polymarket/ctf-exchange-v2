@@ -162,7 +162,9 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         uint256 length = makerOrders.length;
         uint256 i = 0;
         for (; i < length; ++i) {
-            _settleMakerOrder(conditionId, takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i], maxFeeRate);
+            _settleMakerOrder(
+                conditionId, takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i], maxFeeRate
+            );
         }
     }
 
@@ -329,12 +331,9 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @param makingAmount - Amount to be filled in terms of maker amount
     /// @param takingAmount - Amount to be filled in terms of taker amount
     /// @param matchType    - The match type
-    function _executeMatchCall(
-        bytes32 conditionId,
-        uint256 makingAmount,
-        uint256 takingAmount,
-        MatchType matchType
-    ) internal {
+    function _executeMatchCall(bytes32 conditionId, uint256 makingAmount, uint256 takingAmount, MatchType matchType)
+        internal
+    {
         if (matchType == MatchType.COMPLEMENTARY) {
             // Indicates a buy vs sell order
             // no match action needed
