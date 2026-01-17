@@ -15,7 +15,6 @@ import { IAuthEE } from "src/exchange/interfaces/IAuth.sol";
 import { IFeesEE } from "src/exchange/interfaces/IFees.sol";
 import { ITradingEE } from "src/exchange/interfaces/ITrading.sol";
 import { IPausableEE } from "src/exchange/interfaces/IPausable.sol";
-import { IRegistryEE } from "src/exchange/interfaces/IRegistry.sol";
 import { ISignaturesEE } from "src/exchange/interfaces/ISignatures.sol";
 import { IUserPausableEE } from "src/exchange/interfaces/IUserPausable.sol";
 
@@ -31,16 +30,7 @@ import {
     ORDER_TYPEHASH
 } from "src/exchange/libraries/Structs.sol";
 
-contract BaseExchangeTest is
-    TestHelper,
-    IAuthEE,
-    IFeesEE,
-    IRegistryEE,
-    IPausableEE,
-    ITradingEE,
-    ISignaturesEE,
-    IUserPausableEE
-{
+contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITradingEE, ISignaturesEE, IUserPausableEE {
     mapping(address => mapping(address => mapping(uint256 => uint256))) private _checkpoints1155;
 
     USDC public usdc;
@@ -101,7 +91,6 @@ contract BaseExchangeTest is
         });
 
         exchange = new CTFExchange(p);
-        exchange.registerToken(yes, no, conditionId);
         exchange.addOperator(bob);
         exchange.addOperator(carla);
         vm.stopPrank();

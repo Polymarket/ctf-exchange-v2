@@ -6,7 +6,6 @@ import { Fees } from "./mixins/Fees.sol";
 import { Assets } from "./mixins/Assets.sol";
 import { Hashing } from "./mixins/Hashing.sol";
 import { Trading } from "./mixins/Trading.sol";
-import { Registry } from "./mixins/Registry.sol";
 import { Pausable } from "./mixins/Pausable.sol";
 import { Signatures } from "./mixins/Signatures.sol";
 import { UserPausable } from "./mixins/UserPausable.sol";
@@ -26,7 +25,6 @@ contract CTFExchange is
     Pausable,
     AssetOperations,
     Hashing,
-    Registry,
     Signatures,
     UserPausable,
     Trading
@@ -94,14 +92,6 @@ contract CTFExchange is
     /// @param _newSafeFactory  - The new Safe wallet factory
     function setSafeFactory(address _newSafeFactory) external onlyAdmin {
         _setSafeFactory(_newSafeFactory);
-    }
-
-    /// @notice Registers a tokenId, its complement and its conditionId for trading on the Exchange
-    /// @param token        - The tokenId being registered
-    /// @param complement   - The complement of the tokenId
-    /// @param conditionId  - The CTF conditionId
-    function registerToken(uint256 token, uint256 complement, bytes32 conditionId) external onlyAdmin {
-        _registerToken(token, complement, conditionId);
     }
 
     /// @notice Sets the user pause block interval

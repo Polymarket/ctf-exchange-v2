@@ -4,7 +4,6 @@ pragma solidity <0.9.0;
 import { IFees } from "../interfaces/IFees.sol";
 import { IHashing } from "../interfaces/IHashing.sol";
 import { ITrading } from "../interfaces/ITrading.sol";
-import { IRegistry } from "../interfaces/IRegistry.sol";
 import { ISignatures } from "../interfaces/ISignatures.sol";
 import { IUserPausable } from "../interfaces/IUserPausable.sol";
 import { IAssetOperations } from "../interfaces/IAssetOperations.sol";
@@ -14,7 +13,7 @@ import { Order, Side, MatchType, OrderStatus } from "../libraries/Structs.sol";
 
 /// @title Trading
 /// @notice Implements logic for trading CTF assets
-abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, IAssetOperations, IUserPausable {
+abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOperations, IUserPausable {
     /// @notice Mapping of orders to their current status
     mapping(bytes32 => OrderStatus) public orderStatus;
 
@@ -54,9 +53,6 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
 
         // Validate that the user is not paused
         if (isUserPaused(order.maker)) revert UserIsPaused();
-
-        // Validate the token to be traded
-        validateTokenId(order.tokenId);
 
         // Validate that the order can be filled
         if (orderStatus[orderHash].filled) revert OrderAlreadyFilled();
@@ -186,7 +182,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         MatchType matchType = _deriveMatchType(takerOrder, makerOrder);
 
         // Ensure taker order and maker order match
-        _validateTakerAndMaker(takerOrder, makerOrder, matchType);
+        _validateOrdersMatch(takerOrder, makerOrder, matchType);
 
         (uint256 takingAmount, bytes32 orderHash) = _performOrderChecks(makerOrder, fillAmount, feeAmount, maxFeeRate);
 
@@ -354,10 +350,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @notice Ensures the taker and maker orders can be matched against each other
     /// @param takerOrder   - The taker order
     /// @param makerOrder   - The maker order
-    function _validateTakerAndMaker(Order memory takerOrder, Order memory makerOrder, MatchType matchType)
-        internal
-        view
-    {
+    function _validateOrdersMatch(Order memory takerOrder, Order memory makerOrder, MatchType matchType) internal pure {
         if (!CalculatorHelper.isCrossing(takerOrder, makerOrder)) revert NotCrossing();
 
         // Ensure orders match
@@ -365,7 +358,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
             if (takerOrder.tokenId != makerOrder.tokenId) revert MismatchedTokenIds();
         } else {
             // both bids or both asks
-            validateComplement(takerOrder.tokenId, makerOrder.tokenId);
+            // validateComplement(takerOrder.tokenId, makerOrder.tokenId);
         }
     }
 
