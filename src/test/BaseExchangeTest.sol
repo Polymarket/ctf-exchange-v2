@@ -31,8 +31,6 @@ import {
 } from "src/exchange/libraries/Structs.sol";
 
 contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITradingEE, ISignaturesEE, IUserPausableEE {
-    mapping(address => mapping(address => mapping(uint256 => uint256))) private _checkpoints1155;
-
     USDC public usdc;
     IConditionalTokens public ctf;
     CTFExchange public exchange;
@@ -224,27 +222,11 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITrading
     }
 
     function assertCTFBalance(address _who, uint256 _tokenId, uint256 _amount) public view {
-        assertBalance1155(address(ctf), _who, _tokenId, _amount);
-    }
-
-    function checkpointCollateral(address _who) public {
-        checkpointBalance(address(usdc), _who);
-    }
-
-    function checkpointCTF(address _who, uint256 _tokenId) public {
-        checkpointBalance1155(address(ctf), _who, _tokenId);
+        assertEq(getCTFBalance(_who, _tokenId), _amount);
     }
 
     function getCTFBalance(address _who, uint256 _tokenId) public view returns (uint256) {
         return ERC1155(address(ctf)).balanceOf(_who, _tokenId);
-    }
-
-    function assertBalance1155(address _token, address _who, uint256 _tokenId, uint256 _amount) public view {
-        assertEq(getCTFBalance(_who, _tokenId), _checkpoints1155[_token][_who][_tokenId] + _amount);
-    }
-
-    function checkpointBalance1155(address _token, address _who, uint256 _tokenId) public {
-        _checkpoints1155[_token][_who][_tokenId] = getCTFBalance(_who, _tokenId);
     }
 
     function calculatePrice(uint256 makerAmount, uint256 takerAmount, Side side) public pure returns (uint256) {
