@@ -4,7 +4,6 @@ pragma solidity <0.9.0;
 import { IFees } from "../interfaces/IFees.sol";
 import { IHashing } from "../interfaces/IHashing.sol";
 import { ITrading } from "../interfaces/ITrading.sol";
-import { IRegistry } from "../interfaces/IRegistry.sol";
 import { ISignatures } from "../interfaces/ISignatures.sol";
 import { IUserPausable } from "../interfaces/IUserPausable.sol";
 import { IAssetOperations } from "../interfaces/IAssetOperations.sol";
@@ -14,7 +13,7 @@ import { Order, Side, MatchType, OrderStatus } from "../libraries/Structs.sol";
 
 /// @title Trading
 /// @notice Implements logic for trading CTF assets
-abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, IAssetOperations, IUserPausable {
+abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOperations, IUserPausable {
     /// @notice Mapping of orders to their current status
     mapping(bytes32 => OrderStatus) public orderStatus;
 
@@ -30,6 +29,19 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         uint256 fee;
         bytes32 builder;
         bytes32 metadata;
+    }
+
+    /// @notice Parameters for settling an order facing the exchange
+    struct SettlementParams {
+        uint256 makingAmount;
+        uint256 takingAmount;
+        address maker;
+        uint256 makerAssetId;
+        uint256 takerAssetId;
+        Side side;
+        MatchType matchType;
+        uint256 feeAmount;
+        bytes32 conditionId;
     }
 
     /// @notice Gets the status of an order
@@ -55,9 +67,6 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         // Validate that the user is not paused
         if (isUserPaused(order.maker)) revert UserIsPaused();
 
-        // Validate the token to be traded
-        validateTokenId(order.tokenId);
-
         // Validate that the order can be filled
         if (orderStatus[orderHash].filled) revert OrderAlreadyFilled();
     }
@@ -67,6 +76,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @dev Pulls assets from the taker order to the Exchange
     /// @dev Settles maker orders against the Exchange, using the assets received from the taker order
     /// @dev Settles the taker order against the Exchange, using the assets received from the maker orders
+    /// @param conditionId          - The CTF conditionId for mint/merge operations
     /// @param takerOrder           - The active order to be matched
     /// @param makerOrders          - The array of maker orders to be matched against the active order
     /// @param takerFillAmount      - The amount to fill on the taker order, always in terms of the maker amount
@@ -75,6 +85,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @param takerFeeAmount       - The fee to be charged to the taker order
     /// @param makerFeeAmounts      - The fee to be charged to the maker orders
     function _matchOrders(
+        bytes32 conditionId,
         Order memory takerOrder,
         Order[] memory makerOrders,
         uint256 takerFillAmount,
@@ -93,7 +104,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         _transfer(takerOrder.maker, address(this), makerAssetId, making);
 
         // Settle the maker orders
-        _settleMakerOrders(takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, maxFeeRate);
+        _settleMakerOrders(conditionId, takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, maxFeeRate);
 
         taking = _updateTakingWithSurplus(taking, takerAssetId);
 
@@ -150,6 +161,7 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     }
 
     function _settleMakerOrders(
+        bytes32 conditionId,
         Order memory takerOrder,
         Order[] memory makerOrders,
         uint256[] memory makerFillAmounts,
@@ -159,17 +171,19 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         uint256 length = makerOrders.length;
         uint256 i = 0;
         for (; i < length; ++i) {
-            _settleMakerOrder(takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i], maxFeeRate);
+            _settleMakerOrder(conditionId, takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i], maxFeeRate);
         }
     }
 
     /// @notice Settles a Maker order
+    /// @param conditionId  - The CTF conditionId for mint/merge operations
     /// @param takerOrder   - The taker order
     /// @param makerOrder   - The maker order
     /// @param fillAmount   - The fill amount
     /// @param feeAmount    - The fee amount
     /// @param maxFeeRate   - The maximum fee rate allowed
     function _settleMakerOrder(
+        bytes32 conditionId,
         Order memory takerOrder,
         Order memory makerOrder,
         uint256 fillAmount,
@@ -181,75 +195,68 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         // Ensure taker order and maker order match
         _validateTakerAndMaker(takerOrder, makerOrder, matchType);
 
-        uint256 making = fillAmount;
-        (uint256 taking, bytes32 orderHash) = _performOrderChecks(makerOrder, making, feeAmount, maxFeeRate);
+        (uint256 taking, bytes32 orderHash) = _performOrderChecks(makerOrder, fillAmount, feeAmount, maxFeeRate);
 
         (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(makerOrder);
 
         _settleFacingExchange(
-            making, taking, makerOrder.maker, makerAssetId, takerAssetId, makerOrder.side, matchType, feeAmount
+            SettlementParams({
+                makingAmount: fillAmount,
+                takingAmount: taking,
+                maker: makerOrder.maker,
+                makerAssetId: makerAssetId,
+                takerAssetId: takerAssetId,
+                side: makerOrder.side,
+                matchType: matchType,
+                feeAmount: feeAmount,
+                conditionId: conditionId
+            })
         );
 
-        // necessary for stack too deep
-        OrderFilledParams memory params = OrderFilledParams({
-            orderHash: orderHash,
-            maker: makerOrder.maker,
-            taker: takerOrder.maker,
-            side: makerOrder.side,
-            tokenId: makerOrder.tokenId,
-            makerAmountFilled: making,
-            takerAmountFilled: taking,
-            fee: feeAmount,
-            builder: makerOrder.builder,
-            metadata: makerOrder.metadata
-        });
-
-        _emitOrderFilledEvent(params);
+        _emitOrderFilledEvent(
+            OrderFilledParams({
+                orderHash: orderHash,
+                maker: makerOrder.maker,
+                taker: takerOrder.maker,
+                side: makerOrder.side,
+                tokenId: makerOrder.tokenId,
+                makerAmountFilled: fillAmount,
+                takerAmountFilled: taking,
+                fee: feeAmount,
+                builder: makerOrder.builder,
+                metadata: makerOrder.metadata
+            })
+        );
     }
 
     /// @notice Settle a maker order using the Exchange as the counterparty
-    /// @param makingAmount - Amount to be filled in terms of maker amount
-    /// @param takingAmount - Amount to be filled in terms of taker amount
-    /// @param maker        - The order maker
-    /// @param makerAssetId - The Token Id of the Asset to be sold
-    /// @param takerAssetId - The Token Id of the Asset to be received
-    /// @param matchType    - The match type
-    /// @param feeAmount    - The fee charged to the Order maker
-    function _settleFacingExchange(
-        uint256 makingAmount,
-        uint256 takingAmount,
-        address maker,
-        uint256 makerAssetId,
-        uint256 takerAssetId,
-        Side side,
-        MatchType matchType,
-        uint256 feeAmount
-    ) internal {
+    /// @param p - Settlement parameters
+    function _settleFacingExchange(SettlementParams memory p) internal {
         // Transfer making amount from maker to the Exchange
-        _transfer(maker, address(this), makerAssetId, makingAmount);
+        _transfer(p.maker, address(this), p.makerAssetId, p.makingAmount);
 
         // Executes a match call based on match type
-        _executeMatchCall(makingAmount, takingAmount, makerAssetId, takerAssetId, matchType);
+        _executeMatchCall(p.makingAmount, p.takingAmount, p.matchType, p.conditionId);
 
         // Ensure match action generated enough tokens to fill the order
-        if (_getBalance(takerAssetId) < takingAmount) revert TooLittleTokensReceived();
+        if (_getBalance(p.takerAssetId) < p.takingAmount) revert TooLittleTokensReceived();
 
         // Determine the fee payer
         // If SELL, fees are deducted from proceeds and transferred from the Exchange
         // If BUY, fees are transferred from the maker directly
-        address feePayer = side == Side.BUY ? maker : address(this);
+        address feePayer = p.side == Side.BUY ? p.maker : address(this);
 
-        uint256 proceeds = takingAmount;
-        if (side == Side.SELL) {
-            if (feeAmount > takingAmount) revert FeeExceedsProceeds();
-            proceeds = takingAmount - feeAmount;
+        uint256 proceeds = p.takingAmount;
+        if (p.side == Side.SELL) {
+            if (p.feeAmount > p.takingAmount) revert FeeExceedsProceeds();
+            proceeds = p.takingAmount - p.feeAmount;
         }
 
         // Transfer order proceeds from the Exchange to the order maker
-        _transfer(address(this), maker, takerAssetId, proceeds);
+        _transfer(address(this), p.maker, p.takerAssetId, proceeds);
 
         // Charge the fee, if any
-        _chargeFee(feePayer, feeAmount);
+        _chargeFee(feePayer, p.feeAmount);
     }
 
     function _emitTakerFilledEvents(OrderFilledParams memory params) internal {
@@ -326,15 +333,13 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// or merging Outcome tokens into collateral.
     /// @param makingAmount - Amount to be filled in terms of maker amount
     /// @param takingAmount - Amount to be filled in terms of taker amount
-    /// @param makerAssetId - The Token Id of the Asset to be sold
-    /// @param takerAssetId - The Token Id of the Asset to be received
     /// @param matchType    - The match type
+    /// @param conditionId  - The CTF conditionId for mint/merge operations
     function _executeMatchCall(
         uint256 makingAmount,
         uint256 takingAmount,
-        uint256 makerAssetId,
-        uint256 takerAssetId,
-        MatchType matchType
+        MatchType matchType,
+        bytes32 conditionId
     ) internal {
         if (matchType == MatchType.COMPLEMENTARY) {
             // Indicates a buy vs sell order
@@ -344,12 +349,12 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
         if (matchType == MatchType.MINT) {
             // Indicates matching 2 buy orders
             // Mint new Outcome tokens using Exchange collateral balance and fill buys
-            return _mint(getConditionId(takerAssetId), takingAmount);
+            return _mint(conditionId, takingAmount);
         }
         if (matchType == MatchType.MERGE) {
             // Indicates matching 2 sell orders
             // Merge the Exchange Outcome token balance into collateral and fill sells
-            return _merge(getConditionId(makerAssetId), makingAmount);
+            return _merge(conditionId, makingAmount);
         }
     }
 
@@ -358,17 +363,15 @@ abstract contract Trading is IFees, ITrading, IHashing, IRegistry, ISignatures, 
     /// @param makerOrder   - The maker order
     function _validateTakerAndMaker(Order memory takerOrder, Order memory makerOrder, MatchType matchType)
         internal
-        view
+        pure
     {
         if (!CalculatorHelper.isCrossing(takerOrder, makerOrder)) revert NotCrossing();
 
-        // Ensure orders match
+        // Ensure orders match on the same tokenId for complementary (buy vs sell)
         if (matchType == MatchType.COMPLEMENTARY) {
             if (takerOrder.tokenId != makerOrder.tokenId) revert MismatchedTokenIds();
-        } else {
-            // both bids or both asks
-            validateComplement(takerOrder.tokenId, makerOrder.tokenId);
         }
+        // For MINT and MERGE, we trust the caller provides valid complementary tokenIds
     }
 
     function _chargeFee(address payer, uint256 fee) internal {

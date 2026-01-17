@@ -96,7 +96,7 @@ contract CTFExchangeTest is BaseExchangeTest {
 
         vm.expectRevert(Paused.selector);
         vm.prank(carla);
-        exchange.matchOrders(takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
 
         vm.expectEmit(true, true, true, true);
         emit TradingUnpaused(admin);
@@ -106,34 +106,7 @@ contract CTFExchangeTest is BaseExchangeTest {
 
         // Order can be filled after unpausing
         vm.prank(carla);
-        exchange.matchOrders(takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
-    }
-
-    function test_RegisterToken(uint256 _token0, uint256 _token1, uint256 _conditionId) public {
-        vm.assume(
-            _token0 != yes && _token0 != no && _token1 != yes && _token1 != no && _token1 != _token0 && _token0 > 0
-                && _token1 > 0
-        );
-        bytes32 tokenConditionId = bytes32(_conditionId);
-
-        vm.expectEmit(true, true, true, false);
-        emit TokenRegistered(_token0, _token1, tokenConditionId);
-        emit TokenRegistered(_token1, _token0, tokenConditionId);
-        vm.prank(admin);
-        exchange.registerToken(_token0, _token1, tokenConditionId);
-
-        assertEq(exchange.getComplement(_token0), _token1);
-        assertEq(exchange.getComplement(_token1), _token0);
-        assertEq(exchange.getConditionId(_token0), tokenConditionId);
-    }
-
-    function test_RegisterToken_Revert_Cases() public {
-        vm.startPrank(admin);
-        vm.expectRevert(InvalidTokenId.selector);
-        exchange.registerToken(0, 0, bytes32(0));
-
-        vm.expectRevert(AlreadyRegistered.selector);
-        exchange.registerToken(no, yes, bytes32(0));
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
     }
 
     function test_SetProxyFactory() public {
@@ -308,7 +281,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         makerFeeAmounts[0] = 0;
 
         vm.prank(carla);
-        exchange.matchOrders(takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
 
         // the orders can no longer be filled
         vm.expectRevert(OrderAlreadyFilled.selector);
