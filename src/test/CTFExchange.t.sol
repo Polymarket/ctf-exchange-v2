@@ -96,7 +96,7 @@ contract CTFExchangeTest is BaseExchangeTest {
 
         vm.expectRevert(Paused.selector);
         vm.prank(carla);
-        exchange.matchOrders(takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
 
         vm.expectEmit(true, true, true, true);
         emit TradingUnpaused(admin);
@@ -106,7 +106,7 @@ contract CTFExchangeTest is BaseExchangeTest {
 
         // Order can be filled after unpausing
         vm.prank(carla);
-        exchange.matchOrders(takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
     }
 
     function test_RegisterToken(uint256 _token0, uint256 _token1, uint256 _conditionId) public {
@@ -308,7 +308,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         makerFeeAmounts[0] = 0;
 
         vm.prank(carla);
-        exchange.matchOrders(takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
 
         // the orders can no longer be filled
         vm.expectRevert(OrderAlreadyFilled.selector);
