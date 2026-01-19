@@ -100,5 +100,5 @@ enum MatchType {
 
 struct OrderStatus {
     bool filled;
-    uint256 remaining;
+    uint248 remaining;
 }
