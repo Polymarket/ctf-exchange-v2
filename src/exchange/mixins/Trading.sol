@@ -61,9 +61,6 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
     }
 
     function _validateOrder(bytes32 orderHash, Order memory order) internal view {
-        // Validate order expiration
-        if (order.expiration > 0 && order.expiration < block.timestamp) revert OrderExpired();
-
         // Validate signature
         validateOrderSignature(orderHash, order);
 
@@ -98,7 +95,8 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
     ) internal {
         uint256 maxFeeRate = getMaxFeeRate();
 
-        (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount, maxFeeRate);
+        (uint256 taking, bytes32 orderHash) =
+            _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount, maxFeeRate);
         (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(takerOrder);
 
         // Transfer takerOrder making amount from taker order to the Exchange
@@ -109,9 +107,7 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
             _settleMakerOrders(conditionId, takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, maxFeeRate);
 
         // Batch transfer maker SELL fees before taker settlement (so refund logic doesn't see them as leftover)
-        if (makerExchangeFees > 0) {
-            _transfer(address(this), getFeeReceiver(), 0, makerExchangeFees);
-        }
+        if (makerExchangeFees > 0) _transfer(address(this), getFeeReceiver(), 0, makerExchangeFees);
 
         taking = _updateTakingWithSurplus(taking, takerAssetId);
 
@@ -135,9 +131,7 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         );
 
         // Transfer taker SELL fee (if any) after events
-        if (takerExchangeFee > 0) {
-            _transfer(address(this), getFeeReceiver(), 0, takerExchangeFee);
-        }
+        if (takerExchangeFee > 0) _transfer(address(this), getFeeReceiver(), 0, takerExchangeFee);
     }
 
     /// @notice Settles a Taker order
@@ -166,9 +160,7 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         // Charge fees (emit event, transfer batched for SELL or immediate for BUY)
         if (side == Side.SELL) {
             // SELL: emit event now, transfer will be batched later
-            if (feeAmount > 0) {
-                emit FeeCharged(getFeeReceiver(), feeAmount);
-            }
+            if (feeAmount > 0) emit FeeCharged(getFeeReceiver(), feeAmount);
         } else if (feeAmount > 0) {
             // BUY: fee transferred from maker directly (cannot batch)
             _chargeFee(maker, feeAmount);
@@ -195,29 +187,17 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         uint256 totalMergeAmount = 0;
 
         for (uint256 i = 0; i < length; ++i) {
-            prepared[i] = _prepareMakerOrder(
-                takerOrder,
-                makerOrders[i],
-                makerFillAmounts[i],
-                makerFeeAmounts[i],
-                maxFeeRate
-            );
+            prepared[i] =
+                _prepareMakerOrder(takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i], maxFeeRate);
 
             // Accumulate batch totals based on match type
-            if (prepared[i].matchType == MatchType.MINT) {
-                totalMintAmount += prepared[i].takingAmount;
-            } else if (prepared[i].matchType == MatchType.MERGE) {
-                totalMergeAmount += prepared[i].makingAmount;
-            }
+            if (prepared[i].matchType == MatchType.MINT) totalMintAmount += prepared[i].takingAmount;
+            else if (prepared[i].matchType == MatchType.MERGE) totalMergeAmount += prepared[i].makingAmount;
         }
 
         // Phase 2: Execute batched CTF operations (one mint and/or one merge)
-        if (totalMintAmount > 0) {
-            _mint(conditionId, totalMintAmount);
-        }
-        if (totalMergeAmount > 0) {
-            _merge(conditionId, totalMergeAmount);
-        }
+        if (totalMintAmount > 0) _mint(conditionId, totalMintAmount);
+        if (totalMergeAmount > 0) _merge(conditionId, totalMergeAmount);
 
         // Phase 3: Distribute proceeds to all makers, accumulating exchange-paid fees
         for (uint256 i = 0; i < length; ++i) {
@@ -296,9 +276,7 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         // Charge fees (emit event, transfer batched for SELL or immediate for BUY)
         if (p.side == Side.SELL) {
             // SELL: emit event now, transfer will be batched later
-            if (p.feeAmount > 0) {
-                emit FeeCharged(getFeeReceiver(), p.feeAmount);
-            }
+            if (p.feeAmount > 0) emit FeeCharged(getFeeReceiver(), p.feeAmount);
         } else if (p.feeAmount > 0) {
             // BUY: fee transferred from maker directly (cannot batch)
             _chargeFee(p.maker, p.feeAmount);

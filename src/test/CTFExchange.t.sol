@@ -253,14 +253,6 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(order);
     }
 
-    function test_ValidateOrder_revert_InvalidExpiration() public {
-        Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
-        vm.warp(block.timestamp + 1000);
-        order.expiration = 50;
-        vm.expectRevert(OrderExpired.selector);
-        exchange.validateOrder(order);
-    }
-
     function test_ValidateOrder_revert_DuplicateOrder() public {
         uint256 usdcAmount = 50_000_000;
         uint256 tokenAmount = 100_000_000;

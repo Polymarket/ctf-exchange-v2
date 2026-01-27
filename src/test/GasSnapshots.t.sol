@@ -8,13 +8,18 @@ import { Order, Side } from "src/exchange/libraries/Structs.sol";
 /// @dev Run with: forge test --match-contract GasSnapshots_Test --gas-report
 /// @dev Snapshots are written to snapshots/GasSnapshots_Test.json
 contract GasSnapshots_Test is BaseExchangeTest {
-
     /*//////////////////////////////////////////////////////////////
                         COMPLEMENTARY (BUY vs SELL)
     //////////////////////////////////////////////////////////////*/
 
     function test_complementary_1maker() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareComplementary(1);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareComplementary(1);
 
         vm.prank(admin);
         vm.startSnapshotGas("complementary_1maker");
@@ -23,7 +28,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     }
 
     function test_complementary_5makers() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareComplementary(5);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareComplementary(5);
 
         vm.prank(admin);
         vm.startSnapshotGas("complementary_5makers");
@@ -32,7 +43,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     }
 
     function test_complementary_10makers() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareComplementary(10);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareComplementary(10);
 
         vm.prank(admin);
         vm.startSnapshotGas("complementary_10makers");
@@ -41,7 +58,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     }
 
     function test_complementary_20makers() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareComplementary(20);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareComplementary(20);
 
         vm.prank(admin);
         vm.startSnapshotGas("complementary_20makers");
@@ -54,7 +77,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     //////////////////////////////////////////////////////////////*/
 
     function test_mint_1maker() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareMint(1);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareMint(1);
 
         vm.prank(admin);
         vm.startSnapshotGas("mint_1maker");
@@ -63,7 +92,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     }
 
     function test_mint_5makers() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareMint(5);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareMint(5);
 
         vm.prank(admin);
         vm.startSnapshotGas("mint_5makers");
@@ -72,7 +107,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     }
 
     function test_mint_10makers() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareMint(10);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareMint(10);
 
         vm.prank(admin);
         vm.startSnapshotGas("mint_10makers");
@@ -81,7 +122,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     }
 
     function test_mint_20makers() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareMint(20);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareMint(20);
 
         vm.prank(admin);
         vm.startSnapshotGas("mint_20makers");
@@ -94,7 +141,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     //////////////////////////////////////////////////////////////*/
 
     function test_merge_1maker() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareMerge(1);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareMerge(1);
 
         vm.prank(admin);
         vm.startSnapshotGas("merge_1maker");
@@ -103,7 +156,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     }
 
     function test_merge_5makers() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareMerge(5);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareMerge(5);
 
         vm.prank(admin);
         vm.startSnapshotGas("merge_5makers");
@@ -112,7 +171,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     }
 
     function test_merge_10makers() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareMerge(10);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareMerge(10);
 
         vm.prank(admin);
         vm.startSnapshotGas("merge_10makers");
@@ -121,7 +186,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     }
 
     function test_merge_20makers() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareMerge(20);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareMerge(20);
 
         vm.prank(admin);
         vm.startSnapshotGas("merge_20makers");
@@ -135,7 +206,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     //////////////////////////////////////////////////////////////*/
 
     function test_combo_complementary_mint_10makers() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareComboComplementaryMint(10);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareComboComplementaryMint(10);
 
         vm.prank(admin);
         vm.startSnapshotGas("combo_complementary_mint_10makers");
@@ -144,7 +221,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     }
 
     function test_combo_complementary_mint_20makers() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareComboComplementaryMint(20);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareComboComplementaryMint(20);
 
         vm.prank(admin);
         vm.startSnapshotGas("combo_complementary_mint_20makers");
@@ -158,7 +241,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     //////////////////////////////////////////////////////////////*/
 
     function test_combo_complementary_merge_10makers() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareComboComplementaryMerge(10);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareComboComplementaryMerge(10);
 
         vm.prank(admin);
         vm.startSnapshotGas("combo_complementary_merge_10makers");
@@ -167,7 +256,13 @@ contract GasSnapshots_Test is BaseExchangeTest {
     }
 
     function test_combo_complementary_merge_20makers() public {
-        (Order memory takerOrder, Order[] memory makerOrders, uint256 takerFillAmount, uint256[] memory fillAmounts, uint256[] memory feeAmounts) = _prepareComboComplementaryMerge(20);
+        (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        ) = _prepareComboComplementaryMerge(20);
 
         vm.prank(admin);
         vm.startSnapshotGas("combo_complementary_merge_20makers");
@@ -179,13 +274,16 @@ contract GasSnapshots_Test is BaseExchangeTest {
                               SETUP HELPERS
     //////////////////////////////////////////////////////////////*/
 
-    function _prepareComplementary(uint256 numMakers) internal returns (
-        Order memory takerOrder,
-        Order[] memory makerOrders,
-        uint256 takerFillAmount,
-        uint256[] memory fillAmounts,
-        uint256[] memory feeAmounts
-    ) {
+    function _prepareComplementary(uint256 numMakers)
+        internal
+        returns (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        )
+    {
         uint256 usdcPerMaker = 10_000_000;
         uint256 tokensPerMaker = 20_000_000;
         uint256 totalUsdc = usdcPerMaker * numMakers;
@@ -208,13 +306,16 @@ contract GasSnapshots_Test is BaseExchangeTest {
         takerFillAmount = totalUsdc;
     }
 
-    function _prepareMint(uint256 numMakers) internal returns (
-        Order memory takerOrder,
-        Order[] memory makerOrders,
-        uint256 takerFillAmount,
-        uint256[] memory fillAmounts,
-        uint256[] memory feeAmounts
-    ) {
+    function _prepareMint(uint256 numMakers)
+        internal
+        returns (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        )
+    {
         uint256 usdcPerMaker = 10_000_000;
         uint256 tokensPerMaker = 20_000_000;
         uint256 totalUsdc = usdcPerMaker * numMakers;
@@ -238,13 +339,16 @@ contract GasSnapshots_Test is BaseExchangeTest {
         takerFillAmount = takerUsdc;
     }
 
-    function _prepareMerge(uint256 numMakers) internal returns (
-        Order memory takerOrder,
-        Order[] memory makerOrders,
-        uint256 takerFillAmount,
-        uint256[] memory fillAmounts,
-        uint256[] memory feeAmounts
-    ) {
+    function _prepareMerge(uint256 numMakers)
+        internal
+        returns (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        )
+    {
         uint256 tokensPerMaker = 20_000_000;
         uint256 usdcPerMaker = 10_000_000;
         uint256 totalTokens = tokensPerMaker * numMakers;
@@ -268,13 +372,16 @@ contract GasSnapshots_Test is BaseExchangeTest {
     }
 
     /// @notice Combo: Taker BUY YES, half makers SELL YES (complementary), half makers BUY NO (mint)
-    function _prepareComboComplementaryMint(uint256 numMakers) internal returns (
-        Order memory takerOrder,
-        Order[] memory makerOrders,
-        uint256 takerFillAmount,
-        uint256[] memory fillAmounts,
-        uint256[] memory feeAmounts
-    ) {
+    function _prepareComboComplementaryMint(uint256 numMakers)
+        internal
+        returns (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        )
+    {
         uint256 half = numMakers / 2;
         uint256 usdcPerMaker = 10_000_000;
         uint256 tokensPerMaker = 20_000_000;
@@ -311,13 +418,16 @@ contract GasSnapshots_Test is BaseExchangeTest {
     }
 
     /// @notice Combo: Taker SELL YES, half makers BUY YES (complementary), half makers SELL NO (merge)
-    function _prepareComboComplementaryMerge(uint256 numMakers) internal returns (
-        Order memory takerOrder,
-        Order[] memory makerOrders,
-        uint256 takerFillAmount,
-        uint256[] memory fillAmounts,
-        uint256[] memory feeAmounts
-    ) {
+    function _prepareComboComplementaryMerge(uint256 numMakers)
+        internal
+        returns (
+            Order memory takerOrder,
+            Order[] memory makerOrders,
+            uint256 takerFillAmount,
+            uint256[] memory fillAmounts,
+            uint256[] memory feeAmounts
+        )
+    {
         uint256 half = numMakers / 2;
         uint256 tokensPerMaker = 20_000_000;
         uint256 usdcPerMaker = 10_000_000;

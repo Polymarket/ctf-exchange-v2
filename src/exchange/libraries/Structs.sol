@@ -20,7 +20,7 @@ struct ExchangeInitParams {
 }
 
 bytes32 constant ORDER_TYPEHASH = keccak256(
-    "Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint256 expiration,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)"
+    "Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)"
 );
 
 struct Order {
@@ -38,8 +38,6 @@ struct Order {
     uint256 makerAmount;
     /// @notice Taker amount, i.e the minimum amount of tokens to be received
     uint256 takerAmount;
-    /// @notice Unix timestamp in seconds after which the order is expired
-    uint256 expiration;
     /// @notice The side of the order: BUY or SELL
     Side side;
     /// @notice Signature type used by the Order: EOA, POLY_PROXY, POLY_GNOSIS_SAFE or POLY_1271
@@ -63,7 +61,6 @@ struct UnsignedOrder {
     uint256 tokenId;
     uint256 makerAmount;
     uint256 takerAmount;
-    uint256 expiration;
     Side side;
     SignatureType signatureType;
     uint256 timestamp;
