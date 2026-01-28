@@ -24,21 +24,19 @@ abstract contract Hashing is EIP712, IHashing {
     }
 
     function _createStructHash(Order memory order) internal pure returns (bytes32) {
-        return keccak256(
-            abi.encode(
-                ORDER_TYPEHASH,
-                order.salt,
-                order.maker,
-                order.signer,
-                order.tokenId,
-                order.makerAmount,
-                order.takerAmount,
-                order.side,
-                order.signatureType,
-                order.timestamp,
-                order.metadata,
-                order.builder
-            )
-        );
+        return keccak256(abi.encode(
+            ORDER_TYPEHASH,
+            order.salt,
+            order.maker,
+            order.signer,
+            order.tokenId,
+            order.makerAmount,
+            order.takerAmount,
+            order.side,
+            order.signatureType,
+            order.timestamp,
+            order.metadata,
+            order.builder
+        ));
     }
 }
