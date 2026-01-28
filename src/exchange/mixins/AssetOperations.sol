@@ -52,9 +52,9 @@ abstract contract AssetOperations is IAssetOperations, IAssets {
         assembly {
             // Allocate memory for array: 32 bytes for length + 64 bytes for 2 elements
             partition := mload(0x40)
-            mstore(partition, 2)          // length = 2
-            mstore(add(partition, 0x20), 1)  // partition[0] = 1
-            mstore(add(partition, 0x40), 2)  // partition[1] = 2
+            mstore(partition, 2) // length = 2
+            mstore(add(partition, 0x20), 1) // partition[0] = 1
+            mstore(add(partition, 0x40), 2) // partition[1] = 2
             mstore(0x40, add(partition, 0x60)) // Update free memory pointer
         }
     }

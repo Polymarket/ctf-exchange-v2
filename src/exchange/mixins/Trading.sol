@@ -150,7 +150,9 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         if (side == Side.SELL) {
             // SELL: fee deducted from proceeds, will be batched
             if (feeAmount > takingAmount) revert FeeExceedsProceeds();
-            unchecked { proceeds = takingAmount - feeAmount; } // safety: feeAmount <= takingAmount checked above
+            unchecked {
+                proceeds = takingAmount - feeAmount; // safety: feeAmount <= takingAmount checked above
+            }
             exchangeFee = feeAmount;
         }
 
@@ -192,11 +194,19 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
 
             // Accumulate batch totals based on match type
             if (prepared[i].matchType == MatchType.MINT) {
-                unchecked { totalMintAmount += prepared[i].takingAmount; } // safety: token amounts can't realistically overflow uint256
+                unchecked {
+                    totalMintAmount += prepared[i].takingAmount; // safety: token amounts can't realistically overflow
+                    // uint256
+                }
             } else if (prepared[i].matchType == MatchType.MERGE) {
-                unchecked { totalMergeAmount += prepared[i].makingAmount; } // safety: token amounts can't realistically overflow uint256
+                unchecked {
+                    totalMergeAmount += prepared[i].makingAmount; // safety: token amounts can't realistically overflow
+                    // uint256
+                }
             }
-            unchecked { ++i; } // safety: i < length which fits in memory
+            unchecked {
+                ++i; // safety: i < length which fits in memory
+            }
         }
 
         // Phase 2: Execute batched CTF operations (one mint and/or one merge)
@@ -205,8 +215,13 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
 
         // Phase 3: Distribute proceeds to all makers, accumulating exchange-paid fees
         for (uint256 i = 0; i < length;) {
-            unchecked { totalExchangeFees += _distributeMakerProceeds(prepared[i], takerOrder.maker); } // safety: each fee <= takingAmount (FeeExceedsProceeds), sum bounded by real token supply
-            unchecked { ++i; } // safety: i < length which fits in memory
+            unchecked {
+                totalExchangeFees += _distributeMakerProceeds(prepared[i], takerOrder.maker); // safety: each fee <=
+                // takingAmount (FeeExceedsProceeds), sum bounded by real token supply
+            }
+            unchecked {
+                ++i; // safety: i < length which fits in memory
+            }
         }
     }
 
@@ -271,7 +286,9 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         if (p.side == Side.SELL) {
             // SELL: fee deducted from proceeds, will be batched
             if (p.feeAmount > p.takingAmount) revert FeeExceedsProceeds();
-            unchecked { proceeds = p.takingAmount - p.feeAmount; } // safety: feeAmount <= takingAmount checked above
+            unchecked {
+                proceeds = p.takingAmount - p.feeAmount; // safety: feeAmount <= takingAmount checked above
+            }
             exchangeFee = p.feeAmount;
         }
 
@@ -409,7 +426,9 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         // Throw if the makingAmount(amount to be filled) is greater than the amount available
         if (makingAmount > remaining) revert MakingGtRemaining();
 
-        unchecked { remaining = remaining - makingAmount; } // safety: makingAmount <= remaining checked above
+        unchecked {
+            remaining = remaining - makingAmount; // safety: makingAmount <= remaining checked above
+        }
 
         // If order is completely filled, update filled in storage
         if (remaining == 0) status.filled = true;
