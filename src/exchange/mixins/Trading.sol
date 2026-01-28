@@ -205,7 +205,7 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
 
         // Phase 3: Distribute proceeds to all makers, accumulating exchange-paid fees
         for (uint256 i = 0; i < length;) {
-            unchecked { totalExchangeFees += _distributeMakerProceeds(prepared[i], takerOrder.maker); } // safety: fee amounts can't overflow uint256
+            unchecked { totalExchangeFees += _distributeMakerProceeds(prepared[i], takerOrder.maker); } // safety: each fee <= takingAmount (FeeExceedsProceeds), sum bounded by real token supply
             unchecked { ++i; } // safety: i < length which fits in memory
         }
     }
