@@ -5,7 +5,7 @@ import { EIP712 } from "lib/solady/src/utils/EIP712.sol";
 
 import { IHashing } from "../interfaces/IHashing.sol";
 
-import { Order, UnsignedOrder, ORDER_TYPEHASH } from "../libraries/Structs.sol";
+import { Order, ORDER_TYPEHASH } from "../libraries/Structs.sol";
 
 abstract contract Hashing is EIP712, IHashing {
     string internal constant domainName = "Polymarket CTF Exchange";
@@ -24,20 +24,21 @@ abstract contract Hashing is EIP712, IHashing {
     }
 
     function _createStructHash(Order memory order) internal pure returns (bytes32) {
-        UnsignedOrder memory o = UnsignedOrder({
-            salt: order.salt,
-            maker: order.maker,
-            signer: order.signer,
-            tokenId: order.tokenId,
-            makerAmount: order.makerAmount,
-            takerAmount: order.takerAmount,
-            side: order.side,
-            signatureType: order.signatureType,
-            timestamp: order.timestamp,
-            metadata: order.metadata,
-            builder: order.builder
-        });
-
-        return keccak256(abi.encode(ORDER_TYPEHASH, o));
+        return keccak256(
+            abi.encode(
+                ORDER_TYPEHASH,
+                order.salt,
+                order.maker,
+                order.signer,
+                order.tokenId,
+                order.makerAmount,
+                order.takerAmount,
+                order.side,
+                order.signatureType,
+                order.timestamp,
+                order.metadata,
+                order.builder
+            )
+        );
     }
 }

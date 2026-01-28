@@ -52,22 +52,6 @@ struct Order {
     bytes signature;
 }
 
-/// @notice Represents an order without a signature
-/// Used for order hashing to avoid stack-too-deep errors
-struct UnsignedOrder {
-    uint256 salt;
-    address maker;
-    address signer;
-    uint256 tokenId;
-    uint256 makerAmount;
-    uint256 takerAmount;
-    Side side;
-    SignatureType signatureType;
-    uint256 timestamp;
-    bytes32 metadata;
-    bytes32 builder;
-}
-
 enum SignatureType {
     // 0: ECDSA EIP712 signatures signed by EOAs
     EOA,

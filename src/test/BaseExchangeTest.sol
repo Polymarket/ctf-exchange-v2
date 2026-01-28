@@ -21,14 +21,7 @@ import { IUserPausableEE } from "src/exchange/interfaces/IUserPausable.sol";
 import { IConditionalTokens } from "src/exchange/interfaces/IConditionalTokens.sol";
 
 import { CalculatorHelper } from "src/exchange/libraries/CalculatorHelper.sol";
-import {
-    ExchangeInitParams,
-    Order,
-    Side,
-    SignatureType,
-    UnsignedOrder,
-    ORDER_TYPEHASH
-} from "src/exchange/libraries/Structs.sol";
+import { ExchangeInitParams, Order, Side, SignatureType, ORDER_TYPEHASH } from "src/exchange/libraries/Structs.sol";
 
 contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITradingEE, ISignaturesEE, IUserPausableEE {
     USDC public usdc;
@@ -175,21 +168,22 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITrading
     }
 
     function _getExpectedStructHash(Order memory order) internal pure returns (bytes32) {
-        UnsignedOrder memory o = UnsignedOrder({
-            salt: order.salt,
-            maker: order.maker,
-            signer: order.signer,
-            tokenId: order.tokenId,
-            makerAmount: order.makerAmount,
-            takerAmount: order.takerAmount,
-            side: order.side,
-            signatureType: order.signatureType,
-            timestamp: order.timestamp,
-            metadata: order.metadata,
-            builder: order.builder
-        });
-
-        return keccak256(abi.encode(ORDER_TYPEHASH, o));
+        return keccak256(
+            abi.encode(
+                ORDER_TYPEHASH,
+                order.salt,
+                order.maker,
+                order.signer,
+                order.tokenId,
+                order.makerAmount,
+                order.takerAmount,
+                order.side,
+                order.signatureType,
+                order.timestamp,
+                order.metadata,
+                order.builder
+            )
+        );
     }
 
     function dealUsdcAndApprove(address to, address spender, uint256 amount) internal {
