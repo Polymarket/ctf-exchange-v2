@@ -10,12 +10,14 @@ import { IConditionalTokens } from "../interfaces/IConditionalTokens.sol";
 
 import { TransferHelper } from "../libraries/TransferHelper.sol";
 
+import { Assets } from "./Assets.sol";
+
 /// @title Asset Operations
 /// @notice Operations on the CTF and Collateral assets
-abstract contract AssetOperations is IAssetOperations, IAssets {
+abstract contract AssetOperations is Assets, IAssetOperations {
     bytes32 public constant parentCollectionId = bytes32(0);
 
-    function _getBalance(uint256 tokenId) internal override returns (uint256) {
+    function _getBalance(uint256 tokenId) internal view override returns (uint256) {
         if (tokenId == 0) return ERC20(getCollateral()).balanceOf(address(this));
         return ERC1155(getCtf()).balanceOf(address(this), tokenId);
     }

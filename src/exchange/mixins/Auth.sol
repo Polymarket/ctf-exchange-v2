@@ -7,10 +7,10 @@ import { IAuth } from "../interfaces/IAuth.sol";
 /// @notice Provides admin and operator roles and access control modifiers
 abstract contract Auth is IAuth {
     /// @dev The set of addresses authorized as Admins
-    mapping(address => uint256) public admins;
+    mapping(address => uint256) internal admins;
 
     /// @dev The set of addresses authorized as Operators
-    mapping(address => uint256) public operators;
+    mapping(address => uint256) internal operators;
 
     modifier onlyAdmin() {
         if (admins[msg.sender] != 1) revert NotAdmin();

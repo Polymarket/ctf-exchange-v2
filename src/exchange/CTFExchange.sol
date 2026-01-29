@@ -4,12 +4,9 @@ pragma solidity 0.8.30;
 import { Auth } from "./mixins/Auth.sol";
 import { Fees } from "./mixins/Fees.sol";
 import { Assets } from "./mixins/Assets.sol";
-import { Hashing } from "./mixins/Hashing.sol";
 import { Trading } from "./mixins/Trading.sol";
 import { Pausable } from "./mixins/Pausable.sol";
 import { Signatures } from "./mixins/Signatures.sol";
-import { UserPausable } from "./mixins/UserPausable.sol";
-import { AssetOperations } from "./mixins/AssetOperations.sol";
 import { ERC1155TokenReceiver } from "./mixins/ERC1155TokenReceiver.sol";
 
 import { ExchangeInitParams, Order } from "./libraries/Structs.sol";
@@ -19,14 +16,8 @@ import { ExchangeInitParams, Order } from "./libraries/Structs.sol";
 /// @author Polymarket
 contract CTFExchange is
     Auth,
-    Assets,
     ERC1155TokenReceiver,
-    Fees,
     Pausable,
-    AssetOperations,
-    Hashing,
-    Signatures,
-    UserPausable,
     Trading
 {
     constructor(ExchangeInitParams memory params)

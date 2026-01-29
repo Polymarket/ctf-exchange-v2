@@ -1,19 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { IFees } from "../interfaces/IFees.sol";
-import { IHashing } from "../interfaces/IHashing.sol";
 import { ITrading } from "../interfaces/ITrading.sol";
-import { ISignatures } from "../interfaces/ISignatures.sol";
 import { IUserPausable } from "../interfaces/IUserPausable.sol";
-import { IAssetOperations } from "../interfaces/IAssetOperations.sol";
 
 import { CalculatorHelper } from "../libraries/CalculatorHelper.sol";
 import { Order, Side, MatchType, OrderStatus } from "../libraries/Structs.sol";
 
+import { Hashing } from "./Hashing.sol";
+import { UserPausable } from "./UserPausable.sol";
+import { AssetOperations } from "./AssetOperations.sol";
+import { Fees } from "./Fees.sol";
+import { Signatures } from "./Signatures.sol";
+
 /// @title Trading
 /// @notice Implements logic for trading CTF assets
-abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOperations, IUserPausable {
+abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signatures, ITrading {
     /// @notice Mapping of orders to their current status
     mapping(bytes32 => OrderStatus) public orderStatus;
 
