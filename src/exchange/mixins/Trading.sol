@@ -561,8 +561,15 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
     }
 
     function _deriveAssetIds(Order memory order) internal pure returns (uint256 makerAssetId, uint256 takerAssetId) {
-        if (order.side == Side.BUY) return (0, order.tokenId);
-        return (order.tokenId, 0);
+        // SIDE * tokenId, tokenId - SIDE * tokenId
+        // buy: 0, tokenId
+        // sell: tokenId, 0
+        Side side = order.side;
+        uint256 tokenId = order.tokenId;
+        assembly {
+            makerAssetId := mul(side, tokenId)
+            takerAssetId := sub(tokenId, makerAssetId)
+        }
     }
 
     /// @notice Ensures the taker and maker orders can be matched against each other
