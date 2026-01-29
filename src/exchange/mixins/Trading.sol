@@ -55,8 +55,11 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
 
     /// @notice Validates an order
     /// @notice order - The order to be validated
-    function validateOrder(Order memory order) public view {
+    function validateOrder(Order memory order) external view {
         bytes32 orderHash = hashOrder(order);
+
+        if (orderStatus[orderHash].filled) revert OrderAlreadyFilled();
+
         _validateOrder(orderHash, order);
     }
 
@@ -66,9 +69,6 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
 
         // Validate that the user is not paused
         if (isUserPaused(order.maker)) revert UserIsPaused();
-
-        // Validate that the order can be filled
-        if (orderStatus[orderHash].filled) revert OrderAlreadyFilled();
     }
 
     /// @notice Matches orders against each other
@@ -369,15 +369,15 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         // Validate order
         _validateOrder(orderHash, order);
 
+        // Update the order status in storage
+        _updateOrderStatus(orderHash, order, making);
+
         // Calculate taking amount
         takingAmount = CalculatorHelper.calculateTakingAmount(making, order.makerAmount, order.takerAmount);
 
         // Validate fee against max fee rate
         uint256 cashValue = order.side == Side.BUY ? making : takingAmount;
         validateFeeWithMaxFeeRate(fee, cashValue, maxFeeRate);
-
-        // Update the order status in storage
-        _updateOrderStatus(orderHash, order, making);
     }
 
     function _deriveMatchType(Order memory takerOrder, Order memory makerOrder) internal pure returns (MatchType) {
@@ -417,8 +417,17 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         returns (uint256 remaining)
     {
         OrderStatus storage status = orderStatus[orderHash];
-        // Fetch remaining amount from storage
-        remaining = status.remaining;
+
+        // Single SLOAD: read packed slot and extract both filled and remaining
+        bool filled;
+        assembly {
+            let packed := sload(status.slot)
+            filled := and(packed, 0xff)
+            remaining := shr(8, packed)
+        }
+
+        // Validate that the order can be filled
+        if (filled) revert OrderAlreadyFilled();
 
         // Update remaining if the order is new/has not been filled
         remaining = remaining == 0 ? order.makerAmount : remaining;
@@ -430,11 +439,11 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
             remaining = remaining - makingAmount; // safety: makingAmount <= remaining checked above
         }
 
-        // If order is completely filled, update filled in storage
-        if (remaining == 0) status.filled = true;
-
-        // Update remaining in storage
-        status.remaining = uint248(remaining);
+        // Single SSTORE: pack filled (1 byte) and remaining (31 bytes) into one slot
+        assembly {
+            let packed := or(shl(8, remaining), iszero(remaining))
+            sstore(status.slot, packed)
+        }
     }
 
     function _updateTakingWithSurplus(uint256 minimumAmount, uint256 tokenId) internal returns (uint256) {

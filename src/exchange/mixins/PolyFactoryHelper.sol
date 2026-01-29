@@ -14,13 +14,9 @@ interface IPolySafeFactory {
 
 abstract contract PolyFactoryHelper {
     /// @notice The Polymarket Proxy Wallet Factory Contract
-    address public proxyFactory;
+    address internal immutable proxyFactory;
     /// @notice The Polymarket Gnosis Safe Factory Contract
-    address public safeFactory;
-
-    event ProxyFactoryUpdated(address indexed oldProxyFactory, address indexed newProxyFactory);
-
-    event SafeFactoryUpdated(address indexed oldSafeFactory, address indexed newSafeFactory);
+    address internal immutable safeFactory;
 
     constructor(address _proxyFactory, address _safeFactory) {
         proxyFactory = _proxyFactory;
@@ -60,12 +56,12 @@ abstract contract PolyFactoryHelper {
     }
 
     function _setProxyFactory(address _proxyFactory) internal {
-        emit ProxyFactoryUpdated(proxyFactory, _proxyFactory);
-        proxyFactory = _proxyFactory;
+        // emit ProxyFactoryUpdated(proxyFactory, _proxyFactory);
+        // proxyFactory = _proxyFactory;
     }
 
     function _setSafeFactory(address _safeFactory) internal {
-        emit SafeFactoryUpdated(safeFactory, _safeFactory);
-        safeFactory = _safeFactory;
+        // emit SafeFactoryUpdated(safeFactory, _safeFactory);
+        // safeFactory = _safeFactory;
     }
 }

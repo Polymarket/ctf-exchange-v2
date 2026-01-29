@@ -109,32 +109,6 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.matchOrders(conditionId, takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
     }
 
-    function test_SetProxyFactory() public {
-        address oldProxyFactory = exchange.getProxyFactory();
-        address newProxyFactory = address(0x12345);
-
-        vm.expectEmit(true, true, true, true);
-        emit ProxyFactoryUpdated(oldProxyFactory, newProxyFactory);
-
-        vm.prank(admin);
-        exchange.setProxyFactory(newProxyFactory);
-
-        assertEq(exchange.getProxyFactory(), newProxyFactory);
-    }
-
-    function test_SetSafeFactory() public {
-        address oldSafeFactory = exchange.getSafeFactory();
-        address newSafeFactory = address(0x98765);
-
-        vm.expectEmit(true, true, true, true);
-        emit SafeFactoryUpdated(oldSafeFactory, newSafeFactory);
-
-        vm.prank(admin);
-        exchange.setSafeFactory(newSafeFactory);
-
-        assertEq(exchange.getSafeFactory(), newSafeFactory);
-    }
-
     function test_SetUserPauseBlockInterval() public {
         uint256 oldInterval = exchange.userPauseBlockInterval();
         uint256 newInterval = oldInterval + 50;
