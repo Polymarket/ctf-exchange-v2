@@ -531,14 +531,14 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
 
     function _deriveMatchType(Order memory takerOrder, Order memory makerOrder) internal pure returns (MatchType) {
         // Enum values: Side.Buy: 0 Side.Sell 1
-        // if SUM = 0, MINT
-        // if SUM = 1, COMPLEMENTARY
-        // if SUM = 2, MERGE
+        // Enum math: add one to the takerSide, and multiply it by 1 IF it's equal to the makerSide, OR
+        // multiply by zero if it isn't
+
         MatchType matchType;
         Side takerOrderSide = takerOrder.side;
         Side makerOrderSide = makerOrder.side;
         assembly ("memory-safe") {
-            matchType := add(takerOrderSide, makerOrderSide)
+            matchType := mul(add(takerOrderSide, 1), eq(takerOrderSide, makerOrderSide))
         }
         return matchType;
     }

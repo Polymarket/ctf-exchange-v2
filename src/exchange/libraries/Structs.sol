@@ -72,10 +72,10 @@ enum Side {
 }
 
 enum MatchType {
-    // 0: both buys
-    MINT,
-    // 1: buy vs sell
+    // 0: buy vs sell
     COMPLEMENTARY,
+    // 1: both buys
+    MINT,
     // 2: both sells
     MERGE
 }
