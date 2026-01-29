@@ -27,15 +27,12 @@ library CalculatorHelper {
 
     function _calculatePrice(uint256 makerAmount, uint256 takerAmount, Side side) internal pure returns (uint256) {
         // If side is 0, (buy) swap makerAmount and takerAmount using xor involution: (A xor B xor B) = A
-        // 1. compute a mask, 0 if side is BUY, 0xff..ff if side is SELL
-        // 2. compute the "swap" makerAmount XOR takerAmount masked by the mask in step 1
-        // The above is zero if side is BUY
-        // 3. xor(makerAmount, swap) / xor(takerAmount, swap), if side is BUY, this is makerAmount / takerAmount
+        // 1. compute the "swap" makerAmount XOR takerAmount if side is SELL, otherwise zero
+        // 2. xor(makerAmount, swap) / xor(takerAmount, swap), if side is BUY, this is makerAmount / takerAmount
         // and the opposite if side is SELL
         uint256 result;
         assembly ("memory-safe") {
-            let mask := sub(0, side)
-            let swap := and(xor(makerAmount, takerAmount), mask)
+            let swap := mul(xor(makerAmount, takerAmount), side)
             result := div(mul(xor(makerAmount, swap), ONE), xor(takerAmount, swap))
         }
         return result;
