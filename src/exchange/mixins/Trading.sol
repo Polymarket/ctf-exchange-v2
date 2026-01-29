@@ -530,9 +530,17 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
     }
 
     function _deriveMatchType(Order memory takerOrder, Order memory makerOrder) internal pure returns (MatchType) {
-        if (takerOrder.side == Side.BUY && makerOrder.side == Side.BUY) return MatchType.MINT;
-        if (takerOrder.side == Side.SELL && makerOrder.side == Side.SELL) return MatchType.MERGE;
-        return MatchType.COMPLEMENTARY;
+        // Enum values: Side.Buy: 0 Side.Sell 1
+        // if SUM = 0, MINT
+        // if SUM = 1, COMPLEMENTARY
+        // if SUM = 2, MERGE
+        MatchType matchType;
+        Side takerOrderSide = takerOrder.side;
+        Side makerOrderSide = makerOrder.side;
+        assembly {
+            matchType := add(takerOrderSide, makerOrderSide)
+        }
+        return matchType;
     }
 
     function _isAllComplementary(Side takerSide, Order[] memory makerOrders) internal pure returns (bool result) {
