@@ -19,9 +19,10 @@ struct ExchangeInitParams {
     address feeReceiver;
 }
 
-bytes32 constant ORDER_TYPEHASH = keccak256(
-    "Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)"
-);
+bytes32 constant ORDER_TYPEHASH = 0xbb86318a2138f5fa8ae32fbe8e659f8fcf13cc6ae4014a707893055433818589;
+//keccak256(
+//     "Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint8
+// side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)" );
 
 struct Order {
     /// @notice Unique salt to ensure entropy

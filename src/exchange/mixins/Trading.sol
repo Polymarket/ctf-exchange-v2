@@ -612,7 +612,7 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         }
     }
 
-    function _updateTakingWithSurplus(uint256 minimumAmount, uint256 tokenId) internal returns (uint256) {
+    function _updateTakingWithSurplus(uint256 minimumAmount, uint256 tokenId) internal view returns (uint256) {
         uint256 actualAmount = _getBalance(tokenId);
         if (actualAmount < minimumAmount) revert TooLittleTokensReceived();
         return actualAmount;
