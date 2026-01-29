@@ -13,8 +13,12 @@ library CalculatorHelper {
         pure
         returns (uint256)
     {
-        if (makerAmount == 0) return 0;
-        return makingAmount * takerAmount / makerAmount;
+        // division by zero in the EVM returns 0
+        uint256 result;
+        assembly ("memory-safe") {
+            result := div(mul(makingAmount, takerAmount), makerAmount)
+        }
+        return result;
     }
 
     function calculatePrice(Order memory order) internal pure returns (uint256) {
@@ -29,7 +33,7 @@ library CalculatorHelper {
         // 3. xor(makerAmount, swap) / xor(takerAmount, swap), if side is BUY, this is makerAmount / takerAmount
         // and the opposite if side is SELL
         uint256 result;
-        assembly {
+        assembly ("memory-safe") {
             let mask := sub(0, side)
             let swap := and(xor(makerAmount, takerAmount), mask)
             result := div(mul(xor(makerAmount, swap), ONE), xor(takerAmount, swap))
