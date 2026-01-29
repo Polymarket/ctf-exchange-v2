@@ -14,12 +14,7 @@ import { ExchangeInitParams, Order } from "./libraries/Structs.sol";
 /// @title CTF Exchange
 /// @notice Implements logic for trading CTF assets
 /// @author Polymarket
-contract CTFExchange is
-    Auth,
-    ERC1155TokenReceiver,
-    Pausable,
-    Trading
-{
+contract CTFExchange is Auth, ERC1155TokenReceiver, Pausable, Trading {
     constructor(ExchangeInitParams memory params)
         Auth(params.admin)
         Assets(params.collateral, params.ctf, params.outcomeTokenFactory)
