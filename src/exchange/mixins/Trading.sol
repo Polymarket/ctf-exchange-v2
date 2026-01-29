@@ -537,7 +537,7 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         MatchType matchType;
         Side takerOrderSide = takerOrder.side;
         Side makerOrderSide = makerOrder.side;
-        assembly {
+        assembly ("memory-safe") {
             matchType := add(takerOrderSide, makerOrderSide)
         }
         return matchType;
@@ -566,7 +566,7 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         // sell: tokenId, 0
         Side side = order.side;
         uint256 tokenId = order.tokenId;
-        assembly {
+        assembly ("memory-safe") {
             makerAssetId := mul(side, tokenId)
             takerAssetId := sub(tokenId, makerAssetId)
         }
