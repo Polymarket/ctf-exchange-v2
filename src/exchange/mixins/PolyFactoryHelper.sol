@@ -54,14 +54,4 @@ abstract contract PolyFactoryHelper {
     function getSafeAddress(address _addr) public view returns (address) {
         return PolySafeLib.getSafeAddress(_addr, getSafeFactoryImplementation(), safeFactory);
     }
-
-    function _setProxyFactory(address _proxyFactory) internal {
-        // emit ProxyFactoryUpdated(proxyFactory, _proxyFactory);
-        // proxyFactory = _proxyFactory;
-    }
-
-    function _setSafeFactory(address _safeFactory) internal {
-        // emit SafeFactoryUpdated(safeFactory, _safeFactory);
-        // safeFactory = _safeFactory;
-    }
 }
