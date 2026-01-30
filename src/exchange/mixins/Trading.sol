@@ -31,15 +31,6 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         bytes32 metadata;
     }
 
-    /// @notice Parameters for settling COMPLEMENTARY orders
-    struct ComplementarySettlementParams {
-        uint256 maxFeeRate;
-        uint256 takerTaking;
-        bytes32 takerOrderHash;
-        uint256 takerFillAmount;
-        uint256 takerFeeAmount;
-    }
-
     /// @notice Parameters for a prepared maker order (validated and ready for settlement)
     struct PreparedMakerOrder {
         bytes32 orderHash;
@@ -114,7 +105,10 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
                 makerOrders,
                 makerFillAmounts,
                 makerFeeAmounts,
-                ComplementarySettlementParams(maxFeeRate, taking, orderHash, takerFillAmount, takerFeeAmount)
+                maxFeeRate,
+                orderHash,
+                takerFillAmount,
+                takerFeeAmount
             );
             return;
         }
@@ -163,7 +157,10 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         Order[] memory makerOrders,
         uint256[] memory makerFillAmounts,
         uint256[] memory makerFeeAmounts,
-        ComplementarySettlementParams memory params
+        uint256 maxFeeRate,
+        bytes32 takerOrderHash,
+        uint256 takerFillAmount,
+        uint256 takerFeeAmount
     ) internal {
         address taker = takerOrder.maker;
         bool takerIsBuy = takerOrder.side == Side.BUY;
@@ -172,13 +169,7 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
 
         for (uint256 i = 0; i < makerOrders.length;) {
             (uint256 makerFee, uint256 makerCollateral) = _settleComplementaryMaker(
-                takerOrder,
-                makerOrders[i],
-                makerFillAmounts[i],
-                makerFeeAmounts[i],
-                params.maxFeeRate,
-                taker,
-                takerIsBuy
+                takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i], maxFeeRate, taker, takerIsBuy
             );
             unchecked {
                 totalMakerFees += makerFee;
@@ -191,7 +182,9 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         if (totalMakerFees > 0) _transfer(taker, getFeeReceiver(), 0, totalMakerFees);
 
         // Handle taker settlement
-        _finalizeTakerComplementary(taker, takerIsBuy, totalTakerReceives, params, takerOrder);
+        _finalizeTakerComplementary(
+            takerOrder, taker, takerIsBuy, totalTakerReceives, takerOrderHash, takerFillAmount, takerFeeAmount
+        );
     }
 
     /// @notice Settles a single maker in COMPLEMENTARY match
@@ -249,37 +242,39 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
 
     /// @notice Finalizes taker settlement in COMPLEMENTARY match
     function _finalizeTakerComplementary(
+        Order memory takerOrder,
         address taker,
         bool takerIsBuy,
         uint256 totalTakerReceives,
-        ComplementarySettlementParams memory params,
-        Order memory takerOrder
+        bytes32 takerOrderHash,
+        uint256 takerFillAmount,
+        uint256 takerFeeAmount
     ) internal {
         if (takerIsBuy) {
-            if (params.takerFeeAmount > 0) _chargeFee(taker, params.takerFeeAmount);
+            if (takerFeeAmount > 0) _chargeFee(taker, takerFeeAmount);
         } else {
             uint256 takerProceeds = totalTakerReceives;
-            if (params.takerFeeAmount > 0) {
-                if (params.takerFeeAmount > totalTakerReceives) revert FeeExceedsProceeds();
+            if (takerFeeAmount > 0) {
+                if (takerFeeAmount > totalTakerReceives) revert FeeExceedsProceeds();
                 unchecked {
-                    takerProceeds -= params.takerFeeAmount;
+                    takerProceeds -= takerFeeAmount;
                 }
-                emit FeeCharged(getFeeReceiver(), params.takerFeeAmount);
+                emit FeeCharged(getFeeReceiver(), takerFeeAmount);
+                _transfer(address(this), getFeeReceiver(), 0, takerFeeAmount);
             }
             _transfer(address(this), taker, 0, takerProceeds);
-            if (params.takerFeeAmount > 0) _transfer(address(this), getFeeReceiver(), 0, params.takerFeeAmount);
         }
 
         _emitTakerFilledEvents(
             OrderFilledParams({
-                orderHash: params.takerOrderHash,
+                orderHash: takerOrderHash,
                 maker: taker,
                 taker: address(this),
                 side: takerOrder.side,
                 tokenId: takerOrder.tokenId,
-                makerAmountFilled: params.takerFillAmount,
-                takerAmountFilled: takerIsBuy ? params.takerFillAmount : totalTakerReceives,
-                fee: params.takerFeeAmount,
+                makerAmountFilled: takerFillAmount,
+                takerAmountFilled: takerIsBuy ? takerFillAmount : totalTakerReceives,
+                fee: takerFeeAmount,
                 builder: takerOrder.builder,
                 metadata: takerOrder.metadata
             })
@@ -558,15 +553,21 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         return MatchType.COMPLEMENTARY;
     }
 
-    function _isAllComplementary(Side takerSide, Order[] memory makerOrders) internal pure returns (bool) {
-        uint256 length = makerOrders.length;
-        for (uint256 i = 0; i < length;) {
-            if (makerOrders[i].side == takerSide) return false;
-            unchecked {
-                ++i;
+    function _isAllComplementary(Side takerSide, Order[] memory makerOrders) internal pure returns (bool result) {
+        assembly {
+            result := 1
+            let length := mload(makerOrders)
+            let ptr := add(makerOrders, 0x20)
+            for { let i := 0 } lt(i, length) { i := add(i, 1) } {
+                let orderPtr := mload(add(ptr, shl(5, i)))
+                // side is at offset 0xC0 in Order struct
+                let side := mload(add(orderPtr, 0xC0))
+                if eq(side, takerSide) {
+                    result := 0
+                    break
+                }
             }
         }
-        return true;
     }
 
     function _deriveAssetIds(Order memory order) internal pure returns (uint256 makerAssetId, uint256 takerAssetId) {
