@@ -810,8 +810,9 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
 
         // Makers: carla's proxy sells YES
         for (uint256 i = 0; i < numMakers; i++) {
-            makerOrders[i] =
-                _createAndSignProxyOrderWithSalt(carlaPK, carlaProxy, yes, tokensPerMaker, usdcPerMaker, Side.SELL, i + 100);
+            makerOrders[i] = _createAndSignProxyOrderWithSalt(
+                carlaPK, carlaProxy, yes, tokensPerMaker, usdcPerMaker, Side.SELL, i + 100
+            );
             fillAmounts[i] = tokensPerMaker;
             feeAmounts[i] = 0;
         }
@@ -847,8 +848,9 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
 
         // Makers: carla's proxy buys NO
         for (uint256 i = 0; i < numMakers; i++) {
-            makerOrders[i] =
-                _createAndSignProxyOrderWithSalt(carlaPK, carlaProxy, no, usdcPerMaker, tokensPerMaker, Side.BUY, i + 100);
+            makerOrders[i] = _createAndSignProxyOrderWithSalt(
+                carlaPK, carlaProxy, no, usdcPerMaker, tokensPerMaker, Side.BUY, i + 100
+            );
             fillAmounts[i] = usdcPerMaker;
             feeAmounts[i] = 0;
         }
@@ -883,8 +885,9 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
 
         // Makers: carla's proxy sells NO
         for (uint256 i = 0; i < numMakers; i++) {
-            makerOrders[i] =
-                _createAndSignProxyOrderWithSalt(carlaPK, carlaProxy, no, tokensPerMaker, usdcPerMaker, Side.SELL, i + 100);
+            makerOrders[i] = _createAndSignProxyOrderWithSalt(
+                carlaPK, carlaProxy, no, tokensPerMaker, usdcPerMaker, Side.SELL, i + 100
+            );
             fillAmounts[i] = tokensPerMaker;
             feeAmounts[i] = 0;
         }
@@ -1172,8 +1175,9 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
 
         // Makers: carla's safe sells YES
         for (uint256 i = 0; i < numMakers; i++) {
-            makerOrders[i] =
-                _createAndSignSafeOrderWithSalt(carlaPK, carlaSafe, yes, tokensPerMaker, usdcPerMaker, Side.SELL, i + 100);
+            makerOrders[i] = _createAndSignSafeOrderWithSalt(
+                carlaPK, carlaSafe, yes, tokensPerMaker, usdcPerMaker, Side.SELL, i + 100
+            );
             fillAmounts[i] = tokensPerMaker;
             feeAmounts[i] = 0;
         }
@@ -1209,8 +1213,9 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
 
         // Makers: carla's safe buys NO
         for (uint256 i = 0; i < numMakers; i++) {
-            makerOrders[i] =
-                _createAndSignSafeOrderWithSalt(carlaPK, carlaSafe, no, usdcPerMaker, tokensPerMaker, Side.BUY, i + 100);
+            makerOrders[i] = _createAndSignSafeOrderWithSalt(
+                carlaPK, carlaSafe, no, usdcPerMaker, tokensPerMaker, Side.BUY, i + 100
+            );
             fillAmounts[i] = usdcPerMaker;
             feeAmounts[i] = 0;
         }
@@ -1245,8 +1250,9 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
 
         // Makers: carla's safe sells NO
         for (uint256 i = 0; i < numMakers; i++) {
-            makerOrders[i] =
-                _createAndSignSafeOrderWithSalt(carlaPK, carlaSafe, no, tokensPerMaker, usdcPerMaker, Side.SELL, i + 100);
+            makerOrders[i] = _createAndSignSafeOrderWithSalt(
+                carlaPK, carlaSafe, no, tokensPerMaker, usdcPerMaker, Side.SELL, i + 100
+            );
             fillAmounts[i] = tokensPerMaker;
             feeAmounts[i] = 0;
         }
