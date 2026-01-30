@@ -31,6 +31,15 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         bytes32 metadata;
     }
 
+    /// @notice Parameters for settling COMPLEMENTARY orders
+    struct ComplementarySettlementParams {
+        uint256 maxFeeRate;
+        uint256 takerTaking;
+        bytes32 takerOrderHash;
+        uint256 takerFillAmount;
+        uint256 takerFeeAmount;
+    }
+
     /// @notice Parameters for a prepared maker order (validated and ready for settlement)
     struct PreparedMakerOrder {
         bytes32 orderHash;
@@ -97,6 +106,19 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
 
         (uint256 taking, bytes32 orderHash) =
             _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount, maxFeeRate);
+
+        // Check if all matches are COMPLEMENTARY (all makers have opposite side to taker)
+        if (_isAllComplementary(takerOrder.side, makerOrders)) {
+            _settleComplementary(
+                takerOrder,
+                makerOrders,
+                makerFillAmounts,
+                makerFeeAmounts,
+                ComplementarySettlementParams(maxFeeRate, taking, orderHash, takerFillAmount, takerFeeAmount)
+            );
+            return;
+        }
+
         (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(takerOrder);
 
         // Transfer takerOrder making amount from taker order to the Exchange
@@ -132,6 +154,136 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
 
         // Transfer taker SELL fee (if any) after events
         if (takerExchangeFee > 0) _transfer(address(this), getFeeReceiver(), 0, takerExchangeFee);
+    }
+
+    /// @notice Settles COMPLEMENTARY orders with direct peer-to-peer transfers
+    /// @dev Eliminates exchange as intermediary, saving ~3 transfers per match
+    function _settleComplementary(
+        Order memory takerOrder,
+        Order[] memory makerOrders,
+        uint256[] memory makerFillAmounts,
+        uint256[] memory makerFeeAmounts,
+        ComplementarySettlementParams memory params
+    ) internal {
+        address taker = takerOrder.maker;
+        bool takerIsBuy = takerOrder.side == Side.BUY;
+        uint256 totalMakerFees = 0;
+        uint256 totalTakerReceives = 0;
+
+        for (uint256 i = 0; i < makerOrders.length;) {
+            (uint256 makerFee, uint256 makerCollateral) = _settleComplementaryMaker(
+                takerOrder,
+                makerOrders[i],
+                makerFillAmounts[i],
+                makerFeeAmounts[i],
+                params.maxFeeRate,
+                taker,
+                takerIsBuy
+            );
+            unchecked {
+                totalMakerFees += makerFee;
+                totalTakerReceives += makerCollateral;
+                ++i;
+            }
+        }
+
+        // Batch transfer accumulated maker SELL fees from taker
+        if (totalMakerFees > 0) _transfer(taker, getFeeReceiver(), 0, totalMakerFees);
+
+        // Handle taker settlement
+        _finalizeTakerComplementary(taker, takerIsBuy, totalTakerReceives, params, takerOrder);
+    }
+
+    /// @notice Settles a single maker in COMPLEMENTARY match
+    /// @return makerFee - Fee to batch (for maker SELL only)
+    /// @return makerCollateral - Collateral received by exchange (for taker SELL only)
+    function _settleComplementaryMaker(
+        Order memory takerOrder,
+        Order memory makerOrder,
+        uint256 fillAmount,
+        uint256 feeAmount,
+        uint256 maxFeeRate,
+        address taker,
+        bool takerIsBuy
+    ) internal returns (uint256 makerFee, uint256 makerCollateral) {
+        _validateOrdersMatch(takerOrder, makerOrder, MatchType.COMPLEMENTARY);
+
+        (uint256 taking, bytes32 orderHash) = _performOrderChecks(makerOrder, fillAmount, feeAmount, maxFeeRate);
+
+        if (takerIsBuy) {
+            // Taker BUY ↔ Maker SELL: direct transfers both ways
+            _transfer(makerOrder.maker, taker, makerOrder.tokenId, fillAmount); // CTF: maker → taker
+            uint256 makerReceives = taking;
+            if (feeAmount > 0) {
+                if (feeAmount > taking) revert FeeExceedsProceeds();
+                unchecked {
+                    makerReceives -= feeAmount;
+                }
+                makerFee = feeAmount;
+                emit FeeCharged(getFeeReceiver(), feeAmount);
+            }
+            _transfer(taker, makerOrder.maker, 0, makerReceives); // Collateral: taker → maker
+        } else {
+            // Taker SELL ↔ Maker BUY: CTF direct, collateral through exchange
+            _transfer(taker, makerOrder.maker, takerOrder.tokenId, taking); // CTF: taker → maker
+            _transfer(makerOrder.maker, address(this), 0, fillAmount); // Collateral: maker → exchange
+            makerCollateral = fillAmount;
+            if (feeAmount > 0) _chargeFee(makerOrder.maker, feeAmount);
+        }
+
+        _emitOrderFilledEvent(
+            OrderFilledParams({
+                orderHash: orderHash,
+                maker: makerOrder.maker,
+                taker: taker,
+                side: makerOrder.side,
+                tokenId: makerOrder.tokenId,
+                makerAmountFilled: fillAmount,
+                takerAmountFilled: taking,
+                fee: feeAmount,
+                builder: makerOrder.builder,
+                metadata: makerOrder.metadata
+            })
+        );
+    }
+
+    /// @notice Finalizes taker settlement in COMPLEMENTARY match
+    function _finalizeTakerComplementary(
+        address taker,
+        bool takerIsBuy,
+        uint256 totalTakerReceives,
+        ComplementarySettlementParams memory params,
+        Order memory takerOrder
+    ) internal {
+        if (takerIsBuy) {
+            if (params.takerFeeAmount > 0) _chargeFee(taker, params.takerFeeAmount);
+        } else {
+            uint256 takerProceeds = totalTakerReceives;
+            if (params.takerFeeAmount > 0) {
+                if (params.takerFeeAmount > totalTakerReceives) revert FeeExceedsProceeds();
+                unchecked {
+                    takerProceeds -= params.takerFeeAmount;
+                }
+                emit FeeCharged(getFeeReceiver(), params.takerFeeAmount);
+            }
+            _transfer(address(this), taker, 0, takerProceeds);
+            if (params.takerFeeAmount > 0) _transfer(address(this), getFeeReceiver(), 0, params.takerFeeAmount);
+        }
+
+        _emitTakerFilledEvents(
+            OrderFilledParams({
+                orderHash: params.takerOrderHash,
+                maker: taker,
+                taker: address(this),
+                side: takerOrder.side,
+                tokenId: takerOrder.tokenId,
+                makerAmountFilled: params.takerFillAmount,
+                takerAmountFilled: takerIsBuy ? params.takerFillAmount : totalTakerReceives,
+                fee: params.takerFeeAmount,
+                builder: takerOrder.builder,
+                metadata: takerOrder.metadata
+            })
+        );
     }
 
     /// @notice Settles a Taker order
@@ -181,12 +333,47 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         uint256[] memory makerFeeAmounts,
         uint256 maxFeeRate
     ) internal returns (uint256 totalExchangeFees) {
+        // Phase 1: Prepare all maker orders (validate, transfer from makers, accumulate batch totals)
+        (PreparedMakerOrder[] memory prepared, uint256 totalMintAmount, uint256 totalMergeAmount) =
+            _prepareMakerOrders(takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, maxFeeRate);
+
         uint256 length = makerOrders.length;
 
-        // Phase 1: Prepare all maker orders (validate, transfer from makers, accumulate batch totals)
-        PreparedMakerOrder[] memory prepared = new PreparedMakerOrder[](length);
-        uint256 totalMintAmount = 0;
-        uint256 totalMergeAmount = 0;
+        // Phase 2: Execute batched CTF operations (one mint and/or one merge)
+        if (totalMintAmount > 0) _mint(conditionId, totalMintAmount);
+        if (totalMergeAmount > 0) _merge(conditionId, totalMergeAmount);
+
+        // Phase 3: Distribute proceeds to all makers, accumulating exchange-paid fees
+        for (uint256 i = 0; i < length;) {
+            unchecked {
+                totalExchangeFees += _distributeMakerProceeds(prepared[i], takerOrder.maker); // safety: each fee <=
+                // takingAmount (FeeExceedsProceeds), sum bounded by real token supply
+            }
+            unchecked {
+                ++i; // safety: i < length which fits in memory
+            }
+        }
+    }
+
+    /// @notice Prepares all maker orders for batch settlement
+    /// @dev Phase 1: Validates, calculates amounts, transfers from makers to exchange, accumulates batch totals
+    /// @param takerOrder       - The taker order
+    /// @param makerOrders      - The maker orders
+    /// @param makerFillAmounts - The fill amounts for each maker
+    /// @param makerFeeAmounts  - The fee amounts for each maker
+    /// @param maxFeeRate       - The maximum fee rate allowed
+    /// @return prepared        - Array of prepared maker order data
+    /// @return totalMintAmount - Total amount to mint
+    /// @return totalMergeAmount - Total amount to merge
+    function _prepareMakerOrders(
+        Order memory takerOrder,
+        Order[] memory makerOrders,
+        uint256[] memory makerFillAmounts,
+        uint256[] memory makerFeeAmounts,
+        uint256 maxFeeRate
+    ) internal returns (PreparedMakerOrder[] memory prepared, uint256 totalMintAmount, uint256 totalMergeAmount) {
+        uint256 length = makerOrders.length;
+        prepared = new PreparedMakerOrder[](length);
 
         for (uint256 i = 0; i < length;) {
             prepared[i] =
@@ -203,21 +390,6 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
                     totalMergeAmount += prepared[i].makingAmount; // safety: token amounts can't realistically overflow
                     // uint256
                 }
-            }
-            unchecked {
-                ++i; // safety: i < length which fits in memory
-            }
-        }
-
-        // Phase 2: Execute batched CTF operations (one mint and/or one merge)
-        if (totalMintAmount > 0) _mint(conditionId, totalMintAmount);
-        if (totalMergeAmount > 0) _merge(conditionId, totalMergeAmount);
-
-        // Phase 3: Distribute proceeds to all makers, accumulating exchange-paid fees
-        for (uint256 i = 0; i < length;) {
-            unchecked {
-                totalExchangeFees += _distributeMakerProceeds(prepared[i], takerOrder.maker); // safety: each fee <=
-                // takingAmount (FeeExceedsProceeds), sum bounded by real token supply
             }
             unchecked {
                 ++i; // safety: i < length which fits in memory
@@ -384,6 +556,17 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         if (takerOrder.side == Side.BUY && makerOrder.side == Side.BUY) return MatchType.MINT;
         if (takerOrder.side == Side.SELL && makerOrder.side == Side.SELL) return MatchType.MERGE;
         return MatchType.COMPLEMENTARY;
+    }
+
+    function _isAllComplementary(Side takerSide, Order[] memory makerOrders) internal pure returns (bool) {
+        uint256 length = makerOrders.length;
+        for (uint256 i = 0; i < length;) {
+            if (makerOrders[i].side == takerSide) return false;
+            unchecked {
+                ++i;
+            }
+        }
+        return true;
     }
 
     function _deriveAssetIds(Order memory order) internal pure returns (uint256 makerAssetId, uint256 takerAssetId) {

@@ -675,4 +675,72 @@ contract MatchOrdersTest is BaseExchangeTest {
         assertCTFBalance(carla, yes, 0);
         assertCollateralBalance(carla, 50_000_000);
     }
+
+    /// @notice Verify that exchange doesn't hold tokens after COMPLEMENTARY match (taker BUY)
+    function test_MatchOrders_Complementary_NoExchangeBalance_TakerBuy() public {
+        vm.pauseGasMetering();
+        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
+        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
+
+        // Taker: YES BUY
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        // Maker: YES SELL
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 100_000_000;
+
+        uint256 takerFillAmount = 50_000_000;
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        vm.resumeGasMetering();
+
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, 0, makerFeeAmounts);
+
+        vm.pauseGasMetering();
+        // Exchange should hold no tokens after direct transfer COMPLEMENTARY match
+        assertCollateralBalance(address(exchange), 0);
+        assertCTFBalance(address(exchange), yes, 0);
+        assertCTFBalance(address(exchange), no, 0);
+    }
+
+    function test_MatchOrders_Complementary_NoExchangeBalance_TakerSell() public {
+        vm.pauseGasMetering();
+        dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
+        dealUsdcAndApprove(carla, address(exchange), 50_000_000);
+
+        // Taker: YES SELL
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
+        // Maker: YES BUY
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 50_000_000, 100_000_000, Side.BUY);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 50_000_000;
+
+        uint256 takerFillAmount = 100_000_000;
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        vm.resumeGasMetering();
+
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, 0, makerFeeAmounts);
+
+        vm.pauseGasMetering();
+        // Exchange should hold no tokens after COMPLEMENTARY match
+        assertCollateralBalance(address(exchange), 0);
+        assertCTFBalance(address(exchange), yes, 0);
+        assertCTFBalance(address(exchange), no, 0);
+        // Verify balances transferred correctly
+        assertCollateralBalance(bob, 50_000_000);
+        assertCTFBalance(carla, yes, 100_000_000);
+    }
 }
