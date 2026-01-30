@@ -82,18 +82,6 @@ contract CTFExchange is
                         CONFIGURATION
     //////////////////////////////////////////////////////////////*/
 
-    /// @notice Sets a new Proxy Wallet factory for the Exchange
-    /// @param _newProxyFactory - The new Proxy Wallet factory
-    function setProxyFactory(address _newProxyFactory) external onlyAdmin {
-        _setProxyFactory(_newProxyFactory);
-    }
-
-    /// @notice Sets a new safe factory for the Exchange
-    /// @param _newSafeFactory  - The new Safe wallet factory
-    function setSafeFactory(address _newSafeFactory) external onlyAdmin {
-        _setSafeFactory(_newSafeFactory);
-    }
-
     /// @notice Sets the user pause block interval
     /// @param _interval - The new user pause block interval
     function setUserPauseBlockInterval(uint256 _interval) external onlyAdmin {
