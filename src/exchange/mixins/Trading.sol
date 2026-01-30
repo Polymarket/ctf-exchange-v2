@@ -95,7 +95,7 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         uint256 takerFeeAmount,
         uint256[] memory makerFeeAmounts
     ) internal {
-        uint256 maxFeeRate = getMaxFeeRate();
+        uint256 maxFeeRate = maxFeeRateBps;
 
         (uint256 taking, bytes32 orderHash) =
             _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount, maxFeeRate);
