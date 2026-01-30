@@ -21,10 +21,6 @@ library CalculatorHelper {
         return result;
     }
 
-    function calculatePrice(Order memory order) internal pure returns (uint256) {
-        return _calculatePrice(order.makerAmount, order.takerAmount, order.side);
-    }
-
     function _calculatePrice(uint256 makerAmount, uint256 takerAmount, Side side) internal pure returns (uint256) {
         // If side is 0, (buy) swap makerAmount and takerAmount using xor involution: (A xor B xor B) = A
         // 1. compute the "swap" makerAmount XOR takerAmount if side is SELL, otherwise zero
@@ -39,8 +35,8 @@ library CalculatorHelper {
     }
 
     function isCrossing(Order memory a, Order memory b) internal pure returns (bool) {
-        uint256 priceA = calculatePrice(a);
-        uint256 priceB = calculatePrice(b);
+        uint256 priceA = _calculatePrice(a.makerAmount, a.takerAmount, a.side);
+        uint256 priceB = _calculatePrice(b.makerAmount, b.takerAmount, b.side);
 
         if (a.side == Side.SELL && b.side == Side.SELL) {
             if (a.takerAmount == 0) return priceB < ONE;
