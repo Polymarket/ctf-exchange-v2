@@ -182,7 +182,7 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         if (totalMakerFees > 0) _transfer(taker, getFeeReceiver(), 0, totalMakerFees);
 
         // Handle taker settlement
-        _finalizeTakerComplementary(
+        _settleComplementaryTaker(
             takerOrder, taker, takerIsBuy, totalTakerReceives, takerOrderHash, takerFillAmount, takerFeeAmount
         );
     }
@@ -240,8 +240,8 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         );
     }
 
-    /// @notice Finalizes taker settlement in COMPLEMENTARY match
-    function _finalizeTakerComplementary(
+    /// @notice Settles taker in COMPLEMENTARY match
+    function _settleComplementaryTaker(
         Order memory takerOrder,
         address taker,
         bool takerIsBuy,
@@ -328,47 +328,12 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
         uint256[] memory makerFeeAmounts,
         uint256 maxFeeRate
     ) internal returns (uint256 totalExchangeFees) {
+        uint256 length = makerOrders.length;
+
         // Phase 1: Prepare all maker orders (validate, transfer from makers, accumulate batch totals)
-        (PreparedMakerOrder[] memory prepared, uint256 totalMintAmount, uint256 totalMergeAmount) =
-            _prepareMakerOrders(takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, maxFeeRate);
-
-        uint256 length = makerOrders.length;
-
-        // Phase 2: Execute batched CTF operations (one mint and/or one merge)
-        if (totalMintAmount > 0) _mint(conditionId, totalMintAmount);
-        if (totalMergeAmount > 0) _merge(conditionId, totalMergeAmount);
-
-        // Phase 3: Distribute proceeds to all makers, accumulating exchange-paid fees
-        for (uint256 i = 0; i < length;) {
-            unchecked {
-                totalExchangeFees += _distributeMakerProceeds(prepared[i], takerOrder.maker); // safety: each fee <=
-                // takingAmount (FeeExceedsProceeds), sum bounded by real token supply
-            }
-            unchecked {
-                ++i; // safety: i < length which fits in memory
-            }
-        }
-    }
-
-    /// @notice Prepares all maker orders for batch settlement
-    /// @dev Phase 1: Validates, calculates amounts, transfers from makers to exchange, accumulates batch totals
-    /// @param takerOrder       - The taker order
-    /// @param makerOrders      - The maker orders
-    /// @param makerFillAmounts - The fill amounts for each maker
-    /// @param makerFeeAmounts  - The fee amounts for each maker
-    /// @param maxFeeRate       - The maximum fee rate allowed
-    /// @return prepared        - Array of prepared maker order data
-    /// @return totalMintAmount - Total amount to mint
-    /// @return totalMergeAmount - Total amount to merge
-    function _prepareMakerOrders(
-        Order memory takerOrder,
-        Order[] memory makerOrders,
-        uint256[] memory makerFillAmounts,
-        uint256[] memory makerFeeAmounts,
-        uint256 maxFeeRate
-    ) internal returns (PreparedMakerOrder[] memory prepared, uint256 totalMintAmount, uint256 totalMergeAmount) {
-        uint256 length = makerOrders.length;
-        prepared = new PreparedMakerOrder[](length);
+        PreparedMakerOrder[] memory prepared = new PreparedMakerOrder[](length);
+        uint256 totalMintAmount = 0;
+        uint256 totalMergeAmount = 0;
 
         for (uint256 i = 0; i < length;) {
             prepared[i] =
@@ -385,6 +350,21 @@ abstract contract Trading is IFees, ITrading, IHashing, ISignatures, IAssetOpera
                     totalMergeAmount += prepared[i].makingAmount; // safety: token amounts can't realistically overflow
                     // uint256
                 }
+            }
+            unchecked {
+                ++i; // safety: i < length which fits in memory
+            }
+        }
+
+        // Phase 2: Execute batched CTF operations (one mint and/or one merge)
+        if (totalMintAmount > 0) _mint(conditionId, totalMintAmount);
+        if (totalMergeAmount > 0) _merge(conditionId, totalMergeAmount);
+
+        // Phase 3: Distribute proceeds to all makers, accumulating exchange-paid fees
+        for (uint256 i = 0; i < length;) {
+            unchecked {
+                totalExchangeFees += _distributeMakerProceeds(prepared[i], takerOrder.maker); // safety: each fee <=
+                // takingAmount (FeeExceedsProceeds), sum bounded by real token supply
             }
             unchecked {
                 ++i; // safety: i < length which fits in memory
