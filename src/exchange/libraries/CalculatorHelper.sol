@@ -52,19 +52,30 @@ library CalculatorHelper {
     }
 
     function _isCrossing(uint256 priceA, uint256 priceB, Side sideA, Side sideB) internal pure returns (bool) {
-        if (sideA == Side.BUY) {
-            if (sideB == Side.BUY) {
-                // if a and b are bids
-                return priceA + priceB >= ONE;
+        bool result;
+        assembly {
+            switch eq(sideA, sideB)
+            case 0 {
+                // sideA and sideB are different, complementary order
+                // if A is BUY, priceA must be >= priceB
+                // if A is ASK, priceA must be <= priceB
+                // We have a simple XOR swap to do
+                let swap := mul(xor(priceA, priceB), sideA)
+                result := iszero(lt(xor(priceA, swap), xor(priceB, swap)))
             }
-            // if a is bid and b is ask
-            return priceA >= priceB;
+            case 1 {
+                // sideA and sideB are the same
+                // if BUY, sum must be >= 1 to merge (iszero(lessThan))
+                // if SELL, sum must be <= 1 to split (iszero(greaterThan))
+                let sum := add(priceA, priceB)
+                let lessThan := lt(sum, ONE)
+                let greaterThan := gt(sum, ONE)
+
+                // We only want to swap lessThan for greaterThan if sideA is 1 (SELL)
+                let swap := mul(xor(lessThan, greaterThan), sideA)
+                result := iszero(xor(lessThan, swap))
+            }
         }
-        if (sideB == Side.BUY) {
-            // if a is ask and b is bid
-            return priceB >= priceA;
-        }
-        // if a and b are asks
-        return priceA + priceB <= ONE;
+        return result;
     }
 }
