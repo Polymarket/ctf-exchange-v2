@@ -49,7 +49,7 @@ library CalculatorHelper {
 
     function _isCrossing(uint256 priceA, uint256 priceB, Side sideA, Side sideB) internal pure returns (bool) {
         bool result;
-        assembly {
+        assembly ("memory-safe") {
             switch eq(sideA, sideB)
             case 0 {
                 // sideA and sideB are different, complementary order
