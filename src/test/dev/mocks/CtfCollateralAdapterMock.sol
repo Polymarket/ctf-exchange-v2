@@ -21,13 +21,7 @@ contract CtfCollateralAdapterMock is ERC1155TokenReceiver {
         ERC20(_usdce).approve(_conditionalTokens, type(uint256).max);
     }
 
-    function splitPosition(
-        address,
-        bytes32,
-        bytes32 conditionId,
-        uint256[] calldata,
-        uint256 amount
-    ) external {
+    function splitPosition(address, bytes32, bytes32 conditionId, uint256[] calldata, uint256 amount) external {
         ERC20(collateralToken).transferFrom(msg.sender, address(this), amount);
 
         conditionalTokens.splitPosition(usdce, bytes32(0), conditionId, _partition(), amount);
@@ -40,13 +34,7 @@ contract CtfCollateralAdapterMock is ERC1155TokenReceiver {
         ERC1155(address(conditionalTokens)).safeBatchTransferFrom(address(this), msg.sender, positionIds, amounts, "");
     }
 
-    function mergePositions(
-        address,
-        bytes32,
-        bytes32 conditionId,
-        uint256[] calldata,
-        uint256 amount
-    ) external {
+    function mergePositions(address, bytes32, bytes32 conditionId, uint256[] calldata, uint256 amount) external {
         uint256[] memory positionIds = _getPositionIds(conditionId);
         uint256[] memory amounts = new uint256[](2);
         amounts[0] = amount;
