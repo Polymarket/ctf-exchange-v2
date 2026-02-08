@@ -52,28 +52,27 @@ library PolyProxyLib {
     function _computeCreationCodeHash(address deployer, address target) internal pure returns (bytes32 hash) {
         assembly ("memory-safe") {
             // Allocate from free memory pointer: only 167 bytes (no length field needed)
-            let clone := mload(64)
-            mstore(64, add(clone, 167))
+            let ptr := mload(64)
 
             // Write buffer section (99 bytes)
             // Bytes 0-31: first byte 0x3d, then 31 zero bytes
-            mstore(clone, 0x3d00000000000000000000000000000000000000000000000000000000000000)
+            mstore(ptr, 0x3d00000000000000000000000000000000000000000000000000000000000000)
             // Bytes 1-32: OR 12-byte prefix (with trailing zeros) with 20-byte deployer
-            mstore(add(clone, 1), or(0x3d606380380380913d393d730000000000000000000000000000000000000000, deployer))
+            mstore(add(ptr, 1), or(0x3d606380380380913d393d730000000000000000000000000000000000000000, deployer))
             // Bytes 33-64: 19 non-zero bytes of bytecode, then 13 zero bytes (for target prefix to slide into)
-            mstore(add(clone, 33), 0x5af4602a57600080fd5b602d8060366000396000000000000000000000000000)
+            mstore(add(ptr, 33), 0x5af4602a57600080fd5b602d8060366000396000000000000000000000000000)
             // Bytes 65-96: OR 12-byte prefix (with leading zeros) with 20-byte target
-            mstore(add(clone, 52), or(0x00f3363d3d373d3d3d363d730000000000000000000000000000000000000000, target))
+            mstore(add(ptr, 52), or(0x00f3363d3d373d3d3d363d730000000000000000000000000000000000000000, target))
             // Bytes 96-127: remaining bytes of buffer + start of consData
-            mstore(add(clone, 84), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
+            mstore(add(ptr, 84), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
 
             // Write consData section (68 bytes)
-            mstore(add(clone, 99), 0x52e831dd00000000000000000000000000000000000000000000000000000000)
-            mstore(add(clone, 103), 0x0000000000000000000000000000000000000000000000000000000000000020)
-            mstore(add(clone, 135), 0x0000000000000000000000000000000000000000000000000000000000000000)
+            mstore(add(ptr, 99), 0x52e831dd00000000000000000000000000000000000000000000000000000000)
+            mstore(add(ptr, 103), 0x0000000000000000000000000000000000000000000000000000000000000020)
+            mstore(add(ptr, 135), 0x0000000000000000000000000000000000000000000000000000000000000000)
 
             // Hash the creation code: 167 bytes total
-            hash := keccak256(clone, 167)
+            hash := keccak256(ptr, 167)
         }
     }
 }
