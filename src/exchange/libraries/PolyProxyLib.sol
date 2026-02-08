@@ -55,7 +55,7 @@ library PolyProxyLib {
             mstore(ptr, 0x3d00000000000000000000000000000000000000000000000000000000000000)
             // Bytes 1-32: OR 12-byte prefix (with trailing zeros) with 20-byte deployer
             mstore(add(ptr, 1), or(0x3d606380380380913d393d730000000000000000000000000000000000000000, deployer))
-            // Bytes 33-64: 19 non-zero bytes of bytecode, then 13 zero bytes (for target prefix to slide into)
+            // Bytes 33-64: 19 non-zero bytes of bytecode, then 13 zero bytes
             mstore(add(ptr, 33), 0x5af4602a57600080fd5b602d8060366000396000000000000000000000000000)
             // Bytes 65-96: OR 12-byte prefix (with leading zeros) with 20-byte target
             mstore(add(ptr, 52), or(0x00f3363d3d373d3d3d363d730000000000000000000000000000000000000000, target))
