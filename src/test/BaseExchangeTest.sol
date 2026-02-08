@@ -5,6 +5,7 @@ import { TestHelper } from "./dev/TestHelper.sol";
 
 import { USDC } from "./dev/mocks/USDC.sol";
 import { ERC1271Mock } from "./dev/mocks/ERC1271Mock.sol";
+import { PolyProxyFactoryMock } from "./dev/mocks/PolyProxyFactoryMock.sol";
 
 import { Deployer } from "./dev/util/Deployer.sol";
 
@@ -70,14 +71,18 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITrading
         // Deploy a 1271 contract and set carla as the signer
         contractWallet = new ERC1271Mock(carla);
 
+        // Deploy mock factories
+        PolyProxyFactoryMock proxyFactory = new PolyProxyFactoryMock(address(0x1234));
+        PolyProxyFactoryMock safeFactory = new PolyProxyFactoryMock(address(0x5678));
+
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({
             admin: admin,
             collateral: address(usdc),
             ctf: address(ctf),
             outcomeTokenFactory: address(ctf),
-            proxyFactory: address(0),
-            safeFactory: address(0),
+            proxyFactory: address(proxyFactory),
+            safeFactory: address(safeFactory),
             feeReceiver: feeReceiver
         });
 

@@ -603,6 +603,7 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
     function setUp() public override {
         // Deploy factories first
         proxyFactory = new MockProxyFactory();
+        MockSafeFactory mockSafeFactory = new MockSafeFactory();
 
         // Call parent setUp which deploys exchange
         super.setUp();
@@ -615,7 +616,7 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
             ctf: address(ctf),
             outcomeTokenFactory: address(ctf),
             proxyFactory: address(proxyFactory),
-            safeFactory: address(0),
+            safeFactory: address(mockSafeFactory),
             feeReceiver: feeReceiver
         });
 
@@ -968,6 +969,7 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
     function setUp() public override {
         // Deploy factories first
         safeFactory = new MockSafeFactory();
+        MockProxyFactory mockProxyFactory = new MockProxyFactory();
 
         // Call parent setUp which deploys exchange
         super.setUp();
@@ -979,7 +981,7 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
             collateral: address(usdc),
             ctf: address(ctf),
             outcomeTokenFactory: address(ctf),
-            proxyFactory: address(0),
+            proxyFactory: address(mockProxyFactory),
             safeFactory: address(safeFactory),
             feeReceiver: feeReceiver
         });
@@ -1330,14 +1332,17 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
         adapter = new CtfCollateralAdapterMock(address(ctf), address(usdc), address(usdc));
         vm.label(address(adapter), "CtfCollateralAdapterMock");
 
+        MockProxyFactory mockProxyFactory = new MockProxyFactory();
+        MockSafeFactory mockSafeFactory = new MockSafeFactory();
+
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({
             admin: admin,
             collateral: address(usdc),
             ctf: address(ctf),
             outcomeTokenFactory: address(adapter),
-            proxyFactory: address(0),
-            safeFactory: address(0),
+            proxyFactory: address(mockProxyFactory),
+            safeFactory: address(mockSafeFactory),
             feeReceiver: feeReceiver
         });
 
