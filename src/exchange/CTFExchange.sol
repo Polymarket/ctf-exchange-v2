@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import { Receiver } from "lib/solady/src/accounts/Receiver.sol";
-
 import { Auth } from "./mixins/Auth.sol";
 import { Fees } from "./mixins/Fees.sol";
 import { Assets } from "./mixins/Assets.sol";
@@ -22,7 +20,7 @@ import { ExchangeInitParams, Order } from "./libraries/Structs.sol";
 contract CTFExchange is
     Auth,
     Assets,
-    Receiver,
+    ERC1155TokenReceiver,
     Fees,
     Pausable,
     AssetOperations,
