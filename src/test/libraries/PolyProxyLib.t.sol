@@ -41,7 +41,7 @@ contract PolyProxyFactoryHarness {
     /// @dev Uses CREATE2 assembly to deploy at a deterministic address based on the signer salt.
     ///      The creation code includes the factory address and implementation address embedded in bytecode.
     function deployProxy(address implementation, address signer) external returns (address proxy) {
-        bytes memory creationCode = PolyProxyLib._computeCreationCode(address(this), implementation);
+        bytes memory creationCode = _constructCreationCode(implementation);
         bytes32 salt = keccak256(abi.encodePacked(signer));
         assembly {
             proxy := create2(0, add(creationCode, 0x20), mload(creationCode), salt)
@@ -50,7 +50,34 @@ contract PolyProxyFactoryHarness {
     }
 
     function getCreationCode(address implementation) external view returns (bytes memory) {
-        return PolyProxyLib._computeCreationCode(address(this), implementation);
+        return _constructCreationCode(implementation);
+    }
+
+    function _constructCreationCode(address target) internal view returns (bytes memory clone) {
+        address deployer = address(this);
+        assembly ("memory-safe") {
+            // Allocate from free memory pointer: 32 (length) + 167 (data) = 199 total
+            clone := mload(64)
+            mstore(64, add(clone, 199))
+            mstore(clone, 167)
+
+            // Write buffer section (99 bytes)
+            // Bytes 0-31: first byte 0x3d, then 31 zero bytes
+            mstore(add(clone, 32), 0x3d00000000000000000000000000000000000000000000000000000000000000)
+            // Bytes 1-32: OR 12-byte prefix (with trailing zeros) with 20-byte deployer
+            mstore(add(clone, 33), or(0x3d606380380380913d393d730000000000000000000000000000000000000000, deployer))
+            // Bytes 33-64: 19 non-zero bytes of bytecode, then 13 zero bytes (for target prefix to slide into)
+            mstore(add(clone, 65), 0x5af4602a57600080fd5b602d8060366000396000000000000000000000000000)
+            // Bytes 65-96: OR 12-byte prefix (with leading zeros) with 20-byte target
+            mstore(add(clone, 84), or(0x00f3363d3d373d3d3d363d730000000000000000000000000000000000000000, target))
+            // Bytes 96-127: remaining bytes of buffer + start of consData
+            mstore(add(clone, 116), 0x5af43d82803e903d91602b57fd5bf30000000000000000000000000000000000)
+
+            // Write consData section (68 bytes)
+            mstore(add(clone, 131), 0x52e831dd00000000000000000000000000000000000000000000000000000000)
+            mstore(add(clone, 135), 0x0000000000000000000000000000000000000000000000000000000000000020)
+            mstore(add(clone, 167), 0x0000000000000000000000000000000000000000000000000000000000000000)
+        }
     }
 
     function cloneConstructor(bytes memory data) external {

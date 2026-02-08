@@ -15,12 +15,16 @@ interface IPolySafeFactory {
 abstract contract PolyFactoryHelper {
     /// @notice The Polymarket Proxy Wallet Factory Contract
     address internal immutable proxyFactory;
+    /// @notice The Polymarket Proxy Wallet Implementation Contract
+    address internal immutable polyProxyImplementation;
     /// @notice The Polymarket Gnosis Safe Factory Contract
     address internal immutable safeFactory;
 
     constructor(address _proxyFactory, address _safeFactory) {
         proxyFactory = _proxyFactory;
         safeFactory = _safeFactory;
+
+        polyProxyImplementation = IPolyProxyFactory(proxyFactory).getImplementation();
     }
 
     /// @notice Gets the Proxy factory address
@@ -35,7 +39,7 @@ abstract contract PolyFactoryHelper {
 
     /// @notice Gets the Polymarket Proxy factory implementation address
     function getPolyProxyFactoryImplementation() public view returns (address) {
-        return IPolyProxyFactory(proxyFactory).getImplementation();
+        return polyProxyImplementation;
     }
 
     /// @notice Gets the Safe factory implementation address
@@ -46,7 +50,7 @@ abstract contract PolyFactoryHelper {
     /// @notice Gets the Polymarket proxy wallet address for an address
     /// @param _addr    - The address that owns the proxy wallet
     function getPolyProxyWalletAddress(address _addr) public view returns (address) {
-        return PolyProxyLib.getProxyWalletAddress(_addr, getPolyProxyFactoryImplementation(), proxyFactory);
+        return PolyProxyLib.getProxyWalletAddress(_addr, polyProxyImplementation, proxyFactory);
     }
 
     /// @notice Gets the Polymarket Gnosis Safe address for an address
