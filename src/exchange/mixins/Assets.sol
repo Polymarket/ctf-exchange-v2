@@ -2,6 +2,7 @@
 pragma solidity <0.9.0;
 
 import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
+import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
 
 import { IAssets } from "../interfaces/IAssets.sol";
 
@@ -21,6 +22,7 @@ abstract contract Assets is IAssets {
         ctf = _ctf;
         outcomeTokenFactory = _outcomeTokenFactory;
         ERC20(collateral).approve(_outcomeTokenFactory, type(uint256).max);
+        ERC1155(ctf).setApprovalForAll(_outcomeTokenFactory, true);
     }
 
     function getCollateral() public view override returns (address) {
