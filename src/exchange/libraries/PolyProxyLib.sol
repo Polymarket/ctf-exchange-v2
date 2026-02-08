@@ -25,11 +25,7 @@ library PolyProxyLib {
         }
     }
 
-    function _computeCreate2Address(address from, address target, bytes32 salt)
-        internal
-        pure
-        returns (address result)
-    {
+    function _computeCreate2Address(address from, address target, bytes32 salt) internal pure returns (address result) {
         bytes32 bytecodeHash = _computeCreationCodeHash(from, target);
 
         assembly ("memory-safe") {
