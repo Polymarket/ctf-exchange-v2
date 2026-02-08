@@ -24,7 +24,7 @@ abstract contract PolyFactoryHelper {
         proxyFactory = _proxyFactory;
         safeFactory = _safeFactory;
 
-        polyProxyImplementation = IPolyProxyFactory(proxyFactory).getImplementation();
+        polyProxyImplementation = IPolyProxyFactory(_proxyFactory).getImplementation();
     }
 
     /// @notice Gets the Proxy factory address
@@ -39,7 +39,7 @@ abstract contract PolyFactoryHelper {
 
     /// @notice Gets the Polymarket Proxy factory implementation address
     function getPolyProxyFactoryImplementation() public view returns (address) {
-        return polyProxyImplementation;
+        return IPolyProxyFactory(proxyFactory).getImplementation();
     }
 
     /// @notice Gets the Safe factory implementation address
