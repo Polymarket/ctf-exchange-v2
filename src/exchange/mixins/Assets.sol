@@ -14,15 +14,14 @@ abstract contract Assets is IAssets {
     address internal immutable ctf;
 
     /// @notice The address that facilitates Outcome Token minting or merging
-    /// @dev Must be the Conditional Tokens Framework address or the Neg Risk Adapter address
     address internal immutable outcomeTokenFactory;
 
     constructor(address _collateral, address _ctf, address _outcomeTokenFactory) {
         collateral = _collateral;
         ctf = _ctf;
         outcomeTokenFactory = _outcomeTokenFactory;
-        ERC20(collateral).approve(_outcomeTokenFactory, type(uint256).max);
-        ERC1155(ctf).setApprovalForAll(_outcomeTokenFactory, true);
+        ERC20(_collateral).approve(_outcomeTokenFactory, type(uint256).max);
+        ERC1155(_ctf).setApprovalForAll(_outcomeTokenFactory, true);
     }
 
     function getCollateral() public view override returns (address) {
