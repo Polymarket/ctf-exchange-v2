@@ -40,7 +40,8 @@ contract PolySafeLibTest is Test {
 
     function test_getSafeAddressMatchesManualDerivation() public {
         address signer = makeAddr("safe-manual");
-        address predicted = PolySafeLib.getSafeAddress(signer, address(implementation), address(factory));
+        bytes32 bytecodeHash = PolySafeLib.computeBytecodeHash(address(implementation));
+        address predicted = PolySafeLib.getSafeAddress(signer, bytecodeHash, address(factory));
 
         address expected = _manualPrediction(signer, address(implementation));
         assertEq(predicted, expected, "manual create2 mismatch");
@@ -48,7 +49,8 @@ contract PolySafeLibTest is Test {
 
     function test_SafeDeploymentMatchesPredictionAndPersistsSingleton() public {
         address signer = makeAddr("safe-deploy");
-        address predicted = PolySafeLib.getSafeAddress(signer, address(implementation), address(factory));
+        bytes32 bytecodeHash = PolySafeLib.computeBytecodeHash(address(implementation));
+        address predicted = PolySafeLib.getSafeAddress(signer, bytecodeHash, address(factory));
 
         vm.recordLogs();
         address deployed = factory.deploySafe(address(implementation), signer);

@@ -9,6 +9,7 @@ import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
 import { CTFExchange } from "src/exchange/CTFExchange.sol";
 import { CtfCollateralAdapterMock } from "./dev/mocks/CtfCollateralAdapterMock.sol";
 import { PolyProxyFactoryMock } from "./dev/mocks/PolyProxyFactoryMock.sol";
+import { PolySafeFactoryMock } from "./dev/mocks/PolySafeFactoryMock.sol";
 import { USDC } from "./dev/mocks/USDC.sol";
 
 contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
@@ -21,7 +22,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         vm.label(address(adapter), "CtfCollateralAdapterMock");
 
         PolyProxyFactoryMock mockProxyFactory = new PolyProxyFactoryMock(address(0x1234));
-        PolyProxyFactoryMock mockSafeFactory = new PolyProxyFactoryMock(address(0x5678));
+        PolySafeFactoryMock mockSafeFactory = new PolySafeFactoryMock(address(0x5678));
 
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({
@@ -224,7 +225,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         CtfCollateralAdapterMock badAdapter = new CtfCollateralAdapterMock(address(ctf), address(usdc), address(other));
 
         PolyProxyFactoryMock mockProxyFactory = new PolyProxyFactoryMock(address(0x1234));
-        PolyProxyFactoryMock mockSafeFactory = new PolyProxyFactoryMock(address(0x5678));
+        PolySafeFactoryMock mockSafeFactory = new PolySafeFactoryMock(address(0x5678));
 
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({

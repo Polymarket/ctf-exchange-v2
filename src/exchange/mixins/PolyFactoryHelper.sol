@@ -19,12 +19,20 @@ abstract contract PolyFactoryHelper {
     address internal immutable polyProxyImplementation;
     /// @notice The Polymarket Gnosis Safe Factory Contract
     address internal immutable safeFactory;
+    /// @notice The Polymarket Safe Factory Implementation Contract
+    address internal immutable safeFactoryImplementation;
+    /// @notice Pre-computed keccak256 of the safe proxy creation code with the implementation
+    bytes32 internal immutable safeBytecodeHash;
 
     constructor(address _proxyFactory, address _safeFactory) {
         proxyFactory = _proxyFactory;
         safeFactory = _safeFactory;
 
         polyProxyImplementation = IPolyProxyFactory(_proxyFactory).getImplementation();
+
+        address _safeImpl = IPolySafeFactory(_safeFactory).masterCopy();
+        safeFactoryImplementation = _safeImpl;
+        safeBytecodeHash = PolySafeLib.computeBytecodeHash(_safeImpl);
     }
 
     /// @notice Gets the Proxy factory address
@@ -56,6 +64,6 @@ abstract contract PolyFactoryHelper {
     /// @notice Gets the Polymarket Gnosis Safe address for an address
     /// @param _addr    - The address that owns the proxy wallet
     function getSafeAddress(address _addr) public view returns (address) {
-        return PolySafeLib.getSafeAddress(_addr, getSafeFactoryImplementation(), safeFactory);
+        return PolySafeLib.getSafeAddress(_addr, safeBytecodeHash, safeFactory);
     }
 }

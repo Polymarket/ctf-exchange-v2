@@ -6,6 +6,7 @@ import { TestHelper } from "./dev/TestHelper.sol";
 import { USDC } from "./dev/mocks/USDC.sol";
 import { ERC1271Mock } from "./dev/mocks/ERC1271Mock.sol";
 import { PolyProxyFactoryMock } from "./dev/mocks/PolyProxyFactoryMock.sol";
+import { PolySafeFactoryMock } from "./dev/mocks/PolySafeFactoryMock.sol";
 
 import { Deployer } from "./dev/util/Deployer.sol";
 
@@ -73,7 +74,7 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITrading
 
         // Deploy mock factories
         PolyProxyFactoryMock proxyFactory = new PolyProxyFactoryMock(address(0x1234));
-        PolyProxyFactoryMock safeFactory = new PolyProxyFactoryMock(address(0x5678));
+        PolySafeFactoryMock safeFactory = new PolySafeFactoryMock(address(0x5678));
 
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({
