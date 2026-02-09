@@ -20,7 +20,7 @@ library PolyProxyLib {
         assembly ("memory-safe") {
             // Store address at 0x20 (right-aligned: first 12 bytes are zero, last 20 bytes are the address)
             mstore(32, signer)
-            // Hash 20 bytes starting at position 44 (32 + 12), assuming first 12 bytes at 0x40 are zero
+            // Hash 20 bytes starting at position 44 (32 + 12)
             salt := keccak256(44, 20)
         }
     }
