@@ -32,7 +32,7 @@ library PolyProxyLib {
             // Get free memory pointer
             let ptr := mload(64)
 
-            // Construct CREATE2 formula: 0xff ++ from (21 bytes) ++ salt (32 bytes) ++ bytecodeHash (32 bytes)
+            // Construct CREATE2 formula: 0xff ++ from (20 bytes) ++ salt (32 bytes) ++ bytecodeHash (32 bytes)
             // Byte 0: 0xff, Bytes 1-20: from address
             mstore(ptr, or(0xff00000000000000000000000000000000000000000000000000000000000000, shl(88, from)))
             // Bytes 21-52: salt
