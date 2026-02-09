@@ -19,8 +19,8 @@ library PolyProxyLib {
     function _getSalt(address signer) internal pure returns (bytes32 salt) {
         assembly ("memory-safe") {
             // Store address at 0x20 (right-aligned: first 12 bytes are zero, last 20 bytes are the address)
-            mstore(32, signer)
-            // Hash 20 bytes starting at position 44 (32 + 12), assuming first 12 bytes at 0x40 are zero
+            mstore(0x20, signer)
+            // Hash 20 bytes starting at position 44 (32 + 12)
             salt := keccak256(44, 20)
         }
     }
@@ -30,9 +30,9 @@ library PolyProxyLib {
 
         assembly ("memory-safe") {
             // Get free memory pointer
-            let ptr := mload(64)
+            let ptr := mload(0x40)
 
-            // Construct CREATE2 formula: 0xff ++ from (21 bytes) ++ salt (32 bytes) ++ bytecodeHash (32 bytes)
+            // Construct CREATE2 formula: 0xff ++ from (20 bytes) ++ salt (32 bytes) ++ bytecodeHash (32 bytes)
             // Byte 0: 0xff, Bytes 1-20: from address
             mstore(ptr, or(0xff00000000000000000000000000000000000000000000000000000000000000, shl(88, from)))
             // Bytes 21-52: salt
@@ -48,7 +48,7 @@ library PolyProxyLib {
     function _computeCreationCodeHash(address deployer, address target) internal pure returns (bytes32 hash) {
         assembly ("memory-safe") {
             // Allocate from free memory pointer: only 167 bytes (no length field needed)
-            let ptr := mload(64)
+            let ptr := mload(0x40)
 
             // Write buffer section (99 bytes)
             // Bytes 0-31: first byte 0x3d, then 31 zero bytes
