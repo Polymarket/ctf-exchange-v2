@@ -9,7 +9,7 @@ library PolySafeLib {
     /// @notice Gets the Polymarket Gnosis safe address for a signer
     /// @param signer   - Address of the signer
     /// @param deployer - Address of the deployer contract
-    function getSafeAddress(address signer, address implementation, address deployer)
+    function getSafeWalletAddress(address signer, address implementation, address deployer)
         internal
         pure
         returns (address safe)

@@ -13,6 +13,10 @@ contract PolyProxyFactoryMock {
         return implementation;
     }
 
+    function masterCopy() external view returns (address) {
+        return implementation;
+    }
+
     function setImplementation(address _implementation) external {
         implementation = _implementation;
     }

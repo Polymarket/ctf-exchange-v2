@@ -98,7 +98,7 @@ abstract contract Signatures is ISignatures, PolyFactoryHelper {
         view
         returns (bool)
     {
-        return verifyECDSASignature(signer, structHash, signature) && getPolyProxyWalletAddress(signer) == proxyWallet;
+        return verifyECDSASignature(signer, structHash, signature) && getProxyWalletAddress(signer) == proxyWallet;
     }
 
     /// @notice Verifies a signature signed by a Polymarket Gnosis safe
@@ -114,7 +114,7 @@ abstract contract Signatures is ISignatures, PolyFactoryHelper {
         view
         returns (bool)
     {
-        return verifyECDSASignature(signer, hash, signature) && getSafeAddress(signer) == safeAddress;
+        return verifyECDSASignature(signer, hash, signature) && getSafeWalletAddress(signer) == safeAddress;
     }
 
     /// @notice Verifies a signature signed by a smart contract
