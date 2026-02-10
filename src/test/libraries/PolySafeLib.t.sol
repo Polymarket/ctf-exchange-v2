@@ -16,10 +16,17 @@ contract PolySafeFactoryHarness {
 
     event SafeDeployed(address indexed safe, bytes32 indexed salt);
 
+    bytes private constant proxyCreationCode =
+        hex"608060405234801561001057600080fd5b5060405161017138038061017183398101604081905261002f916100b9565b6001600160a01b0381166100945760405162461bcd60e51b815260206004820152602260248201527f496e76616c69642073696e676c65746f6e20616464726573732070726f766964604482015261195960f21b606482015260840160405180910390fd5b600080546001600160a01b0319166001600160a01b03929092169190911790556100e7565b6000602082840312156100ca578081fd5b81516001600160a01b03811681146100e0578182fd5b9392505050565b607c806100f56000396000f3fe6080604052600080546001600160a01b0316813563530ca43760e11b1415602857808252602082f35b3682833781823684845af490503d82833e806041573d82fd5b503d81f3fea264697066735822122015938e3bf2c49f5df5c1b7f9569fa85cc5d6f3074bb258a2dc0c7e299bc9e33664736f6c63430008040033";
+
+    function getContractBytecode(address masterCopy) public pure returns (bytes memory) {
+        return abi.encodePacked(proxyCreationCode, abi.encode(masterCopy));
+    }
+
     /// @notice Deploys the proxy using CREATE2 and the provided signer as salt input
     /// @dev Reverts when the CREATE2 call fails (e.g. duplicate salt).
     function deploySafe(address implementation, address signer) external returns (address safe) {
-        bytes memory creationCode = PolySafeLib.getContractBytecode(implementation);
+        bytes memory creationCode = getContractBytecode(implementation);
         bytes32 salt = keccak256(abi.encode(signer));
         assembly {
             safe := create2(0, add(creationCode, 0x20), mload(creationCode), salt)
@@ -63,7 +70,7 @@ contract PolySafeLibTest is Test {
     }
 
     function test_getContractBytecodeReflectsImplementationAddress() public {
-        bytes memory creationCode = PolySafeLib.getContractBytecode(address(implementation));
+        bytes memory creationCode = factory.getContractBytecode(address(implementation));
         bytes memory suffix = abi.encode(address(implementation));
         assertTrue(creationCode.length > suffix.length, "creation code shorter than suffix");
 
@@ -72,15 +79,15 @@ contract PolySafeLibTest is Test {
 
         MockSafeImplementation another = new MockSafeImplementation();
 
-        bytes32 firstHash = keccak256(PolySafeLib.getContractBytecode(address(implementation)));
-        bytes32 secondHash = keccak256(PolySafeLib.getContractBytecode(address(another)));
+        bytes32 firstHash = keccak256(factory.getContractBytecode(address(implementation)));
+        bytes32 secondHash = keccak256(factory.getContractBytecode(address(another)));
 
         assertTrue(firstHash != secondHash, "hash should change when master copy changes");
     }
 
     /// @notice Manually reconstructs the CREATE2 address for comparison assertions
     function _manualPrediction(address signer, address masterCopy) internal view returns (address) {
-        bytes memory creationCode = PolySafeLib.getContractBytecode(masterCopy);
+        bytes memory creationCode = factory.getContractBytecode(masterCopy);
         bytes32 salt = keccak256(abi.encode(signer));
         bytes32 bytecodeHash = keccak256(creationCode);
         bytes32 digest = keccak256(abi.encodePacked(bytes1(0xff), address(factory), salt, bytecodeHash));
