@@ -95,22 +95,12 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         uint256 takerFeeAmount,
         uint256[] memory makerFeeAmounts
     ) internal {
-        uint256 maxFeeRate = maxFeeRateBps;
-
-        (uint256 taking, bytes32 orderHash) =
-            _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount, maxFeeRate);
+        (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount);
 
         // Check if all matches are COMPLEMENTARY (all makers have opposite side to taker)
         if (_isAllComplementary(takerOrder.side, makerOrders)) {
             _settleComplementary(
-                takerOrder,
-                makerOrders,
-                makerFillAmounts,
-                makerFeeAmounts,
-                maxFeeRate,
-                orderHash,
-                takerFillAmount,
-                takerFeeAmount
+                takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, orderHash, takerFillAmount, takerFeeAmount
             );
             return;
         }
@@ -122,7 +112,7 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
 
         // Settle the maker orders (returns accumulated exchange-paid fees)
         uint256 makerExchangeFees =
-            _settleMakerOrders(conditionId, takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, maxFeeRate);
+            _settleMakerOrders(conditionId, takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts);
 
         // Batch transfer maker SELL fees before taker settlement (so refund logic doesn't see them as leftover)
         if (makerExchangeFees > 0) _transfer(address(this), getFeeReceiver(), 0, makerExchangeFees);
@@ -159,7 +149,6 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         Order[] memory makerOrders,
         uint256[] memory makerFillAmounts,
         uint256[] memory makerFeeAmounts,
-        uint256 maxFeeRate,
         bytes32 takerOrderHash,
         uint256 takerFillAmount,
         uint256 takerFeeAmount
@@ -171,7 +160,7 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
 
         for (uint256 i = 0; i < makerOrders.length;) {
             (uint256 makerFee, uint256 makerCollateral) = _settleComplementaryMaker(
-                takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i], maxFeeRate, taker, takerIsBuy
+                takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i], taker, takerIsBuy
             );
             unchecked {
                 totalMakerFees += makerFee;
@@ -197,13 +186,12 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         Order memory makerOrder,
         uint256 fillAmount,
         uint256 feeAmount,
-        uint256 maxFeeRate,
         address taker,
         bool takerIsBuy
     ) internal returns (uint256 makerFee, uint256 makerCollateral) {
         _validateOrdersMatch(takerOrder, makerOrder, MatchType.COMPLEMENTARY);
 
-        (uint256 taking, bytes32 orderHash) = _performOrderChecks(makerOrder, fillAmount, feeAmount, maxFeeRate);
+        (uint256 taking, bytes32 orderHash) = _performOrderChecks(makerOrder, fillAmount, feeAmount);
 
         if (takerIsBuy) {
             // Taker BUY ↔ Maker SELL: direct transfers both ways
@@ -327,8 +315,7 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         Order memory takerOrder,
         Order[] memory makerOrders,
         uint256[] memory makerFillAmounts,
-        uint256[] memory makerFeeAmounts,
-        uint256 maxFeeRate
+        uint256[] memory makerFeeAmounts
     ) internal returns (uint256 totalExchangeFees) {
         uint256 length = makerOrders.length;
 
@@ -338,8 +325,7 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         uint256 totalMergeAmount = 0;
 
         for (uint256 i = 0; i < length;) {
-            prepared[i] =
-                _prepareMakerOrder(takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i], maxFeeRate);
+            prepared[i] = _prepareMakerOrder(takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i]);
 
             // Accumulate batch totals based on match type
             if (prepared[i].matchType == MatchType.MINT) {
@@ -380,21 +366,17 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
     /// @param makerOrder   - The maker order
     /// @param fillAmount   - The fill amount
     /// @param feeAmount    - The fee amount
-    /// @param maxFeeRate   - The maximum fee rate allowed
     /// @return prepared    - The prepared maker order data
-    function _prepareMakerOrder(
-        Order memory takerOrder,
-        Order memory makerOrder,
-        uint256 fillAmount,
-        uint256 feeAmount,
-        uint256 maxFeeRate
-    ) internal returns (PreparedMakerOrder memory prepared) {
+    function _prepareMakerOrder(Order memory takerOrder, Order memory makerOrder, uint256 fillAmount, uint256 feeAmount)
+        internal
+        returns (PreparedMakerOrder memory prepared)
+    {
         MatchType matchType = _deriveMatchType(takerOrder, makerOrder);
 
         // Ensure taker order and maker order match
         _validateOrdersMatch(takerOrder, makerOrder, matchType);
 
-        (uint256 taking, bytes32 orderHash) = _performOrderChecks(makerOrder, fillAmount, feeAmount, maxFeeRate);
+        (uint256 taking, bytes32 orderHash) = _performOrderChecks(makerOrder, fillAmount, feeAmount);
 
         (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(makerOrder);
 
@@ -499,17 +481,15 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
     }
 
     /// @notice Performs common order computations and validation
-    /// 1) Validates the order taker
-    /// 2) Computes the order hash
-    /// 3) Validates the order
+    /// 1) Computes the order hash
+    /// 2) Validates the order
+    /// 3) Updates the order status in storage
     /// 4) Computes taking amount
-    /// 5) Validates fee against max fee rate
-    /// 6) Updates the order status in storage
+    /// 5) Validates fee against max fee rate (lazy-loads maxFeeRateBps only when fee != 0)
     /// @param order        - The order being prepared
     /// @param making       - The amount of the order being filled, in terms of maker amount
     /// @param fee          - The fee charged to the order by the operator
-    /// @param maxFeeRate   - The maximum fee rate allowed in basis points
-    function _performOrderChecks(Order memory order, uint256 making, uint256 fee, uint256 maxFeeRate)
+    function _performOrderChecks(Order memory order, uint256 making, uint256 fee)
         internal
         returns (uint256 takingAmount, bytes32 orderHash)
     {
@@ -524,9 +504,11 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         // Calculate taking amount
         takingAmount = CalculatorHelper.calculateTakingAmount(making, order.makerAmount, order.takerAmount);
 
-        // Validate fee against max fee rate
-        uint256 cashValue = order.side == Side.BUY ? making : takingAmount;
-        validateFeeWithMaxFeeRate(fee, cashValue, maxFeeRate);
+        // Validate fee against max fee rate (reads storage only when fee is non-zero)
+        if (fee != 0) {
+            uint256 cashValue = order.side == Side.BUY ? making : takingAmount;
+            validateFeeWithMaxFeeRate(fee, cashValue, maxFeeRateBps);
+        }
     }
 
     function _deriveMatchType(Order memory takerOrder, Order memory makerOrder) internal pure returns (MatchType) {
