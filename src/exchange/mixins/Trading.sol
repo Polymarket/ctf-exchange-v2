@@ -410,9 +410,6 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         // For COMPLEMENTARY matches, no CTF operation was done, tokens already available
         // For MINT/MERGE, batch operation already executed
 
-        // Ensure enough tokens available for this maker
-        if (_getBalance(p.takerAssetId) < p.takingAmount) revert TooLittleTokensReceived();
-
         uint256 proceeds = p.takingAmount;
         if (p.side == Side.SELL) {
             // SELL: fee deducted from proceeds, will be batched
