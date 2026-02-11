@@ -65,6 +65,18 @@ contract CTFExchange is Auth, ERC1155TokenReceiver, Pausable, Trading {
     }
 
     /*//////////////////////////////////////////////////////////////
+                        PREAPPROVED ORDERS
+    //////////////////////////////////////////////////////////////*/
+
+    /// @notice Entrypoint to set an order as preapproved
+    /// @param order - The order to be set as preapproved
+    function setPreapproved(Order memory order) external onlyOperator {
+        bytes32 orderHash = hashOrder(order);
+
+        _setPreapproved(orderHash, order);
+    }
+
+    /*//////////////////////////////////////////////////////////////
                         CONFIGURATION
     //////////////////////////////////////////////////////////////*/
 

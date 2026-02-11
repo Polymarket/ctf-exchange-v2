@@ -24,6 +24,7 @@ contract PreapprovedTest is BaseExchangeTest {
 
         vm.expectEmit(true, false, false, false);
         emit OrderPreapproved(orderHash);
+        vm.prank(admin);
         exchange.setPreapproved(order);
     }
 
@@ -37,6 +38,22 @@ contract PreapprovedTest is BaseExchangeTest {
         order.signature = _signMessage(carlaPK, exchange.hashOrder(order));
 
         vm.expectRevert(InvalidSignature.selector);
+        vm.prank(admin);
+        exchange.setPreapproved(order);
+    }
+
+    // ──────────────────────────────────────────────────
+    // Test 2b: setPreapproved reverts when called by non-operator
+    // ──────────────────────────────────────────────────
+
+    function test_setPreapproved_revert_NotOperator() public {
+        Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+
+        // Use an address that is not an operator
+        address nonOperator = address(0xBEEF);
+
+        vm.expectRevert(NotOperator.selector);
+        vm.prank(nonOperator);
         exchange.setPreapproved(order);
     }
 
@@ -56,6 +73,7 @@ contract PreapprovedTest is BaseExchangeTest {
 
         // Preapprove the maker order, then invalidate its signature
         // so only preapproval can authorize the match
+        vm.prank(admin);
         exchange.setPreapproved(makerOrder);
         _invalidateSignature(makerOrder);
 
@@ -98,6 +116,7 @@ contract PreapprovedTest is BaseExchangeTest {
 
         // Preapprove the taker order, then invalidate its signature
         // so only preapproval can authorize the match
+        vm.prank(admin);
         exchange.setPreapproved(takerOrder);
         _invalidateSignature(takerOrder);
 
@@ -138,8 +157,10 @@ contract PreapprovedTest is BaseExchangeTest {
 
         // Preapprove both, then invalidate signatures
         // so only preapproval can authorize the match
+        vm.startPrank(admin);
         exchange.setPreapproved(takerOrder);
         exchange.setPreapproved(makerOrder);
+        vm.stopPrank();
         _invalidateSignature(takerOrder);
         _invalidateSignature(makerOrder);
 
@@ -178,6 +199,7 @@ contract PreapprovedTest is BaseExchangeTest {
 
         // Preapprove the taker order, then invalidate its signature
         // so only preapproval can authorize the match
+        vm.prank(admin);
         exchange.setPreapproved(takerOrder);
         _invalidateSignature(takerOrder);
 
@@ -221,6 +243,7 @@ contract PreapprovedTest is BaseExchangeTest {
 
         // Preapprove the taker order, then invalidate its signature
         // so only preapproval can authorize the match across both partial fills
+        vm.prank(admin);
         exchange.setPreapproved(takerOrder);
         _invalidateSignature(takerOrder);
 
@@ -322,6 +345,7 @@ contract PreapprovedTest is BaseExchangeTest {
         notPreapprovedOrder.signature = _signMessage(carlaPK, exchange.hashOrder(notPreapprovedOrder));
 
         // Preapprove only the first order while the wallet is active
+        vm.prank(admin);
         exchange.setPreapproved(preapprovedOrder);
 
         // Disable the wallet's signature validation (simulates session signer deauthorization)

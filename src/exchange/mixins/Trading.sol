@@ -73,14 +73,6 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         if (isUserPaused(order.maker)) revert UserIsPaused();
     }
 
-    /// @notice Entrypoint to set an order as preapproved
-    /// @param order - The order to be set as preapproved
-    function setPreapproved(Order memory order) external {
-        bytes32 orderHash = hashOrder(order);
-
-        _setPreapproved(orderHash, order);
-    }
-
     /// @notice Matches orders against each other
     /// @dev Transfers assets between taker and maker orders, settling fees as necessary
     /// @dev Pulls assets from the taker order to the Exchange
