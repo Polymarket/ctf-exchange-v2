@@ -15,13 +15,29 @@ import { PolyFactoryHelper } from "./PolyFactoryHelper.sol";
 abstract contract Signatures is ISignatures, PolyFactoryHelper {
     constructor(address _proxyFactory, address _safeFactory) PolyFactoryHelper(_proxyFactory, _safeFactory) { }
 
+    mapping(bytes32 => bool) internal preapproved;
+
+    /// @notice Sets an order as preapproved
+    /// @param orderHash - The hash of the order
+    /// @param order     - The order
+    function _setPreapproved(bytes32 orderHash, Order memory order) internal {
+        if (!isValidSignature(order.signer, order.maker, orderHash, order.signature, order.signatureType)) {
+            revert InvalidSignature();
+        }
+
+        preapproved[orderHash] = true;
+
+        emit OrderPreapproved(orderHash);
+    }
+
     /// @notice Validates the signature of an order
     /// @param orderHash - The hash of the order
     /// @param order     - The order
     function validateOrderSignature(bytes32 orderHash, Order memory order) public view override {
-        if (!isValidSignature(order.signer, order.maker, orderHash, order.signature, order.signatureType)) {
-            revert InvalidSignature();
-        }
+        if (
+            !isValidSignature(order.signer, order.maker, orderHash, order.signature, order.signatureType)
+                && !isPreapproved(orderHash)
+        ) revert InvalidSignature();
     }
 
     /// @notice Verifies a signature for signed Order structs
@@ -129,5 +145,9 @@ abstract contract Signatures is ISignatures, PolyFactoryHelper {
     {
         return (signer == maker) && maker.code.length > 0
             && SignatureCheckerLib.isValidSignatureNow(maker, hash, signature);
+    }
+
+    function isPreapproved(bytes32 orderHash) internal view returns (bool) {
+        return preapproved[orderHash];
     }
 }

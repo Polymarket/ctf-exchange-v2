@@ -154,6 +154,12 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITrading
         sig = abi.encodePacked(r, s, v);
     }
 
+    /// @dev Re-signs the order with a wrong key so isValidSignature returns false
+    ///      without reverting. The order hash is unchanged (signature is not part of the hash).
+    function _invalidateSignature(Order memory order) internal view {
+        order.signature = _signMessage(0xDEAD, exchange.hashOrder(order));
+    }
+
     function _generateOrderHash(address exchangeAddress, Order memory order) internal view returns (bytes32) {
         bytes32 structHash = _getExpectedStructHash(order);
         bytes32 domainSeparator = _getDomainSeparator(exchangeAddress);

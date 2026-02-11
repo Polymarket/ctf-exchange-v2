@@ -5,6 +5,9 @@ import { Order } from "../libraries/Structs.sol";
 
 interface ISignaturesEE {
     error InvalidSignature();
+
+    /// @notice Emitted when an order is preapproved
+    event OrderPreapproved(bytes32 indexed orderHash);
 }
 
 abstract contract ISignatures is ISignaturesEE {
