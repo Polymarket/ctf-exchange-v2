@@ -7,16 +7,22 @@ import { Create2Lib } from "./Create2Lib.sol";
 /// @notice Helper library to compute Polymarket gnosis safe addresses
 library PolySafeLib {
     /// @notice Gets the Polymarket Gnosis safe address for a signer
-    /// @param signer   - Address of the signer
-    /// @param deployer - Address of the deployer contract
-    function getSafeWalletAddress(address signer, address implementation, address deployer)
+    /// @param signer       - Address of the signer
+    /// @param bytecodeHash - Pre-computed keccak256 of the safe proxy creation code
+    /// @param deployer     - Address of the deployer contract
+    function getSafeWalletAddress(address signer, bytes32 bytecodeHash, address deployer)
         internal
         pure
         returns (address safe)
     {
-        bytes32 bytecodeHash = _computeCreationCodeHash(implementation);
         bytes32 salt = _getSalt(signer);
         safe = Create2Lib.computeCreate2Address(deployer, bytecodeHash, salt);
+    }
+
+    /// @notice Computes the keccak256 hash of the proxy creation code with the given master copy
+    /// @param implementation - Address of the Gnosis Safe master copy
+    function computeBytecodeHash(address implementation) internal pure returns (bytes32) {
+        return _computeCreationCodeHash(implementation);
     }
 
     /// @notice Computes the salt for CREATE2 from a signer address
