@@ -5,13 +5,13 @@ import { BaseExchangeTest } from "./BaseExchangeTest.sol";
 import { Order, Side, SignatureType } from "src/exchange/libraries/Structs.sol";
 
 contract ERC1271SignatureTest is BaseExchangeTest {
-    function test_validate1271Signature() public view {
+    function test_ERC1271Signature_validate1271Signature() public view {
         Order memory order =
             _createAndSign1271Order(carlaPK, address(contractWallet), yes, 50_000_000, 100_000_000, Side.BUY);
         exchange.validateOrderSignature(exchange.hashOrder(order), order);
     }
 
-    function test_validate1271Signature_revert_incorrectSigner() public {
+    function test_ERC1271Signature_validate1271Signature_revert_incorrectSigner() public {
         Order memory order = _createOrder(address(contractWallet), yes, 50_000_000, 100_000_000, Side.BUY);
         order.signatureType = SignatureType.POLY_1271;
         bytes32 orderHash = exchange.hashOrder(order);
@@ -20,7 +20,7 @@ contract ERC1271SignatureTest is BaseExchangeTest {
         exchange.validateOrderSignature(orderHash, order);
     }
 
-    function test_validate1271Signature_revert_sigType() public {
+    function test_ERC1271Signature_validate1271Signature_revert_sigType() public {
         Order memory order = _createOrder(address(contractWallet), yes, 50_000_000, 100_000_000, Side.BUY);
         order.signatureType = SignatureType.EOA;
         bytes32 orderHash = exchange.hashOrder(order);
@@ -29,7 +29,7 @@ contract ERC1271SignatureTest is BaseExchangeTest {
         exchange.validateOrderSignature(orderHash, order);
     }
 
-    function test_validate1271Signature_revert_nonContract() public {
+    function test_ERC1271Signature_validate1271Signature_revert_nonContract() public {
         Order memory order = _createOrder(carla, yes, 50_000_000, 100_000_000, Side.BUY);
         order.signatureType = SignatureType.POLY_1271;
         bytes32 orderHash = exchange.hashOrder(order);
@@ -38,7 +38,7 @@ contract ERC1271SignatureTest is BaseExchangeTest {
         exchange.validateOrderSignature(orderHash, order);
     }
 
-    function test_validate1271Signature_revert_invalidContract() public {
+    function test_ERC1271Signature_validate1271Signature_revert_invalidContract() public {
         // revert when using a non 1271 contract
         Order memory order = _createOrder(address(usdc), yes, 50_000_000, 100_000_000, Side.BUY);
         order.signatureType = SignatureType.POLY_1271;
@@ -48,7 +48,7 @@ contract ERC1271SignatureTest is BaseExchangeTest {
         exchange.validateOrderSignature(orderHash, order);
     }
 
-    function test_validate1271Signature_revert_invalidSignerMaker() public {
+    function test_ERC1271Signature_validate1271Signature_revert_invalidSignerMaker() public {
         Order memory order = _createOrder(address(contractWallet), yes, 50_000_000, 100_000_000, Side.BUY);
         order.signatureType = SignatureType.POLY_1271;
         // signer == carla, maker == contractWallet

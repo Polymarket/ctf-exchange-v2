@@ -62,7 +62,7 @@ abstract contract PolyFactoryHelper {
     }
 
     /// @notice Gets the Polymarket Gnosis Safe address for an address
-    /// @param _addr    - The address that owns the proxy wallet
+    /// @param _addr    - The Safe owner/signer address used to derive the Safe address
     function getSafeWalletAddress(address _addr) public view returns (address) {
         return PolySafeLib.getSafeWalletAddress(_addr, safeBytecodeHash, safeFactory);
     }

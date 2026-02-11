@@ -94,7 +94,7 @@ contract PolyProxyLibTest is Test {
         implementation = new MockProxyImplementation();
     }
 
-    function test_getProxyWalletAddressMatchesManualDerivation() public {
+    function test_PolyProxyLib_getProxyWalletAddressMatchesManualDerivation() public {
         address signer = makeAddr("manual-derivation");
         address predicted = PolyProxyLib.getProxyWalletAddress(signer, address(implementation), address(factory));
 
@@ -102,7 +102,7 @@ contract PolyProxyLibTest is Test {
         assertEq(predicted, expected);
     }
 
-    function test_canDeployMinimalImplementation() public {
+    function test_PolyProxyLib_canDeployMinimalImplementation() public {
         MinimalProxyImplementation simpleImpl = new MinimalProxyImplementation();
         address signer = makeAddr("simple-deployment");
         address predicted = PolyProxyLib.getProxyWalletAddress(signer, address(simpleImpl), address(factory));
@@ -118,7 +118,7 @@ contract PolyProxyLibTest is Test {
     ///      1. Predicted address matches deployed address (CREATE2 determinism)
     ///      2. Proxy correctly delegates calls to implementation (delegatecall works)
     ///      3. Initializer was called during deployment (event log verification)
-    function testProxyDeploymentMatchesPredictionAndDelegates() public {
+    function test_PolyProxyLib_ProxyDeploymentMatchesPredictionAndDelegates() public {
         address signer = makeAddr("deployment-check");
         address predicted = PolyProxyLib.getProxyWalletAddress(signer, address(implementation), address(factory));
 
@@ -140,7 +140,7 @@ contract PolyProxyLibTest is Test {
     /// @dev Verifies that the minimal proxy creation code contains both the factory address
     ///      (deployer) and implementation address embedded in the bytecode, which is necessary
     ///      for the proxy to correctly delegate calls to the implementation.
-    function test_computeCreationCodeEmbedsDependencies() public view {
+    function test_PolyProxyLib_computeCreationCodeEmbedsDependencies() public view {
         bytes memory creationCode = factory.getCreationCode(address(implementation));
         bytes memory constructorData = abi.encodeWithSignature("cloneConstructor(bytes)", new bytes(0));
         uint256 bufferLength = 99;
@@ -150,7 +150,7 @@ contract PolyProxyLibTest is Test {
         assertTrue(_containsAddress(creationCode, address(implementation)), "missing implementation address");
     }
 
-    function test_vmGetCodeDoesNotExposeProxyCreationCode() public view {
+    function test_PolyProxyLib_vmGetCodeDoesNotExposeProxyCreationCode() public view {
         bytes memory creationCode = factory.getCreationCode(address(implementation));
         bytes memory artifactCode = vm.getCode("src/exchange/libraries/PolyProxyLib.sol:PolyProxyLib");
 

@@ -45,7 +45,7 @@ contract PolySafeLibTest is Test {
         implementation = new MockSafeImplementation();
     }
 
-    function test_getSafeWalletAddressMatchesManualDerivation() public {
+    function test_PolySafeLib_getSafeWalletAddressMatchesManualDerivation() public {
         address signer = makeAddr("safe-manual");
         bytes32 bytecodeHash = PolySafeLib.computeBytecodeHash(address(implementation));
         address predicted = PolySafeLib.getSafeWalletAddress(signer, bytecodeHash, address(factory));
@@ -54,7 +54,7 @@ contract PolySafeLibTest is Test {
         assertEq(predicted, expected, "manual create2 mismatch");
     }
 
-    function test_SafeDeploymentMatchesPredictionAndPersistsSingleton() public {
+    function test_PolySafeLib_SafeDeploymentMatchesPredictionAndPersistsSingleton() public {
         address signer = makeAddr("safe-deploy");
         bytes32 bytecodeHash = PolySafeLib.computeBytecodeHash(address(implementation));
         address predicted = PolySafeLib.getSafeWalletAddress(signer, bytecodeHash, address(factory));
@@ -71,7 +71,7 @@ contract PolySafeLibTest is Test {
         _assertDeploymentLog(deployed, salt);
     }
 
-    function test_getContractBytecodeReflectsImplementationAddress() public {
+    function test_PolySafeLib_getContractBytecodeReflectsImplementationAddress() public {
         bytes memory creationCode = factory.getContractBytecode(address(implementation));
         bytes memory suffix = abi.encode(address(implementation));
         assertTrue(creationCode.length > suffix.length, "creation code shorter than suffix");
@@ -85,6 +85,17 @@ contract PolySafeLibTest is Test {
         bytes32 secondHash = keccak256(factory.getContractBytecode(address(another)));
 
         assertTrue(firstHash != secondHash, "hash should change when master copy changes");
+    }
+
+    function test_PolySafeLib_computeBytecodeHashMatchesReference() public {
+        bytes32 assemblyHash = PolySafeLib.computeBytecodeHash(address(implementation));
+        bytes32 referenceHash = keccak256(factory.getContractBytecode(address(implementation)));
+        assertEq(assemblyHash, referenceHash, "assembly hash diverges from reference");
+
+        MockSafeImplementation another = new MockSafeImplementation();
+        bytes32 assemblyHash2 = PolySafeLib.computeBytecodeHash(address(another));
+        bytes32 referenceHash2 = keccak256(factory.getContractBytecode(address(another)));
+        assertEq(assemblyHash2, referenceHash2, "assembly hash diverges for second implementation");
     }
 
     /// @notice Manually reconstructs the CREATE2 address for comparison assertions

@@ -18,7 +18,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
                         COMPLEMENTARY (BUY vs SELL)
     //////////////////////////////////////////////////////////////*/
 
-    function test_complementary_1maker() public {
+    function test_GasSnapshots_complementary_1maker() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -33,7 +33,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_complementary_5makers() public {
+    function test_GasSnapshots_complementary_5makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -48,7 +48,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_complementary_10makers() public {
+    function test_GasSnapshots_complementary_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -63,7 +63,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_complementary_20makers() public {
+    function test_GasSnapshots_complementary_20makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -82,7 +82,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
                             MINT (BUY vs BUY)
     //////////////////////////////////////////////////////////////*/
 
-    function test_mint_1maker() public {
+    function test_GasSnapshots_mint_1maker() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -97,7 +97,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_mint_5makers() public {
+    function test_GasSnapshots_mint_5makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -112,7 +112,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_mint_10makers() public {
+    function test_GasSnapshots_mint_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -127,7 +127,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_mint_20makers() public {
+    function test_GasSnapshots_mint_20makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -146,7 +146,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
                           MERGE (SELL vs SELL)
     //////////////////////////////////////////////////////////////*/
 
-    function test_merge_1maker() public {
+    function test_GasSnapshots_merge_1maker() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -161,7 +161,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_merge_5makers() public {
+    function test_GasSnapshots_merge_5makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -176,7 +176,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_merge_10makers() public {
+    function test_GasSnapshots_merge_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -191,7 +191,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_merge_20makers() public {
+    function test_GasSnapshots_merge_20makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -211,7 +211,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
                 (Taker BUY YES, half SELL YES + half BUY NO)
     //////////////////////////////////////////////////////////////*/
 
-    function test_combo_complementary_mint_10makers() public {
+    function test_GasSnapshots_combo_complementary_mint_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -226,7 +226,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_combo_complementary_mint_20makers() public {
+    function test_GasSnapshots_combo_complementary_mint_20makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -246,7 +246,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
                 (Taker SELL YES, half BUY YES + half SELL NO)
     //////////////////////////////////////////////////////////////*/
 
-    function test_combo_complementary_merge_10makers() public {
+    function test_GasSnapshots_combo_complementary_merge_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -261,7 +261,7 @@ contract GasSnapshots_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_combo_complementary_merge_20makers() public {
+    function test_GasSnapshots_combo_complementary_merge_20makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -638,7 +638,7 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
                         COMPLEMENTARY (BUY vs SELL) - PROXY
     //////////////////////////////////////////////////////////////*/
 
-    function test_proxy_complementary_1maker() public {
+    function test_GasSnapshotsProxy_complementary_1maker() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -653,7 +653,7 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_proxy_complementary_5makers() public {
+    function test_GasSnapshotsProxy_complementary_5makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -668,7 +668,7 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_proxy_complementary_10makers() public {
+    function test_GasSnapshotsProxy_complementary_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -687,7 +687,7 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
                             MINT (BUY vs BUY) - PROXY
     //////////////////////////////////////////////////////////////*/
 
-    function test_proxy_mint_1maker() public {
+    function test_GasSnapshotsProxy_mint_1maker() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -702,7 +702,7 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_proxy_mint_5makers() public {
+    function test_GasSnapshotsProxy_mint_5makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -717,7 +717,7 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_proxy_mint_10makers() public {
+    function test_GasSnapshotsProxy_mint_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -736,7 +736,7 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
                           MERGE (SELL vs SELL) - PROXY
     //////////////////////////////////////////////////////////////*/
 
-    function test_proxy_merge_1maker() public {
+    function test_GasSnapshotsProxy_merge_1maker() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -751,7 +751,7 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_proxy_merge_5makers() public {
+    function test_GasSnapshotsProxy_merge_5makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -766,7 +766,7 @@ contract GasSnapshotsProxy_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_proxy_merge_10makers() public {
+    function test_GasSnapshotsProxy_merge_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1004,7 +1004,7 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
                         COMPLEMENTARY (BUY vs SELL) - SAFE
     //////////////////////////////////////////////////////////////*/
 
-    function test_safe_complementary_1maker() public {
+    function test_GasSnapshotsSafe_complementary_1maker() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1019,7 +1019,7 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_safe_complementary_5makers() public {
+    function test_GasSnapshotsSafe_complementary_5makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1034,7 +1034,7 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_safe_complementary_10makers() public {
+    function test_GasSnapshotsSafe_complementary_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1053,7 +1053,7 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
                             MINT (BUY vs BUY) - SAFE
     //////////////////////////////////////////////////////////////*/
 
-    function test_safe_mint_1maker() public {
+    function test_GasSnapshotsSafe_mint_1maker() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1068,7 +1068,7 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_safe_mint_5makers() public {
+    function test_GasSnapshotsSafe_mint_5makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1083,7 +1083,7 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_safe_mint_10makers() public {
+    function test_GasSnapshotsSafe_mint_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1102,7 +1102,7 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
                           MERGE (SELL vs SELL) - SAFE
     //////////////////////////////////////////////////////////////*/
 
-    function test_safe_merge_1maker() public {
+    function test_GasSnapshotsSafe_merge_1maker() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1117,7 +1117,7 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_safe_merge_5makers() public {
+    function test_GasSnapshotsSafe_merge_5makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1132,7 +1132,7 @@ contract GasSnapshotsSafe_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_safe_merge_10makers() public {
+    function test_GasSnapshotsSafe_merge_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1356,7 +1356,7 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
                         COMPLEMENTARY (BUY vs SELL)
     //////////////////////////////////////////////////////////////*/
 
-    function test_ctfadapter_complementary_1maker() public {
+    function test_GasSnapshotsCtfAdapter_complementary_1maker() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1371,7 +1371,7 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_ctfadapter_complementary_5makers() public {
+    function test_GasSnapshotsCtfAdapter_complementary_5makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1386,7 +1386,7 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_ctfadapter_complementary_10makers() public {
+    function test_GasSnapshotsCtfAdapter_complementary_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1405,7 +1405,7 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
                             MINT (BUY vs BUY)
     //////////////////////////////////////////////////////////////*/
 
-    function test_ctfadapter_mint_1maker() public {
+    function test_GasSnapshotsCtfAdapter_mint_1maker() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1420,7 +1420,7 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_ctfadapter_mint_5makers() public {
+    function test_GasSnapshotsCtfAdapter_mint_5makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1435,7 +1435,7 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_ctfadapter_mint_10makers() public {
+    function test_GasSnapshotsCtfAdapter_mint_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1454,7 +1454,7 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
                             MERGE (SELL vs SELL)
     //////////////////////////////////////////////////////////////*/
 
-    function test_ctfadapter_merge_1maker() public {
+    function test_GasSnapshotsCtfAdapter_merge_1maker() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1469,7 +1469,7 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_ctfadapter_merge_5makers() public {
+    function test_GasSnapshotsCtfAdapter_merge_5makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1484,7 +1484,7 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_ctfadapter_merge_10makers() public {
+    function test_GasSnapshotsCtfAdapter_merge_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1503,7 +1503,7 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
                     COMBO: COMPLEMENTARY + MINT
     //////////////////////////////////////////////////////////////*/
 
-    function test_ctfadapter_combo_complementary_mint_10makers() public {
+    function test_GasSnapshotsCtfAdapter_combo_complementary_mint_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1518,7 +1518,7 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_ctfadapter_combo_complementary_mint_20makers() public {
+    function test_GasSnapshotsCtfAdapter_combo_complementary_mint_20makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1537,7 +1537,7 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
                     COMBO: COMPLEMENTARY + MERGE
     //////////////////////////////////////////////////////////////*/
 
-    function test_ctfadapter_combo_complementary_merge_10makers() public {
+    function test_GasSnapshotsCtfAdapter_combo_complementary_merge_10makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,
@@ -1552,7 +1552,7 @@ contract GasSnapshotsCtfAdapter_Test is BaseExchangeTest {
         vm.stopSnapshotGas();
     }
 
-    function test_ctfadapter_combo_complementary_merge_20makers() public {
+    function test_GasSnapshotsCtfAdapter_combo_complementary_merge_20makers() public {
         (
             Order memory takerOrder,
             Order[] memory makerOrders,

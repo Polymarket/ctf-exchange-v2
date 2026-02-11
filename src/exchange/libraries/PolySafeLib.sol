@@ -27,7 +27,7 @@ library PolySafeLib {
 
     /// @notice Computes the salt for CREATE2 from a signer address
     /// @param signer - Address of the signer
-    /// @return salt - The keccak256 hash of the abi.encoded signer address
+    /// @return salt - The keccak256 hash of the ABI-encoded signer address
     function _getSalt(address signer) internal pure returns (bytes32 salt) {
         assembly ("memory-safe") {
             mstore(0x00, signer)

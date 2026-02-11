@@ -47,7 +47,7 @@ contract BalanceDeltasTest is BaseExchangeTest {
     ///   - Carla: 0 USDC -> 50, 100 YES -> 0
     ///   - Dave: 0 USDC -> 100, 200 YES -> 0
     ///   - Exchange: holds 0 of everything
-    function test_MultiMaker_Complementary_TakerBuy() public {
+    function test_BalanceDeltas_MultiMaker_Complementary_TakerBuy() public {
         // Setup balances
         dealUsdcAndApprove(bob, address(exchange), 150_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
@@ -122,7 +122,7 @@ contract BalanceDeltasTest is BaseExchangeTest {
     ///   - Carla: 50 USDC -> 0, 0 YES -> 100
     ///   - Dave: 100 USDC -> 0, 0 YES -> 200
     ///   - Exchange: holds 0 of everything
-    function test_MultiMaker_Complementary_TakerSell() public {
+    function test_BalanceDeltas_MultiMaker_Complementary_TakerSell() public {
         // Setup balances
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 300_000_000);
         dealUsdcAndApprove(carla, address(exchange), 50_000_000);
@@ -199,7 +199,7 @@ contract BalanceDeltasTest is BaseExchangeTest {
     ///   - Carla: 50 USDC -> 0, 0 NO -> 100 NO
     ///   - Dave: 50 USDC -> 0, 0 NO -> 100 NO
     ///   - Exchange: holds 0 of everything
-    function test_MultiMaker_Mint() public {
+    function test_BalanceDeltas_MultiMaker_Mint() public {
         // Setup balances
         dealUsdcAndApprove(bob, address(exchange), 100_000_000);
         dealUsdcAndApprove(carla, address(exchange), 50_000_000);
@@ -279,7 +279,7 @@ contract BalanceDeltasTest is BaseExchangeTest {
     ///   - Carla: 0 USDC -> 50, 100 NO -> 0
     ///   - Dave: 0 USDC -> 50, 100 NO -> 0
     ///   - Exchange: holds 0 of everything
-    function test_MultiMaker_Merge() public {
+    function test_BalanceDeltas_MultiMaker_Merge() public {
         // Setup balances
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 200_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), no, 100_000_000);
@@ -355,7 +355,7 @@ contract BalanceDeltasTest is BaseExchangeTest {
     ///   - Dave: 0 USDC -> 95 (100 - 5 fee), 200 YES -> 0
     ///   - FeeReceiver: 0 -> 15 USDC (7.5 + 2.5 + 5)
     ///   - Exchange: holds 0 of everything
-    function test_MultiMaker_Complementary_WithFees() public {
+    function test_BalanceDeltas_MultiMaker_Complementary_WithFees() public {
         // Setup balances (Bob needs extra for fee)
         dealUsdcAndApprove(bob, address(exchange), 157_500_000); // 150 + 7.5 fee
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
@@ -425,7 +425,7 @@ contract BalanceDeltasTest is BaseExchangeTest {
     ///   - Bob: 0 USDC -> 47.5 (50 - 2.5 fee), 100 YES -> 0
     ///   - Carla: 50 USDC -> 0, 0 YES -> 100 YES
     ///   - FeeReceiver: 0 -> 2.5 USDC
-    function test_Complementary_TakerSell_WithTakerFee() public {
+    function test_BalanceDeltas_Complementary_TakerSell_WithTakerFee() public {
         // Setup balances
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealUsdcAndApprove(carla, address(exchange), 50_000_000);
@@ -488,7 +488,7 @@ contract BalanceDeltasTest is BaseExchangeTest {
     ///   - Carla: 52.5 USDC -> 0 (50 + 2.5 fee), 0 YES -> 100 YES
     ///   - Dave: 105 USDC -> 0 (100 + 5 fee), 0 YES -> 200 YES
     ///   - FeeReceiver: 0 -> 15 USDC
-    function test_MultiMaker_Complementary_TakerSell_WithFees() public {
+    function test_BalanceDeltas_MultiMaker_Complementary_TakerSell_WithFees() public {
         // Setup balances (makers need extra for fees)
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 300_000_000);
         dealUsdcAndApprove(carla, address(exchange), 52_500_000); // 50 + 2.5 fee
@@ -565,7 +565,7 @@ contract BalanceDeltasTest is BaseExchangeTest {
     ///   - Bob: 180 USDC -> 40 (refund), 0 YES -> 300 YES
     ///   - Carla: 0 USDC -> 40, 100 YES -> 0
     ///   - Dave: 0 USDC -> 100, 200 YES -> 0
-    function test_VariedFillAmounts_DifferentPrices() public {
+    function test_BalanceDeltas_VariedFillAmounts_DifferentPrices() public {
         // Setup balances
         dealUsdcAndApprove(bob, address(exchange), 180_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
@@ -640,7 +640,7 @@ contract BalanceDeltasTest is BaseExchangeTest {
     ///   - Carla: 52.5 USDC -> 0, 0 NO -> 100 NO
     ///   - Dave: 52.5 USDC -> 0, 0 NO -> 100 NO
     ///   - FeeReceiver: 0 -> 10 USDC
-    function test_MultiMaker_Mint_WithFees() public {
+    function test_BalanceDeltas_MultiMaker_Mint_WithFees() public {
         // Setup balances (include fees)
         dealUsdcAndApprove(bob, address(exchange), 105_000_000); // 100 + 5 fee
         dealUsdcAndApprove(carla, address(exchange), 52_500_000); // 50 + 2.5 fee
@@ -713,7 +713,7 @@ contract BalanceDeltasTest is BaseExchangeTest {
     ///   - Carla: 0 USDC -> 47.5 (50 - 2.5 fee), 100 NO -> 0
     ///   - Dave: 0 USDC -> 47.5 (50 - 2.5 fee), 100 NO -> 0
     ///   - FeeReceiver: 0 -> 10 USDC
-    function test_MultiMaker_Merge_WithFees() public {
+    function test_BalanceDeltas_MultiMaker_Merge_WithFees() public {
         // Setup balances
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 200_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), no, 100_000_000);

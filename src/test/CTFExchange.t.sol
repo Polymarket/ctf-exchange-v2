@@ -8,14 +8,14 @@ contract CTFExchangeTest is BaseExchangeTest {
     event ProxyFactoryUpdated(address indexed oldProxyFactory, address indexed newProxyFactory);
     event SafeFactoryUpdated(address indexed oldSafeFactory, address indexed newSafeFactory);
 
-    function test_setup() public view {
+    function test_CTFExchange_setup() public view {
         assertTrue(exchange.isAdmin(admin));
         assertTrue(exchange.isOperator(admin));
         assertFalse(exchange.isAdmin(brian));
         assertFalse(exchange.isOperator(brian));
     }
 
-    function test_Auth() public {
+    function test_CTFExchange_Auth() public {
         vm.expectEmit(true, true, true, true);
         emit NewAdmin(henry, admin);
         emit NewOperator(henry, admin);
@@ -29,7 +29,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         assertTrue(exchange.isAdmin(henry));
     }
 
-    function test_Auth_RemoveAdmin() public {
+    function test_CTFExchange_Auth_RemoveAdmin() public {
         vm.expectEmit(true, true, true, true);
         emit RemovedAdmin(henry, admin);
         emit RemovedOperator(henry, admin);
@@ -43,12 +43,12 @@ contract CTFExchangeTest is BaseExchangeTest {
         assertFalse(exchange.isOperator(henry));
     }
 
-    function test_Auth_NotAdmin() public {
+    function test_CTFExchange_Auth_NotAdmin() public {
         vm.expectRevert(NotAdmin.selector);
         exchange.addAdmin(address(1));
     }
 
-    function test_Auth_Renounce() public {
+    function test_CTFExchange_Auth_Renounce() public {
         // Non admin cannot renounce
         vm.expectRevert(NotAdmin.selector);
         vm.prank(address(12));
@@ -69,7 +69,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         assertFalse(exchange.isOperator(admin));
     }
 
-    function test_Pause() public {
+    function test_CTFExchange_Pause() public {
         vm.expectEmit(true, true, true, false);
         emit TradingPaused(admin);
 
@@ -109,7 +109,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.matchOrders(conditionId, takerOrder, makerOrders, usdcAmount, makerFillAmounts, 0, makerFeeAmounts);
     }
 
-    function test_SetUserPauseBlockInterval() public {
+    function test_CTFExchange_SetUserPauseBlockInterval() public {
         uint256 oldInterval = exchange.userPauseBlockInterval();
         uint256 newInterval = oldInterval + 50;
 
@@ -122,7 +122,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         assertEq(exchange.userPauseBlockInterval(), newInterval);
     }
 
-    function test_SetFeeReceiver() public {
+    function test_CTFExchange_SetFeeReceiver() public {
         address newFeeReceiver = address(0xBEEF);
 
         vm.expectEmit(true, true, true, true);
@@ -134,12 +134,12 @@ contract CTFExchangeTest is BaseExchangeTest {
         assertEq(exchange.getFeeReceiver(), newFeeReceiver);
     }
 
-    function test_DefaultMaxFeeRate() public view {
+    function test_CTFExchange_DefaultMaxFeeRate() public view {
         // Default max fee rate should be 5% (500 bps)
         assertEq(exchange.getMaxFeeRate(), 500);
     }
 
-    function test_SetMaxFeeRate() public {
+    function test_CTFExchange_SetMaxFeeRate() public {
         // 10% in bps
         uint256 newMaxFeeRate = 1000;
 
@@ -152,20 +152,20 @@ contract CTFExchangeTest is BaseExchangeTest {
         assertEq(exchange.getMaxFeeRate(), newMaxFeeRate);
     }
 
-    function test_SetMaxFeeRate_revert_NotAdmin() public {
+    function test_CTFExchange_SetMaxFeeRate_revert_NotAdmin() public {
         vm.expectRevert(NotAdmin.selector);
         vm.prank(bob);
         exchange.setMaxFeeRate(500);
     }
 
-    function test_SetMaxFeeRate_revert_ExceedsCeiling() public {
+    function test_CTFExchange_SetMaxFeeRate_revert_ExceedsCeiling() public {
         // Cannot set rate >= 10000 bps (100%)
         vm.expectRevert(MaxFeeRateExceedsCeiling.selector);
         vm.prank(admin);
         exchange.setMaxFeeRate(10000);
     }
 
-    function test_ValidateFee() public view {
+    function test_CTFExchange_ValidateFee() public view {
         // Fee of 5 USDC on a 100 USDC trade = 5%, should pass
         exchange.validateFee(5_000_000, 100_000_000);
 
@@ -173,13 +173,13 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateFee(4_000_000, 100_000_000);
     }
 
-    function test_ValidateFee_revert_FeeExceedsMaxRate() public {
+    function test_CTFExchange_ValidateFee_revert_FeeExceedsMaxRate() public {
         // Fee of 6 USDC on a 100 USDC trade = 6%, should revert
         vm.expectRevert(FeeExceedsMaxRate.selector);
         exchange.validateFee(6_000_000, 100_000_000);
     }
 
-    function test_ValidateFee_ZeroRate() public {
+    function test_CTFExchange_ValidateFee_ZeroRate() public {
         vm.prank(admin);
         exchange.setMaxFeeRate(0);
         assertEq(exchange.getMaxFeeRate(), 0);
@@ -187,7 +187,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateFee(99_000_000, 100_000_000);
     }
 
-    function test_hashOrder() public view {
+    function test_CTFExchange_hashOrder() public view {
         Order memory order = _createOrder(bob, 1, 50_000_000, 100_000_000, Side.BUY);
 
         bytes32 expectedHash = _generateOrderHash(address(exchange), order);
@@ -195,12 +195,12 @@ contract CTFExchangeTest is BaseExchangeTest {
         assertEq(exchange.hashOrder(order), expectedHash);
     }
 
-    function test_ValidateOrder() public view {
+    function test_CTFExchange_ValidateOrder() public view {
         Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
         exchange.validateOrder(order);
     }
 
-    function test_ValidateOrder_revert_InvalidSig() public {
+    function test_CTFExchange_ValidateOrder_revert_InvalidSig() public {
         Order memory order = _createOrder(bob, yes, 50_000_000, 100_000_000, Side.BUY);
 
         // Incorrect signature(note: signed by carla)
@@ -209,14 +209,14 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(order);
     }
 
-    function test_ValidateOrder_revert_InvalidSigLength() public {
+    function test_CTFExchange_ValidateOrder_revert_InvalidSigLength() public {
         Order memory order = _createOrder(bob, yes, 50_000_000, 100_000_000, Side.BUY);
         order.signature = hex"";
         vm.expectRevert(InvalidSignature.selector);
         exchange.validateOrder(order);
     }
 
-    function test_ValidateOrder_revert_InvalidSignerMaker() public {
+    function test_CTFExchange_ValidateOrder_revert_InvalidSignerMaker() public {
         Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
         // For EOA signature type, signer and maker MUST be the same
         order.maker = carla;
@@ -227,7 +227,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(order);
     }
 
-    function test_ValidateOrder_revert_DuplicateOrder() public {
+    function test_CTFExchange_ValidateOrder_revert_DuplicateOrder() public {
         uint256 usdcAmount = 50_000_000;
         uint256 tokenAmount = 100_000_000;
 
@@ -254,7 +254,7 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(takerOrder);
     }
 
-    function test_ValidateOrder_UserPaused() public {
+    function test_CTFExchange_ValidateOrder_UserPaused() public {
         Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
         uint256 blockInterval = exchange.userPauseBlockInterval();

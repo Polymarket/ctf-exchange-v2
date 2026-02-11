@@ -9,6 +9,7 @@ import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
 import { CTFExchange } from "src/exchange/CTFExchange.sol";
 import { CtfCollateralAdapterMock } from "./dev/mocks/CtfCollateralAdapterMock.sol";
 import { PolyProxyFactoryMock } from "./dev/mocks/PolyProxyFactoryMock.sol";
+import { PolySafeFactoryMock } from "./dev/mocks/PolySafeFactoryMock.sol";
 import { USDC } from "./dev/mocks/USDC.sol";
 
 contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
@@ -21,7 +22,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         vm.label(address(adapter), "CtfCollateralAdapterMock");
 
         PolyProxyFactoryMock mockProxyFactory = new PolyProxyFactoryMock(address(0x1234));
-        PolyProxyFactoryMock mockSafeFactory = new PolyProxyFactoryMock(address(0x5678));
+        PolySafeFactoryMock mockSafeFactory = new PolySafeFactoryMock(address(0x5678));
 
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({
@@ -40,7 +41,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         vm.stopPrank();
     }
 
-    function test_MatchOrders_Mint_WithCtfCollateralAdapter() public {
+    function test_MatchOrdersCtfCollateralAdapter_Mint_WithCtfCollateralAdapter() public {
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealUsdcAndApprove(carla, address(exchange), 50_000_000);
 
@@ -69,7 +70,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         assertCTFBalance(carla, no, 100_000_000);
     }
 
-    function test_MatchOrders_Complementary_WithCtfCollateralAdapter() public {
+    function test_MatchOrdersCtfCollateralAdapter_Complementary_WithCtfCollateralAdapter() public {
         dealUsdcAndApprove(bob, address(exchange), 50_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
 
@@ -98,7 +99,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         assertCollateralBalance(carla, 50_000_000);
     }
 
-    function test_MatchOrders_Complementary_Fees_WithCtfCollateralAdapter() public {
+    function test_MatchOrdersCtfCollateralAdapter_Complementary_Fees_WithCtfCollateralAdapter() public {
         uint256 takerFeeAmount = 2_500_000;
         uint256 makerFeeAmount = 100_000;
 
@@ -130,7 +131,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         assertCollateralBalance(feeReceiver, takerFeeAmount + makerFeeAmount);
     }
 
-    function test_MatchOrders_Merge_WithCtfCollateralAdapter() public {
+    function test_MatchOrdersCtfCollateralAdapter_Merge_WithCtfCollateralAdapter() public {
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), no, 100_000_000);
 
@@ -159,7 +160,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         assertCollateralBalance(carla, 50_000_000);
     }
 
-    function test_MatchOrders_Merge_Fees_WithCtfCollateralAdapter() public {
+    function test_MatchOrdersCtfCollateralAdapter_Merge_Fees_WithCtfCollateralAdapter() public {
         uint256 takerFeeAmount = 1_000_000;
         uint256 makerFeeAmount = 500_000;
 
@@ -191,7 +192,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         assertCollateralBalance(feeReceiver, takerFeeAmount + makerFeeAmount);
     }
 
-    function test_MatchOrders_Merge_Reverts_WhenAdapterNotApproved() public {
+    function test_MatchOrdersCtfCollateralAdapter_Merge_Reverts_WhenAdapterNotApproved() public {
         vm.prank(address(exchange));
         ERC1155(address(ctf)).setApprovalForAll(address(adapter), false);
 
@@ -219,12 +220,12 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         );
     }
 
-    function test_MatchOrders_Mint_Reverts_WhenAdapterUsdceMismatch() public {
+    function test_MatchOrdersCtfCollateralAdapter_Mint_Reverts_WhenAdapterUsdceMismatch() public {
         USDC other = new USDC();
         CtfCollateralAdapterMock badAdapter = new CtfCollateralAdapterMock(address(ctf), address(usdc), address(other));
 
         PolyProxyFactoryMock mockProxyFactory = new PolyProxyFactoryMock(address(0x1234));
-        PolyProxyFactoryMock mockSafeFactory = new PolyProxyFactoryMock(address(0x5678));
+        PolySafeFactoryMock mockSafeFactory = new PolySafeFactoryMock(address(0x5678));
 
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({
@@ -270,7 +271,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         );
     }
 
-    function test_MatchOrders_Mint_Fees_WithCtfCollateralAdapter() public {
+    function test_MatchOrdersCtfCollateralAdapter_Mint_Fees_WithCtfCollateralAdapter() public {
         uint256 takerFeeAmount = 2_500_000;
         uint256 makerFeeAmount = 100_000;
 
