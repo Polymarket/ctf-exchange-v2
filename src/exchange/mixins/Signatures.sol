@@ -30,6 +30,14 @@ abstract contract Signatures is ISignatures, PolyFactoryHelper {
         emit OrderPreapproved(orderHash);
     }
 
+    /// @notice Invalidates a preapproval
+    /// @param orderHash - The hash of the order
+    function _invalidatePreapproval(bytes32 orderHash) internal {
+        preapproved[orderHash] = false;
+
+        emit OrderPreapprovalInvalidated(orderHash);
+    }
+
     /// @notice Validates the signature of an order
     /// @param orderHash - The hash of the order
     /// @param order     - The order

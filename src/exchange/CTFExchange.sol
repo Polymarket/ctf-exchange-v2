@@ -76,6 +76,12 @@ contract CTFExchange is Auth, ERC1155TokenReceiver, Pausable, Trading {
         _setPreapproved(orderHash, order);
     }
 
+    /// @notice Entrypoint to invalidate a preapproval
+    /// @param orderHash - The hash of the order to invalidate
+    function invalidatePreapproval(bytes32 orderHash) external onlyOperator {
+        _invalidatePreapproval(orderHash);
+    }
+
     /*//////////////////////////////////////////////////////////////
                         CONFIGURATION
     //////////////////////////////////////////////////////////////*/

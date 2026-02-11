@@ -15,17 +15,49 @@ contract PreapprovedTest is BaseExchangeTest {
     }
 
     // ──────────────────────────────────────────────────
-    // Test 1: setPreapproved emits event
+    // Test 1: Invalidated preapproval reverts on match
     // ──────────────────────────────────────────────────
 
-    function test_setPreapproved_emitsEvent() public {
-        Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
-        bytes32 orderHash = exchange.hashOrder(order);
+    function test_matchOrders_invalidatedPreapproval_reverts() public {
+        vm.pauseGasMetering();
+        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
+        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
 
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
+
+        bytes32 makerOrderHash = exchange.hashOrder(makerOrder);
+
+        // Preapprove the maker order
         vm.expectEmit(true, false, false, false);
-        emit OrderPreapproved(orderHash);
+        emit OrderPreapproved(makerOrderHash);
         vm.prank(admin);
-        exchange.setPreapproved(order);
+        exchange.setPreapproved(makerOrder);
+
+        // Invalidate the ECDSA signature so only preapproval can authorize.
+        _invalidateSignature(makerOrder);
+
+        // Now invalidate the preapproval
+        vm.expectEmit(true, false, false, false);
+        emit OrderPreapprovalInvalidated(makerOrderHash);
+        vm.prank(admin);
+        exchange.invalidatePreapproval(makerOrderHash);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 100_000_000;
+
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        vm.resumeGasMetering();
+
+        // Should revert: signature is invalid AND preapproval has been invalidated
+        vm.expectRevert(InvalidSignature.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 0, makerFeeAmounts);
     }
 
     // ──────────────────────────────────────────────────
