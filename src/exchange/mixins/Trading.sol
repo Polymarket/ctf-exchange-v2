@@ -555,11 +555,24 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
     /// @param takerOrder   - The taker order
     /// @param makerOrder   - The maker order
     function _validateOrdersMatch(Order memory takerOrder, Order memory makerOrder, MatchType matchType) internal pure {
-        if (!CalculatorHelper.isCrossing(takerOrder, makerOrder)) revert NotCrossing();
+        if (matchType == MatchType.COMPLEMENTARY) {
+            // For BUY vs SELL on the same token, the crossing condition is:
+            //   buyPrice >= sellPrice
+            //
+            // Expressed in order terms:
+            //   (makerAmount_buy / takerAmount_buy) >= (takerAmount_sell / makerAmount_sell)
+            //
+            // Cross-multiplying representation:
+            //   makerAmount_A * makerAmount_B >= takerAmount_A * takerAmount_B
+            //
+            // handles the takerAmount == 0 edge case (RHS is 0, always true).
+            if (takerOrder.makerAmount * makerOrder.makerAmount < takerOrder.takerAmount * makerOrder.takerAmount) {
+                revert NotCrossing();
+            }
 
-        // Ensure orders match
-        if (matchType == MatchType.COMPLEMENTARY && takerOrder.tokenId != makerOrder.tokenId) {
-            revert MismatchedTokenIds();
+            if (takerOrder.tokenId != makerOrder.tokenId) revert MismatchedTokenIds();
+        } else {
+            if (!CalculatorHelper.isCrossing(takerOrder, makerOrder)) revert NotCrossing();
         }
     }
 
