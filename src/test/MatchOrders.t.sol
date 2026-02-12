@@ -743,4 +743,44 @@ contract MatchOrdersTest is BaseExchangeTest {
         assertCollateralBalance(bob, 50_000_000);
         assertCTFBalance(carla, yes, 100_000_000);
     }
+
+    function test_MatchOrders_Events_Complementary_WithFees() public {
+        dealUsdcAndApprove(bob, address(exchange), 52_500_000);
+        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
+
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
+
+        bytes32 takerHash = exchange.hashOrder(takerOrder);
+        bytes32 makerHash = exchange.hashOrder(makerOrder);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 100_000_000;
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 100_000;
+
+        vm.expectEmit(true, true, true, true);
+        emit FeeCharged(feeReceiver, 100_000);
+
+        vm.expectEmit(true, true, true, true);
+        emit OrderFilled(
+            makerHash, carla, bob, Side.SELL, yes, 100_000_000, 50_000_000, 100_000, bytes32(0), bytes32(0)
+        );
+
+        vm.expectEmit(true, true, true, true);
+        emit FeeCharged(feeReceiver, 2_500_000);
+
+        vm.expectEmit(true, true, true, true);
+        emit OrderFilled(
+            takerHash, bob, address(exchange), Side.BUY, yes, 50_000_000, 50_000_000, 2_500_000, bytes32(0), bytes32(0)
+        );
+
+        vm.expectEmit(true, true, true, true);
+        emit OrdersMatched(takerHash, bob, Side.BUY, yes, 50_000_000, 50_000_000);
+
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 2_500_000, makerFeeAmounts);
+    }
 }
