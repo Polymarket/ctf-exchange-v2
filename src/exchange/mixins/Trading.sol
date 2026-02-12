@@ -10,28 +10,15 @@ import { Order, Side, MatchType, OrderStatus } from "../libraries/Structs.sol";
 import { Hashing } from "./Hashing.sol";
 import { UserPausable } from "./UserPausable.sol";
 import { AssetOperations } from "./AssetOperations.sol";
+import { Events } from "./Events.sol";
 import { Fees } from "./Fees.sol";
 import { Signatures } from "./Signatures.sol";
 
 /// @title Trading
 /// @notice Implements logic for trading CTF assets
-abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signatures, ITrading {
+abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausable, Signatures, ITrading {
     /// @notice Mapping of orders to their current status
     mapping(bytes32 => OrderStatus) public orderStatus;
-
-    /// @notice Parameters for the OrderFilled event
-    struct OrderFilledParams {
-        bytes32 orderHash;
-        address maker;
-        address taker;
-        Side side;
-        uint256 tokenId;
-        uint256 makerAmountFilled;
-        uint256 takerAmountFilled;
-        uint256 fee;
-        bytes32 builder;
-        bytes32 metadata;
-    }
 
     /// @notice Parameters for a prepared maker order (validated and ready for settlement)
     struct PreparedMakerOrder {
@@ -203,7 +190,7 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
                     makerReceives -= feeAmount;
                 }
                 makerFee = feeAmount;
-                emit FeeCharged(getFeeReceiver(), feeAmount);
+                _emitFeeCharged(getFeeReceiver(), feeAmount);
             }
             _transfer(taker, makerOrder.maker, 0, makerReceives); // Collateral: taker → maker
         } else {
@@ -249,7 +236,7 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
                 unchecked {
                     takerProceeds -= takerFeeAmount;
                 }
-                emit FeeCharged(getFeeReceiver(), takerFeeAmount);
+                _emitFeeCharged(getFeeReceiver(), takerFeeAmount);
                 _transfer(address(this), getFeeReceiver(), 0, takerFeeAmount);
             }
             _transfer(address(this), taker, 0, takerProceeds);
@@ -299,7 +286,7 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         // Charge fees (emit event, transfer batched for SELL or immediate for BUY)
         if (side == Side.SELL) {
             // SELL: emit event now, transfer will be batched later
-            if (feeAmount > 0) emit FeeCharged(getFeeReceiver(), feeAmount);
+            if (feeAmount > 0) _emitFeeCharged(getFeeReceiver(), feeAmount);
         } else if (feeAmount > 0) {
             // BUY: fee transferred from maker directly (cannot batch)
             _chargeFee(maker, feeAmount);
@@ -426,7 +413,7 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         // Charge fees (emit event, transfer batched for SELL or immediate for BUY)
         if (p.side == Side.SELL) {
             // SELL: emit event now, transfer will be batched later
-            if (p.feeAmount > 0) emit FeeCharged(getFeeReceiver(), p.feeAmount);
+            if (p.feeAmount > 0) _emitFeeCharged(getFeeReceiver(), p.feeAmount);
         } else if (p.feeAmount > 0) {
             // BUY: fee transferred from maker directly (cannot batch)
             _chargeFee(p.maker, p.feeAmount);
@@ -446,34 +433,6 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
                 builder: p.builder,
                 metadata: p.metadata
             })
-        );
-    }
-
-    function _emitTakerFilledEvents(OrderFilledParams memory params) internal {
-        _emitOrderFilledEvent(params);
-
-        emit OrdersMatched(
-            params.orderHash,
-            params.maker,
-            params.side,
-            params.tokenId,
-            params.makerAmountFilled,
-            params.takerAmountFilled
-        );
-    }
-
-    function _emitOrderFilledEvent(OrderFilledParams memory params) internal {
-        emit OrderFilled(
-            params.orderHash,
-            params.maker,
-            params.taker,
-            params.side,
-            params.tokenId,
-            params.makerAmountFilled,
-            params.takerAmountFilled,
-            params.fee,
-            params.builder,
-            params.metadata
         );
     }
 
@@ -568,7 +527,7 @@ abstract contract Trading is Hashing, AssetOperations, Fees, UserPausable, Signa
         if (fee > 0) {
             address receiver = getFeeReceiver();
             _transfer(payer, receiver, 0, fee);
-            emit FeeCharged(receiver, fee);
+            _emitFeeCharged(receiver, fee);
         }
     }
 
