@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {LibClone} from "lib/solady/src/utils/LibClone.sol";
+import { LibClone } from "lib/solady/src/utils/LibClone.sol";
 
-import {vm} from "src/test/dev/util/vm.sol";
-import {USDC} from "src/test/dev/mocks/USDC.sol";
-import {USDCe} from "src/test/dev/mocks/USDCe.sol";
+import { vm } from "src/test/dev/util/vm.sol";
+import { USDC } from "src/test/dev/mocks/USDC.sol";
+import { USDCe } from "src/test/dev/mocks/USDCe.sol";
 
-import {CollateralVault} from "src/test/dev/mocks/CollateralVault.sol";
-import {CollateralToken} from "src/collateral/CollateralToken.sol";
-import {CollateralOnramp} from "src/collateral/CollateralOnramp.sol";
-import {CollateralOfframp} from "src/collateral/CollateralOfframp.sol";
+import { CollateralVault } from "src/test/dev/mocks/CollateralVault.sol";
+import { CollateralToken } from "src/collateral/CollateralToken.sol";
+import { CollateralOnramp } from "src/collateral/CollateralOnramp.sol";
+import { CollateralOfframp } from "src/collateral/CollateralOfframp.sol";
 
 struct Collateral {
     CollateralToken token;
@@ -34,9 +34,7 @@ library CollateralSetup {
         collateral.vault = address(new CollateralVault(_owner));
 
         address collateralImplementation = address(
-            new CollateralToken(
-                address(collateral.usdc), address(collateral.usdce), address(collateral.vault)
-            )
+            new CollateralToken(address(collateral.usdc), address(collateral.usdce), address(collateral.vault))
         );
 
         address collateralProxy = LibClone.deployERC1967(collateralImplementation);

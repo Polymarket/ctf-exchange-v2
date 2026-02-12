@@ -1,23 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {OwnableRoles} from "lib/solady/src/auth/OwnableRoles.sol";
-import {ERC20} from "lib/solady/src/tokens/ERC20.sol";
-import {Initializable} from "lib/solady/src/utils/Initializable.sol";
-import {SafeTransferLib} from "lib/solady/src/utils/SafeTransferLib.sol";
-import {UUPSUpgradeable} from "lib/solady/src/utils/UUPSUpgradeable.sol";
+import { OwnableRoles } from "lib/solady/src/auth/OwnableRoles.sol";
+import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
+import { Initializable } from "lib/solady/src/utils/Initializable.sol";
+import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
+import { UUPSUpgradeable } from "lib/solady/src/utils/UUPSUpgradeable.sol";
 
-import {CollateralErrors} from "./abstract/CollateralErrors.sol";
-import {ICollateralToken} from "./interfaces/ICollateralToken.sol";
-import {ICollateralTokenCallbacks} from "./interfaces/ICollateralTokenCallbacks.sol";
+import { CollateralErrors } from "./abstract/CollateralErrors.sol";
+import { ICollateralToken } from "./interfaces/ICollateralToken.sol";
+import { ICollateralTokenCallbacks } from "./interfaces/ICollateralTokenCallbacks.sol";
 
 abstract contract CollateralTokenEvents {
-    event Wrapped(
-        address indexed caller, address indexed asset, address indexed to, uint256 amount
-    );
-    event Unwrapped(
-        address indexed caller, address indexed asset, address indexed to, uint256 amount
-    );
+    event Wrapped(address indexed caller, address indexed asset, address indexed to, uint256 amount);
+    event Unwrapped(address indexed caller, address indexed asset, address indexed to, uint256 amount);
 }
 
 /// @title CollateralToken
@@ -123,5 +119,5 @@ contract CollateralToken is
     /// @dev Authorizes an upgrade to a new implementation.
     /// @dev Only the owner can authorize upgrades.
     /// @param newImplementation The address of the new implementation contract.
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
 }

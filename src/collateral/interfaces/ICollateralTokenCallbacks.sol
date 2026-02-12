@@ -2,8 +2,6 @@
 pragma solidity 0.8.30;
 
 interface ICollateralTokenCallbacks {
-    function wrapCallback(address _asset, address _to, uint256 _amount, bytes calldata _data)
-        external;
-    function unwrapCallback(address _asset, address _to, uint256 _amount, bytes calldata _data)
-        external;
+    function wrapCallback(address _asset, address _to, uint256 _amount, bytes calldata _data) external;
+    function unwrapCallback(address _asset, address _to, uint256 _amount, bytes calldata _data) external;
 }

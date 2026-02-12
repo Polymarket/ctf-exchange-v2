@@ -1,19 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {SafeTransferLib} from "lib/solady/src/utils/SafeTransferLib.sol";
+import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 
-import {TestHelper} from "src/test/dev/TestHelper.sol";
+import { TestHelper } from "src/test/dev/TestHelper.sol";
 
-import {
-    Collateral,
-    CollateralToken,
-    USDC,
-    USDCe,
-    CollateralSetup
-} from "src/test/dev/CollateralSetup.sol";
-import {CollateralErrors} from "src/collateral/abstract/CollateralErrors.sol";
-import {ICollateralTokenCallbacks} from "src/collateral/interfaces/ICollateralTokenCallbacks.sol";
+import { Collateral, CollateralToken, USDC, USDCe, CollateralSetup } from "src/test/dev/CollateralSetup.sol";
+import { CollateralErrors } from "src/collateral/abstract/CollateralErrors.sol";
+import { ICollateralTokenCallbacks } from "src/collateral/interfaces/ICollateralTokenCallbacks.sol";
 
 contract MockCollateralTokenRouter is ICollateralTokenCallbacks {
     using SafeTransferLib for address;

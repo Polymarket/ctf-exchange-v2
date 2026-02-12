@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {OwnableRoles} from "lib/solady/src/auth/OwnableRoles.sol";
+import { OwnableRoles } from "lib/solady/src/auth/OwnableRoles.sol";
 
-import {CollateralErrors} from "./CollateralErrors.sol";
+import { CollateralErrors } from "./CollateralErrors.sol";
 
 abstract contract PausableEvents {
     event Paused(address indexed asset);

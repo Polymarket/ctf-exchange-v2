@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {OwnableRoles} from "lib/solady/src/auth/OwnableRoles.sol";
-import {SafeTransferLib} from "lib/solady/src/utils/SafeTransferLib.sol";
+import { OwnableRoles } from "lib/solady/src/auth/OwnableRoles.sol";
+import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 
-import {CollateralErrors} from "./abstract/CollateralErrors.sol";
-import {Pausable} from "./abstract/Pausable.sol";
+import { CollateralErrors } from "./abstract/CollateralErrors.sol";
+import { Pausable } from "./abstract/Pausable.sol";
 
-import {CollateralToken} from "./CollateralToken.sol";
+import { CollateralToken } from "./CollateralToken.sol";
 
 /// @title CollateralOfframp
 /// @author Polymarket
@@ -34,5 +34,5 @@ contract CollateralOfframp is OwnableRoles, CollateralErrors, Pausable {
         CollateralToken(collateralToken).unwrap(_asset, _to, _amount, "");
     }
 
-    function unwrapCallback(address, address, uint256, bytes calldata) external {}
+    function unwrapCallback(address, address, uint256, bytes calldata) external { }
 }
