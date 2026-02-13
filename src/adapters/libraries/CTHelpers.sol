@@ -17,8 +17,7 @@ library CTHelpers {
         return keccak256(abi.encodePacked(oracle, questionId, outcomeSlotCount));
     }
 
-    uint256 constant P =
-        21888242871839275222246405745257275088696311157297823662689037894645226208583;
+    uint256 constant P = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
     uint256 constant B = 3;
 
     function sqrt(uint256 x) private pure returns (uint256 y) {
@@ -438,11 +437,7 @@ library CTHelpers {
     /// are used as the ERC-1155 ID for this contract.
     /// @param collateralToken Collateral token which backs the position.
     /// @param collectionId ID of the outcome collection associated with this position.
-    function getPositionId(address collateralToken, bytes32 collectionId)
-        internal
-        pure
-        returns (uint256)
-    {
+    function getPositionId(address collateralToken, bytes32 collectionId) internal pure returns (uint256) {
         return uint256(keccak256(abi.encodePacked(collateralToken, collectionId)));
     }
 }

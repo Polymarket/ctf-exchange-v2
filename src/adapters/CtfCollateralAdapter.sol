@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {SafeTransferLib} from "lib/solady/src/utils/SafeTransferLib.sol";
+import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 
-import {ERC1155TokenReceiver} from "src/exchange/mixins/ERC1155TokenReceiver.sol";
-import {CollateralToken} from "src/collateral/CollateralToken.sol";
-import {ICollateralTokenCallbacks} from "src/collateral/interfaces/ICollateralTokenCallbacks.sol";
-import {IConditionalTokens} from "src/adapters/interfaces/IConditionalTokens.sol";
-import {CTFHelpers} from "src/adapters/libraries/CTFHelpers.sol";
+import { ERC1155TokenReceiver } from "src/exchange/mixins/ERC1155TokenReceiver.sol";
+import { CollateralToken } from "src/collateral/CollateralToken.sol";
+import { ICollateralTokenCallbacks } from "src/collateral/interfaces/ICollateralTokenCallbacks.sol";
+import { IConditionalTokens } from "src/adapters/interfaces/IConditionalTokens.sol";
+import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
 
 /// @title CtfCollateralAdapter
 /// @author Polymarket
@@ -41,13 +41,7 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
                                 EXTERNAL
     --------------------------------------------------------------*/
 
-    function splitPosition(
-        address,
-        bytes32,
-        bytes32 _conditionId,
-        uint256[] calldata,
-        uint256 _amount
-    ) external {
+    function splitPosition(address, bytes32, bytes32 _conditionId, uint256[] calldata, uint256 _amount) external {
         collateralToken.safeTransferFrom(msg.sender, collateralToken, _amount);
         CollateralToken(collateralToken).unwrap(usdce, address(this), _amount, "");
 
@@ -61,13 +55,7 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
         conditionalTokens.safeBatchTransferFrom(address(this), msg.sender, positionIds, amounts, "");
     }
 
-    function mergePositions(
-        address,
-        bytes32,
-        bytes32 _conditionId,
-        uint256[] calldata,
-        uint256 _amount
-    ) external {
+    function mergePositions(address, bytes32, bytes32 _conditionId, uint256[] calldata, uint256 _amount) external {
         uint256[] memory positionIds = _getPositionIds(_conditionId);
 
         uint256[] memory amounts = new uint256[](2);
@@ -103,25 +91,16 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
                                 INTERNAL
     --------------------------------------------------------------*/
 
-    function _getPositionIds(bytes32 _conditionId)
-        internal
-        view
-        virtual
-        returns (uint256[] memory)
-    {
+    function _getPositionIds(bytes32 _conditionId) internal view virtual returns (uint256[] memory) {
         return CTFHelpers.positionIds(usdce, _conditionId);
     }
 
     function _splitPosition(bytes32 _conditionId, uint256 _amount) internal virtual {
-        conditionalTokens.splitPosition(
-            usdce, bytes32(0), _conditionId, CTFHelpers.partition(), _amount
-        );
+        conditionalTokens.splitPosition(usdce, bytes32(0), _conditionId, CTFHelpers.partition(), _amount);
     }
 
     function _mergePositions(bytes32 _conditionId, uint256 _amount) internal virtual {
-        conditionalTokens.mergePositions(
-            usdce, bytes32(0), _conditionId, CTFHelpers.partition(), _amount
-        );
+        conditionalTokens.mergePositions(usdce, bytes32(0), _conditionId, CTFHelpers.partition(), _amount);
     }
 
     function _redeemPositions(bytes32 _conditionId, uint256[] memory) internal virtual {
@@ -132,6 +111,6 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
                                CALLBACKS
     --------------------------------------------------------------*/
 
-    function wrapCallback(address, address, uint256, bytes calldata) external {}
-    function unwrapCallback(address, address, uint256, bytes calldata) external {}
+    function wrapCallback(address, address, uint256, bytes calldata) external { }
+    function unwrapCallback(address, address, uint256, bytes calldata) external { }
 }

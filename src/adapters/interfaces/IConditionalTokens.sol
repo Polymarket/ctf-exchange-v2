@@ -4,10 +4,7 @@ pragma solidity 0.8.30;
 interface IConditionalTokens {
     function balanceOf(address owner, uint256 id) external view returns (uint256);
 
-    function balanceOfBatch(address[] memory owners, uint256[] memory ids)
-        external
-        view
-        returns (uint256[] memory);
+    function balanceOfBatch(address[] memory owners, uint256[] memory ids) external view returns (uint256[] memory);
 
     function setApprovalForAll(address operator, bool approved) external;
 

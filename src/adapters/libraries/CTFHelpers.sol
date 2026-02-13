@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {CTHelpers} from "./CTHelpers.sol";
+import { CTHelpers } from "./CTHelpers.sol";
 
 /// @title Helpers
 /// @author Polymarket
@@ -11,21 +11,13 @@ library CTFHelpers {
     /// @param _collateral  - the collateral address
     /// @param _conditionId - the conditionId
     /// @return positionIds - length 2 array of position ids
-    function positionIds(address _collateral, bytes32 _conditionId)
-        internal
-        view
-        returns (uint256[] memory)
-    {
+    function positionIds(address _collateral, bytes32 _conditionId) internal view returns (uint256[] memory) {
         uint256[] memory positionIds_ = new uint256[](2);
 
         // YES
-        positionIds_[0] = CTHelpers.getPositionId(
-            _collateral, CTHelpers.getCollectionId(bytes32(0), _conditionId, 1)
-        );
+        positionIds_[0] = CTHelpers.getPositionId(_collateral, CTHelpers.getCollectionId(bytes32(0), _conditionId, 1));
         // NO
-        positionIds_[1] = CTHelpers.getPositionId(
-            _collateral, CTHelpers.getCollectionId(bytes32(0), _conditionId, 2)
-        );
+        positionIds_[1] = CTHelpers.getPositionId(_collateral, CTHelpers.getCollectionId(bytes32(0), _conditionId, 2));
 
         return positionIds_;
     }

@@ -34,9 +34,7 @@ contract MatchOrdersNegRiskCtfCollateralAdapterTest is BaseExchangeTest {
 
         // 2. Deploy NegRiskAdapter reusing the existing CTF from super.setUp()
         address vault = vm.createWallet("nrVault").addr;
-        negRiskAdapter = INegRiskAdapter(
-            Deployer.deployNegRiskAdapter(address(ctf), address(usdce), vault)
-        );
+        negRiskAdapter = INegRiskAdapter(Deployer.deployNegRiskAdapter(address(ctf), address(usdce), vault));
         negRiskAdapter.addAdmin(admin);
         negRiskAdapter.renounceAdmin();
         wrappedCol = negRiskAdapter.wcol();

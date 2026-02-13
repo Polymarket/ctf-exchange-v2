@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {Deployer} from "src/test/dev/util/Deployer.sol";
-import {TestHelper} from "src/test/dev/TestHelper.sol";
-import {IConditionalTokens} from "src/adapters/interfaces/IConditionalTokens.sol";
-import {CTHelpers} from "src/adapters/libraries/CTHelpers.sol";
-import {CTFHelpers} from "src/adapters/libraries/CTFHelpers.sol";
+import { Deployer } from "src/test/dev/util/Deployer.sol";
+import { TestHelper } from "src/test/dev/TestHelper.sol";
+import { IConditionalTokens } from "src/adapters/interfaces/IConditionalTokens.sol";
+import { CTHelpers } from "src/adapters/libraries/CTHelpers.sol";
+import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
 
-import {Collateral, USDCe, CollateralSetup} from "src/test/dev/CollateralSetup.sol";
+import { Collateral, USDCe, CollateralSetup } from "src/test/dev/CollateralSetup.sol";
 
-import {CtfCollateralAdapter} from "src/adapters/CtfCollateralAdapter.sol";
+import { CtfCollateralAdapter } from "src/adapters/CtfCollateralAdapter.sol";
 
 contract CtfCollateralAdapterTest is TestHelper {
     address admin = alice;
@@ -32,9 +32,8 @@ contract CtfCollateralAdapterTest is TestHelper {
 
         conditionalTokens = IConditionalTokens(Deployer.deployConditionalTokens());
 
-        ctfCollateralAdapter = new CtfCollateralAdapter(
-            address(conditionalTokens), address(collateral.token), address(usdce)
-        );
+        ctfCollateralAdapter =
+            new CtfCollateralAdapter(address(conditionalTokens), address(collateral.token), address(usdce));
 
         vm.startPrank(admin);
         collateral.token.grantRoles(address(ctfCollateralAdapter), 1 << 1);
@@ -56,9 +55,7 @@ contract CtfCollateralAdapterTest is TestHelper {
         assertEq(collateral.token.balanceOf(alice), amount);
 
         collateral.token.approve(address(ctfCollateralAdapter), amount);
-        ctfCollateralAdapter.splitPosition(
-            address(0), bytes32(0), conditionId, CTFHelpers.partition(), amount
-        );
+        ctfCollateralAdapter.splitPosition(address(0), bytes32(0), conditionId, CTFHelpers.partition(), amount);
         vm.stopPrank();
 
         uint256[] memory positionIds = CTFHelpers.positionIds(address(usdce), conditionId);
@@ -78,9 +75,7 @@ contract CtfCollateralAdapterTest is TestHelper {
 
         vm.startPrank(brian);
         conditionalTokens.setApprovalForAll(address(ctfCollateralAdapter), true);
-        ctfCollateralAdapter.mergePositions(
-            address(0), bytes32(0), conditionId, CTFHelpers.partition(), amount
-        );
+        ctfCollateralAdapter.mergePositions(address(0), bytes32(0), conditionId, CTFHelpers.partition(), amount);
         vm.stopPrank();
 
         assertEq(collateral.token.balanceOf(brian), amount);
@@ -101,16 +96,12 @@ contract CtfCollateralAdapterTest is TestHelper {
         vm.startPrank(alice);
         conditionalTokens.setApprovalForAll(address(ctfCollateralAdapter), true);
         conditionalTokens.safeTransferFrom(alice, brian, positionIds[1], amount, "");
-        ctfCollateralAdapter.redeemPositions(
-            address(0), bytes32(0), conditionId, CTFHelpers.partition()
-        );
+        ctfCollateralAdapter.redeemPositions(address(0), bytes32(0), conditionId, CTFHelpers.partition());
         vm.stopPrank();
 
         vm.startPrank(brian);
         conditionalTokens.setApprovalForAll(address(ctfCollateralAdapter), true);
-        ctfCollateralAdapter.redeemPositions(
-            address(0), bytes32(0), conditionId, CTFHelpers.partition()
-        );
+        ctfCollateralAdapter.redeemPositions(address(0), bytes32(0), conditionId, CTFHelpers.partition());
         vm.stopPrank();
 
         assertEq(collateral.token.balanceOf(_outcome ? alice : brian), amount);

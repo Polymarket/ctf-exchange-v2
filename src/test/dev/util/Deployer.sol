@@ -21,10 +21,7 @@ library Deployer {
         return deployment;
     }
 
-    function deployNegRiskAdapter(address _ctf, address _collateral, address _vault)
-        internal
-        returns (address)
-    {
+    function deployNegRiskAdapter(address _ctf, address _collateral, address _vault) internal returns (address) {
         bytes memory args = abi.encode(_ctf, _collateral, _vault);
         address deployment = _deployCode("artifacts/NegRiskAdapter.json", args);
         vm.label(deployment, "NegRiskAdapter");

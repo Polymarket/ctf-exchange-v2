@@ -80,9 +80,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
 
         vm.startPrank(admin);
         usdce.approve(address(ctf), type(uint256).max);
-        IConditionalTokens(ctf).splitPosition(
-            address(usdce), bytes32(0), conditionId, CTFHelpers.partition(), amount
-        );
+        IConditionalTokens(ctf).splitPosition(address(usdce), bytes32(0), conditionId, CTFHelpers.partition(), amount);
         ERC1155(address(ctf)).safeTransferFrom(admin, to, tokenId, amount, "");
         vm.stopPrank();
 
@@ -312,9 +310,8 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
     function test_MatchOrdersCtfCollateralAdapter_Mint_Reverts_WhenAdapterUsdceMismatch() public {
         USDCe otherUsdce = new USDCe();
 
-        CtfCollateralAdapter badAdapter = new CtfCollateralAdapter(
-            address(ctf), address(collateral.token), address(otherUsdce)
-        );
+        CtfCollateralAdapter badAdapter =
+            new CtfCollateralAdapter(address(ctf), address(collateral.token), address(otherUsdce));
 
         vm.prank(admin);
         collateral.token.grantRoles(address(badAdapter), 1 << 1);
