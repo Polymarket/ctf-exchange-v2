@@ -48,11 +48,6 @@ contract CollateralToken is
         _;
     }
 
-    modifier onlyAdmin() {
-        require(hasRoles(msg.sender, _ROLE_0), OnlyAdmin());
-        _;
-    }
-
     /*--------------------------------------------------------------
                               CONSTRUCTOR
     --------------------------------------------------------------*/
@@ -72,8 +67,9 @@ contract CollateralToken is
     /// @notice Initializes the contract with the given owner.
     /// @dev This replaces the constructor for upgradeable contracts.
     /// @param _owner The address to set as the owner of the contract.
-    function initialize(address _owner) external initializer {
+    function initialize(address _owner, address _admin) external initializer {
         _initializeOwner(_owner);
+        _grantRoles(_admin, _ROLE_0);
     }
 
     /*--------------------------------------------------------------
@@ -154,18 +150,28 @@ contract CollateralToken is
                                ONLY ADMIN
     --------------------------------------------------------------*/
 
+    /// @notice Adds a new admin to the contract
+    /// @param _admin The address of the new admin
+    function addAdmin(address _admin) external onlyRoles(_ROLE_0) {
+        _grantRoles(_admin, _ROLE_0);
+    }
+
+    /// @notice Removes an admin from the contract
+    /// @param _admin The address of the admin to remove
+    function removeAdmin(address _admin) external onlyRoles(_ROLE_0) {
+        _removeRoles(_admin, _ROLE_0);
+    }
+
     /// @notice Adds a new router to the contract
     /// @param _router The address of the new router
-    /// @dev The caller must have the ROLE_0 role
-    function addRouter(address _router) external onlyAdmin {
-        grantRoles(_router, _ROLE_1);
+    function addRouter(address _router) external onlyRoles(_ROLE_0) {
+        _grantRoles(_router, _ROLE_1);
     }
 
     /// @notice Removes a router from the contract
     /// @param _router The address of the router to remove
-    /// @dev The caller must have the ROLE_0 role
-    function removeRouter(address _router) external onlyAdmin {
-        revokeRoles(_router, _ROLE_1);
+    function removeRouter(address _router) external onlyRoles(_ROLE_0) {
+        _removeRoles(_router, _ROLE_1);
     }
 
     /*--------------------------------------------------------------

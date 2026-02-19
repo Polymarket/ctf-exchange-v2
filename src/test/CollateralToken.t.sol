@@ -58,7 +58,7 @@ contract CollateralTokenTest is TestHelper {
         router = new MockCollateralTokenRouter(address(collateral.token));
 
         vm.prank(admin);
-        collateral.token.grantRoles(address(router), 1 << 1);
+        collateral.token.addRouter(address(router));
     }
 
     function test_CollateralToken_wrapUSDC() public {
@@ -168,6 +168,75 @@ contract CollateralTokenTest is TestHelper {
         vm.expectRevert(Unauthorized.selector);
         vm.prank(alice);
         collateral.token.unwrap(address(usdc), alice, amount, address(0), "");
+    }
+
+    function test_CollateralToken_addAdmin() public {
+        vm.prank(admin);
+        collateral.token.addAdmin(brian);
+
+        assertTrue(collateral.token.hasAnyRole(brian, 1 << 0));
+    }
+
+    function test_CollateralToken_removeAdmin() public {
+        vm.prank(admin);
+        collateral.token.addAdmin(brian);
+
+        vm.prank(admin);
+        collateral.token.removeAdmin(brian);
+
+        assertFalse(collateral.token.hasAnyRole(brian, 1 << 0));
+    }
+
+    function test_CollateralToken_addRouter() public {
+        address newRouter = address(0xBEEF);
+
+        vm.prank(admin);
+        collateral.token.addRouter(newRouter);
+
+        assertTrue(collateral.token.hasAnyRole(newRouter, 1 << 1));
+    }
+
+    function test_CollateralToken_removeRouter() public {
+        vm.prank(admin);
+        collateral.token.removeRouter(address(router));
+
+        assertFalse(collateral.token.hasAnyRole(address(router), 1 << 1));
+    }
+
+    function test_CollateralToken_adminCanAddRouter() public {
+        vm.prank(admin);
+        collateral.token.addAdmin(brian);
+
+        address newRouter = address(0xBEEF);
+
+        vm.prank(brian);
+        collateral.token.addRouter(newRouter);
+
+        assertTrue(collateral.token.hasAnyRole(newRouter, 1 << 1));
+    }
+
+    function test_revert_CollateralToken_addAdmin_unauthorized() public {
+        vm.expectRevert(Unauthorized.selector);
+        vm.prank(brian);
+        collateral.token.addAdmin(brian);
+    }
+
+    function test_revert_CollateralToken_removeAdmin_unauthorized() public {
+        vm.expectRevert(Unauthorized.selector);
+        vm.prank(brian);
+        collateral.token.removeAdmin(admin);
+    }
+
+    function test_revert_CollateralToken_addRouter_unauthorized() public {
+        vm.expectRevert(Unauthorized.selector);
+        vm.prank(brian);
+        collateral.token.addRouter(address(0xBEEF));
+    }
+
+    function test_revert_CollateralToken_removeRouter_unauthorized() public {
+        vm.expectRevert(Unauthorized.selector);
+        vm.prank(brian);
+        collateral.token.removeRouter(address(router));
     }
 
     function test_revert_CollateralToken_unwrap_insufficientBalance() public {

@@ -25,7 +25,11 @@ library CollateralSetup {
     uint256 internal constant ADMIN_ROLE = 1 << 0;
     uint256 internal constant COLLATERAL_GATEKEEPER_ROLE = 1 << 1;
 
-    function _deploy(address _owner) internal returns (Collateral memory) {
+    function _deploy(address _admin) internal returns (Collateral memory) {
+        return _deploy(_admin, _admin);
+    }
+
+    function _deploy(address _owner, address _admin) internal returns (Collateral memory) {
         Collateral memory collateral;
 
         collateral.usdc = new USDC();
@@ -43,16 +47,16 @@ library CollateralSetup {
         vm.label(collateralProxy, "CollateralToken");
 
         collateral.token = CollateralToken(collateralProxy);
-        collateral.token.initialize(_owner);
+        collateral.token.initialize(_owner, _admin);
 
-        collateral.onramp = new CollateralOnramp(_owner, address(collateral.token));
-        collateral.offramp = new CollateralOfframp(_owner, address(collateral.token));
+        collateral.onramp = new CollateralOnramp(_admin, address(collateral.token));
+        collateral.offramp = new CollateralOfframp(_admin, address(collateral.token));
 
-        vm.startPrank(_owner);
-        collateral.token.grantRoles(address(collateral.onramp), COLLATERAL_GATEKEEPER_ROLE);
-        collateral.token.grantRoles(address(collateral.offramp), COLLATERAL_GATEKEEPER_ROLE);
-        collateral.onramp.grantRoles(_owner, ADMIN_ROLE);
-        collateral.offramp.grantRoles(_owner, ADMIN_ROLE);
+        vm.startPrank(_admin);
+        collateral.token.addRouter(address(collateral.onramp));
+        collateral.token.addRouter(address(collateral.offramp));
+        collateral.onramp.grantRoles(_admin, ADMIN_ROLE);
+        collateral.offramp.grantRoles(_admin, ADMIN_ROLE);
 
         CollateralVault(collateral.vault)
             .approve(address(collateral.usdc), address(collateral.token), type(uint256).max);
