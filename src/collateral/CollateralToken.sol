@@ -175,7 +175,7 @@ contract CollateralToken is
     }
 
     /*--------------------------------------------------------------
-                               ONLY OWNER
+                          UUPS UPGRADE AUTHORIZATION
     --------------------------------------------------------------*/
 
     /// @dev Authorizes an upgrade to a new implementation.
