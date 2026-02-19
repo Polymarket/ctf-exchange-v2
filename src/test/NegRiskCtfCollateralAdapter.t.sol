@@ -46,7 +46,7 @@ contract NegRiskCtfCollateralAdapterTest is TestHelper {
         );
 
         vm.startPrank(admin);
-        collateral.token.grantRoles(address(negRiskCtfCollateralAdapter), 1 << 1);
+        collateral.token.addRouter(address(negRiskCtfCollateralAdapter));
         vm.stopPrank();
     }
 

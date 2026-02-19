@@ -45,7 +45,7 @@ contract MatchOrdersNegRiskCtfCollateralAdapterTest is BaseExchangeTest {
 
         // 4. Grant ROLE_1 (1 << 1) on CollateralToken to the adapter
         vm.prank(admin);
-        collateral.token.grantRoles(address(adapter), 1 << 1);
+        collateral.token.addRouter(address(adapter));
 
         // 5. Prepare NegRisk market + question
         bytes memory data = new bytes(0);
@@ -331,7 +331,7 @@ contract MatchOrdersNegRiskCtfCollateralAdapterTest is BaseExchangeTest {
         );
 
         vm.prank(admin);
-        collateral.token.grantRoles(address(badAdapter), 1 << 1);
+        collateral.token.addRouter(address(badAdapter));
 
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({

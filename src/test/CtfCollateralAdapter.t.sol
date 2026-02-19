@@ -36,7 +36,7 @@ contract CtfCollateralAdapterTest is TestHelper {
             new CtfCollateralAdapter(address(conditionalTokens), address(collateral.token), address(usdce));
 
         vm.startPrank(admin);
-        collateral.token.grantRoles(address(ctfCollateralAdapter), 1 << 1);
+        collateral.token.addRouter(address(ctfCollateralAdapter));
         vm.stopPrank();
 
         questionId = "questionId";

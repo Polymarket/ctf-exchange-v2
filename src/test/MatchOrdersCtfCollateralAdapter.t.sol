@@ -32,7 +32,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
 
         // 3. Grant ROLE_1 (1 << 1) on CollateralToken to the adapter
         vm.prank(admin);
-        collateral.token.grantRoles(address(adapter), 1 << 1);
+        collateral.token.addRouter(address(adapter));
 
         // 4. Recompute yes/no using usdce (CtfCollateralAdapter uses usdce for position IDs)
         uint256[] memory positionIds = CTFHelpers.positionIds(address(usdce), conditionId);
@@ -309,7 +309,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
             new CtfCollateralAdapter(address(ctf), address(collateral.token), address(otherUsdce));
 
         vm.prank(admin);
-        collateral.token.grantRoles(address(badAdapter), 1 << 1);
+        collateral.token.addRouter(address(badAdapter));
 
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({

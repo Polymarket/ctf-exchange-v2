@@ -45,9 +45,9 @@ contract GasSnapshotsNegRiskCtfCollateralAdapter is BaseExchangeTest {
         );
         vm.label(address(adapter), "NegRiskCtfCollateralAdapter");
 
-        // 4. Grant COLLATERAL_GATEKEEPER_ROLE (1 << 1) on CollateralToken to the adapter
+        // 4. Grant Router role on CollateralToken to the adapter
         vm.prank(admin);
-        collateral.token.grantRoles(address(adapter), 1 << 1);
+        collateral.token.addRouter(address(adapter));
 
         // 5. Prepare NegRisk market + question
         bytes memory data = new bytes(0);
