@@ -48,7 +48,7 @@ abstract contract Fees is IFees {
         if (maxFeeRate == 0) return;
         if (cashValue == 0) return;
         uint256 maxAllowedFee = (cashValue * maxFeeRate) / BPS_DENOMINATOR;
-        if (fee > maxAllowedFee) revert FeeExceedsMaxRate();
+        require(fee <= maxAllowedFee, FeeExceedsMaxRate());
     }
 
     /// @notice Sets the fee receiver address
@@ -61,7 +61,7 @@ abstract contract Fees is IFees {
     /// @notice Sets the maximum fee rate in basis points
     /// @param _maxFeeRateBps - The new max fee rate in bps (e.g., 500 = 5%), max (99.99%)
     function _setMaxFeeRate(uint256 _maxFeeRateBps) internal override {
-        if (_maxFeeRateBps >= MAX_FEE_RATE_BPS_CAP) revert MaxFeeRateExceedsCeiling();
+        require(_maxFeeRateBps < MAX_FEE_RATE_BPS_CAP, MaxFeeRateExceedsCeiling());
         maxFeeRateBps = _maxFeeRateBps;
         emit MaxFeeRateUpdated(_maxFeeRateBps);
     }

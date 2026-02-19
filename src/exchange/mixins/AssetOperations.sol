@@ -51,7 +51,7 @@ abstract contract AssetOperations is Assets, IAssetOperations {
 
     /// @dev Returns the binary partition [1, 2] for CTF operations
     function _getPartition() internal pure returns (uint256[] memory partition) {
-        assembly {
+        assembly ("memory-safe") {
             // Allocate memory for array: 32 bytes for length + 64 bytes for 2 elements
             partition := mload(0x40)
             mstore(partition, 2) // length = 2

@@ -20,10 +20,11 @@ abstract contract Signatures is ISignatures, PolyFactoryHelper {
     /// @notice Sets an order as preapproved
     /// @param orderHash - The hash of the order
     /// @param order     - The order
-    function _setPreapproved(bytes32 orderHash, Order memory order) internal {
-        if (!isValidSignature(order.signer, order.maker, orderHash, order.signature, order.signatureType)) {
-            revert InvalidSignature();
-        }
+    function _preapproveOrder(bytes32 orderHash, Order memory order) internal {
+        require(
+            isValidSignature(order.signer, order.maker, orderHash, order.signature, order.signatureType),
+            InvalidSignature()
+        );
 
         preapproved[orderHash] = true;
 
@@ -32,7 +33,7 @@ abstract contract Signatures is ISignatures, PolyFactoryHelper {
 
     /// @notice Invalidates a preapproval
     /// @param orderHash - The hash of the order
-    function _invalidatePreapproval(bytes32 orderHash) internal {
+    function _invalidatePreapprovedOrder(bytes32 orderHash) internal {
         preapproved[orderHash] = false;
 
         emit OrderPreapprovalInvalidated(orderHash);
@@ -42,10 +43,11 @@ abstract contract Signatures is ISignatures, PolyFactoryHelper {
     /// @param orderHash - The hash of the order
     /// @param order     - The order
     function validateOrderSignature(bytes32 orderHash, Order memory order) public view override {
-        if (
-            !isValidSignature(order.signer, order.maker, orderHash, order.signature, order.signatureType)
-                && !isPreapproved(orderHash)
-        ) revert InvalidSignature();
+        require(
+            isValidSignature(order.signer, order.maker, orderHash, order.signature, order.signatureType)
+                || isPreapproved(orderHash),
+            InvalidSignature()
+        );
     }
 
     /// @notice Verifies a signature for signed Order structs

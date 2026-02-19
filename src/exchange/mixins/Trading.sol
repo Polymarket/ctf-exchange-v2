@@ -47,17 +47,17 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
     function validateOrder(Order memory order) external view {
         bytes32 orderHash = hashOrder(order);
 
-        if (orderStatus[orderHash].filled) revert OrderAlreadyFilled();
+        require(!orderStatus[orderHash].filled, OrderAlreadyFilled());
 
         _validateOrder(orderHash, order);
     }
 
     function _validateOrder(bytes32 orderHash, Order memory order) internal view {
+        // Validate that the user is not paused
+        require(!isUserPaused(order.maker), UserIsPaused());
+
         // Validate signature
         validateOrderSignature(orderHash, order);
-
-        // Validate that the user is not paused
-        if (isUserPaused(order.maker)) revert UserIsPaused();
     }
 
     /// @notice Matches orders against each other
@@ -185,7 +185,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
             _transfer(makerOrder.maker, taker, makerOrder.tokenId, fillAmount); // CTF: maker → taker
             uint256 makerReceives = taking;
             if (feeAmount > 0) {
-                if (feeAmount > taking) revert FeeExceedsProceeds();
+                require(feeAmount <= taking, FeeExceedsProceeds());
                 unchecked {
                     makerReceives -= feeAmount;
                 }
@@ -232,7 +232,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         } else {
             uint256 takerProceeds = totalTakerReceives;
             if (takerFeeAmount > 0) {
-                if (takerFeeAmount > totalTakerReceives) revert FeeExceedsProceeds();
+                require(takerFeeAmount <= totalTakerReceives, FeeExceedsProceeds());
                 unchecked {
                     takerProceeds -= takerFeeAmount;
                 }
@@ -273,7 +273,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         uint256 proceeds = takingAmount;
         if (side == Side.SELL) {
             // SELL: fee deducted from proceeds, will be batched
-            if (feeAmount > takingAmount) revert FeeExceedsProceeds();
+            require(feeAmount <= takingAmount, FeeExceedsProceeds());
             unchecked {
                 proceeds = takingAmount - feeAmount; // safety: feeAmount <= takingAmount checked above
             }
@@ -400,7 +400,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         uint256 proceeds = p.takingAmount;
         if (p.side == Side.SELL) {
             // SELL: fee deducted from proceeds, will be batched
-            if (p.feeAmount > p.takingAmount) revert FeeExceedsProceeds();
+            require(p.feeAmount <= p.takingAmount, FeeExceedsProceeds());
             unchecked {
                 proceeds = p.takingAmount - p.feeAmount; // safety: feeAmount <= takingAmount checked above
             }
@@ -475,9 +475,11 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         MatchType matchType;
         Side takerOrderSide = takerOrder.side;
         Side makerOrderSide = makerOrder.side;
+
         assembly ("memory-safe") {
             matchType := mul(add(takerOrderSide, 1), eq(takerOrderSide, makerOrderSide))
         }
+
         return matchType;
     }
 
@@ -529,9 +531,9 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
                 revert NotCrossing();
             }
 
-            if (takerOrder.tokenId != makerOrder.tokenId) revert MismatchedTokenIds();
+            require(takerOrder.tokenId == makerOrder.tokenId, MismatchedTokenIds());
         } else {
-            if (!CalculatorHelper.isCrossing(takerOrder, makerOrder)) revert NotCrossing();
+            require(CalculatorHelper.isCrossing(takerOrder, makerOrder), NotCrossing());
         }
     }
 
@@ -559,13 +561,13 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         }
 
         // Validate that the order can be filled
-        if (filled) revert OrderAlreadyFilled();
+        require(!filled, OrderAlreadyFilled());
 
         // Update remaining if the order is new/has not been filled
         remaining = remaining == 0 ? order.makerAmount : remaining;
 
         // Throw if the makingAmount(amount to be filled) is greater than the amount available
-        if (makingAmount > remaining) revert MakingGtRemaining();
+        require(makingAmount <= remaining, MakingGtRemaining());
 
         unchecked {
             remaining = remaining - makingAmount; // safety: makingAmount <= remaining checked above
@@ -580,7 +582,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
 
     function _updateTakingWithSurplus(uint256 minimumAmount, uint256 tokenId) internal view returns (uint256) {
         uint256 actualAmount = _getBalance(tokenId);
-        if (actualAmount < minimumAmount) revert TooLittleTokensReceived();
+        require(actualAmount >= minimumAmount, TooLittleTokensReceived());
         return actualAmount;
     }
 }

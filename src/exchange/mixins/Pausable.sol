@@ -7,7 +7,7 @@ abstract contract Pausable is IPausable {
     bool public paused = false;
 
     modifier notPaused() {
-        if (paused) revert Paused();
+        require(!paused, Paused());
         _;
     }
 

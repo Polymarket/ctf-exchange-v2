@@ -15,6 +15,10 @@ import { ExchangeInitParams, Order } from "./libraries/Structs.sol";
 /// @notice Implements logic for trading CTF assets
 /// @author Polymarket
 contract CTFExchange is Auth, ERC1155TokenReceiver, Pausable, Trading {
+    /*--------------------------------------------------------------
+                              CONSTRUCTOR
+    --------------------------------------------------------------*/
+
     constructor(ExchangeInitParams memory params)
         Auth(params.admin)
         Assets(params.collateral, params.ctf, params.outcomeTokenFactory)
@@ -22,23 +26,9 @@ contract CTFExchange is Auth, ERC1155TokenReceiver, Pausable, Trading {
         Fees(params.feeReceiver)
     { }
 
-    /*//////////////////////////////////////////////////////////////
-                        PAUSE
-    //////////////////////////////////////////////////////////////*/
-
-    /// @notice Pause trading on the Exchange
-    function pauseTrading() external onlyAdmin {
-        _pauseTrading();
-    }
-
-    /// @notice Unpause trading on the Exchange
-    function unpauseTrading() external onlyAdmin {
-        _unpauseTrading();
-    }
-
-    /*//////////////////////////////////////////////////////////////
-                        TRADING
-    //////////////////////////////////////////////////////////////*/
+    /*--------------------------------------------------------------
+                             ONLY OPERATOR
+    --------------------------------------------------------------*/
 
     /// @notice Matches a taker order against a list of maker orders
     /// @param conditionId          - The conditionId of the market being traded
@@ -64,27 +54,33 @@ contract CTFExchange is Auth, ERC1155TokenReceiver, Pausable, Trading {
         );
     }
 
-    /*//////////////////////////////////////////////////////////////
-                        PREAPPROVED ORDERS
-    //////////////////////////////////////////////////////////////*/
-
     /// @notice Entrypoint to set an order as preapproved
     /// @param order - The order to be set as preapproved
-    function setPreapproved(Order memory order) external onlyOperator {
+    function preapproveOrder(Order memory order) external onlyOperator {
         bytes32 orderHash = hashOrder(order);
 
-        _setPreapproved(orderHash, order);
+        _preapproveOrder(orderHash, order);
     }
 
     /// @notice Entrypoint to invalidate a preapproval
     /// @param orderHash - The hash of the order to invalidate
-    function invalidatePreapproval(bytes32 orderHash) external onlyOperator {
-        _invalidatePreapproval(orderHash);
+    function invalidatePreapprovedOrder(bytes32 orderHash) external onlyOperator {
+        _invalidatePreapprovedOrder(orderHash);
     }
 
-    /*//////////////////////////////////////////////////////////////
-                        CONFIGURATION
-    //////////////////////////////////////////////////////////////*/
+    /*--------------------------------------------------------------
+                               ONLY ADMIN
+    --------------------------------------------------------------*/
+
+    /// @notice Pause trading on the Exchange
+    function pauseTrading() external onlyAdmin {
+        _pauseTrading();
+    }
+
+    /// @notice Unpause trading on the Exchange
+    function unpauseTrading() external onlyAdmin {
+        _unpauseTrading();
+    }
 
     /// @notice Sets the user pause block interval
     /// @param _interval - The new user pause block interval

@@ -13,12 +13,12 @@ abstract contract Auth is IAuth {
     mapping(address => uint256) internal operators;
 
     modifier onlyAdmin() {
-        if (admins[msg.sender] != 1) revert NotAdmin();
+        require(admins[msg.sender] == 1, NotAdmin());
         _;
     }
 
     modifier onlyOperator() {
-        if (operators[msg.sender] != 1) revert NotOperator();
+        require(operators[msg.sender] == 1, NotOperator());
         _;
     }
 
