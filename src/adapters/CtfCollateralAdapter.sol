@@ -6,14 +6,13 @@ import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 import { IConditionalTokens } from "src/adapters/interfaces/IConditionalTokens.sol";
 import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
 import { CollateralToken } from "src/collateral/CollateralToken.sol";
-import { ICollateralTokenCallbacks } from "src/collateral/interfaces/ICollateralTokenCallbacks.sol";
 import { ERC1155TokenReceiver } from "src/exchange/mixins/ERC1155TokenReceiver.sol";
 
 /// @title CtfCollateralAdapter
 /// @author Polymarket
 /// @notice An adapter for interfacing with ConditionalTokens Markets
 ///         using the PolymarketCollateralToken
-contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks {
+contract CtfCollateralAdapter is ERC1155TokenReceiver {
     using SafeTransferLib for address;
 
     /*--------------------------------------------------------------
@@ -45,7 +44,7 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
         external
     {
         collateralToken.safeTransferFrom(msg.sender, collateralToken, _amount);
-        CollateralToken(collateralToken).unwrap(usdce, address(this), _amount, "");
+        CollateralToken(collateralToken).unwrap(usdce, address(this), _amount, address(0), "");
 
         _splitPosition(_conditionId, _partition, _amount);
 
@@ -71,7 +70,7 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
         _mergePositions(_conditionId, _partition, _amount);
 
         usdce.safeTransfer(collateralToken, _amount);
-        CollateralToken(collateralToken).wrap(usdce, msg.sender, _amount, "");
+        CollateralToken(collateralToken).wrap(usdce, msg.sender, _amount, address(0), "");
     }
 
     function redeemPositions(address, bytes32, bytes32 _conditionId, uint256[] calldata) external {
@@ -88,7 +87,7 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
         uint256 amount = usdce.balanceOf(address(this));
 
         usdce.safeTransfer(collateralToken, amount);
-        CollateralToken(collateralToken).wrap(usdce, msg.sender, amount, "");
+        CollateralToken(collateralToken).wrap(usdce, msg.sender, amount, address(0), "");
     }
 
     /*--------------------------------------------------------------
@@ -111,10 +110,4 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
         conditionalTokens.redeemPositions(usdce, bytes32(0), _conditionId, indexSets);
     }
 
-    /*--------------------------------------------------------------
-                               CALLBACKS
-    --------------------------------------------------------------*/
-
-    function wrapCallback(address, address, uint256, bytes calldata) external { }
-    function unwrapCallback(address, address, uint256, bytes calldata) external { }
 }

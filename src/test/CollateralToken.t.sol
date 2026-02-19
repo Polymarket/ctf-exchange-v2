@@ -20,12 +20,12 @@ contract MockCollateralTokenRouter is ICollateralTokenCallbacks {
 
     function wrap(address _asset, address _to, uint256 _amount) external {
         bytes memory data = abi.encode(msg.sender);
-        CollateralToken(collateralToken).wrap(_asset, _to, _amount, data);
+        CollateralToken(collateralToken).wrap(_asset, _to, _amount, address(this), data);
     }
 
     function unwrap(address _asset, address _to, uint256 _amount) external {
         bytes memory data = abi.encode(msg.sender);
-        CollateralToken(collateralToken).unwrap(_asset, _to, _amount, data);
+        CollateralToken(collateralToken).unwrap(_asset, _to, _amount, address(this), data);
     }
 
     function wrapCallback(address _asset, address, uint256 _amount, bytes calldata _data) external {
@@ -159,7 +159,7 @@ contract CollateralTokenTest is TestHelper {
 
         vm.expectRevert(Unauthorized.selector);
         vm.prank(alice);
-        collateral.token.wrap(address(usdc), alice, amount, "");
+        collateral.token.wrap(address(usdc), alice, amount, address(0), "");
     }
 
     function test_revert_CollateralToken_unwrap_unauthorized() public {
@@ -167,7 +167,7 @@ contract CollateralTokenTest is TestHelper {
 
         vm.expectRevert(Unauthorized.selector);
         vm.prank(alice);
-        collateral.token.unwrap(address(usdc), alice, amount, "");
+        collateral.token.unwrap(address(usdc), alice, amount, address(0), "");
     }
 
     function test_revert_CollateralToken_unwrap_insufficientBalance() public {

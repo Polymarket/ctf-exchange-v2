@@ -31,8 +31,6 @@ contract CollateralOfframp is OwnableRoles, CollateralErrors, Pausable {
     /// @dev The asset must not be paused
     function unwrap(address _asset, address _to, uint256 _amount) external onlyUnpaused(_asset) {
         collateralToken.safeTransferFrom(msg.sender, collateralToken, _amount);
-        CollateralToken(collateralToken).unwrap(_asset, _to, _amount, "");
+        CollateralToken(collateralToken).unwrap(_asset, _to, _amount, address(0), "");
     }
-
-    function unwrapCallback(address, address, uint256, bytes calldata) external { }
 }

@@ -74,7 +74,7 @@ contract CollateralToken is
     /// @dev The caller must have the ROLE_1 role
     /// @dev The asset must be transferred into this contract either before calling this function or
     ///      in the callback
-    function wrap(address _asset, address _to, uint256 _amount, bytes calldata _data)
+    function wrap(address _asset, address _to, uint256 _amount, address _callback, bytes calldata _data)
         external
         onlyRoles(_ROLE_1)
         onlyValidAsset(_asset)
@@ -83,7 +83,9 @@ contract CollateralToken is
         _mint(_to, _amount);
 
         // callback
-        ICollateralTokenCallbacks(msg.sender).wrapCallback(_asset, _to, _amount, _data);
+        if (_callback != address(0)) {
+            ICollateralTokenCallbacks(_callback).wrapCallback(_asset, _to, _amount, _data);
+        }
 
         // transfer asset to the vault
         _asset.safeTransfer(vault, _amount);
@@ -99,7 +101,7 @@ contract CollateralToken is
     /// @dev The caller must have the ROLE_1 role
     /// @dev The asset must be transferred into this contract either before calling this function or
     ///      in the callback
-    function unwrap(address _asset, address _to, uint256 _amount, bytes calldata _data)
+    function unwrap(address _asset, address _to, uint256 _amount, address _callback, bytes calldata _data)
         external
         onlyRoles(_ROLE_1)
         onlyValidAsset(_asset)
@@ -108,7 +110,9 @@ contract CollateralToken is
         _asset.safeTransferFrom(vault, _to, _amount);
 
         // callback
-        ICollateralTokenCallbacks(msg.sender).unwrapCallback(_asset, _to, _amount, _data);
+        if (_callback != address(0)) {
+            ICollateralTokenCallbacks(_callback).unwrapCallback(_asset, _to, _amount, _data);
+        }
 
         // burn
         _burn(address(this), _amount);
