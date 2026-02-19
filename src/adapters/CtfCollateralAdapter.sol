@@ -83,7 +83,7 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
 
         conditionalTokens.safeBatchTransferFrom(msg.sender, address(this), positionIds, amounts, "");
 
-        _redeemPositions(_conditionId, amounts);
+        _redeemPositions(_conditionId, CTFHelpers.partition());
 
         uint256 amount = usdce.balanceOf(address(this));
 
@@ -107,8 +107,8 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
         conditionalTokens.mergePositions(usdce, bytes32(0), _conditionId, _partition, _amount);
     }
 
-    function _redeemPositions(bytes32 _conditionId, uint256[] memory) internal virtual {
-        conditionalTokens.redeemPositions(usdce, bytes32(0), _conditionId, CTFHelpers.partition());
+    function _redeemPositions(bytes32 _conditionId, uint256[] memory indexSets) internal virtual {
+        conditionalTokens.redeemPositions(usdce, bytes32(0), _conditionId, indexSets);
     }
 
     /*--------------------------------------------------------------

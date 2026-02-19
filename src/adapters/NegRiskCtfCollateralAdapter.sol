@@ -56,7 +56,11 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
         INegRiskAdapter(negRiskAdapter).mergePositions(_conditionId, _amount);
     }
 
-    function _redeemPositions(bytes32 _conditionId, uint256[] memory _amounts) internal virtual override {
-        INegRiskAdapter(negRiskAdapter).redeemPositions(_conditionId, _amounts);
+    function _redeemPositions(bytes32 _conditionId, uint256[] memory) internal virtual override {
+        uint256[] memory positionIds = _getPositionIds(_conditionId);
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = conditionalTokens.balanceOf(address(this), positionIds[0]);
+        amounts[1] = conditionalTokens.balanceOf(address(this), positionIds[1]);
+        INegRiskAdapter(negRiskAdapter).redeemPositions(_conditionId, amounts);
     }
 }

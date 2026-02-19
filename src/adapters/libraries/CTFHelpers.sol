@@ -32,11 +32,5 @@ library CTFHelpers {
             mstore(add(partition_, 0x40), 2)
             mstore(0x40, add(partition_, 0x60))
         }
-        // uint256[] memory partition_ = new uint256[](2);
-        // // YES
-        // partition_[0] = 1;
-        // // NO
-        // partition_[1] = 2;
-        // return partition_;
     }
 }

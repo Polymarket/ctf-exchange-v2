@@ -533,7 +533,19 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
 
             require(takerOrder.tokenId == makerOrder.tokenId, MismatchedTokenIds());
         } else {
-            require(CalculatorHelper.isCrossing(takerOrder, makerOrder), NotCrossing());
+            if (matchType == MatchType.MINT) {
+                require(
+                    takerOrder.takerAmount * makerOrder.makerAmount + makerOrder.takerAmount * takerOrder.makerAmount
+                        >= takerOrder.takerAmount * makerOrder.takerAmount,
+                    NotCrossing()
+                );
+            } else {
+                require(
+                    takerOrder.takerAmount * makerOrder.makerAmount + makerOrder.takerAmount * takerOrder.makerAmount
+                        <= takerOrder.makerAmount * makerOrder.makerAmount,
+                    NotCrossing()
+                );
+            }
         }
     }
 
