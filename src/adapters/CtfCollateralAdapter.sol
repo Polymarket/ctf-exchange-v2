@@ -109,5 +109,4 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver {
     function _redeemPositions(bytes32 _conditionId, uint256[] memory indexSets) internal virtual {
         conditionalTokens.redeemPositions(usdce, bytes32(0), _conditionId, indexSets);
     }
-
 }
