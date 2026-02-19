@@ -53,11 +53,11 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
     }
 
     function _validateOrder(bytes32 orderHash, Order memory order) internal view {
-        // Validate that the user is not paused
-        require(!isUserPaused(order.maker), UserIsPaused());
-
         // Validate signature
         validateOrderSignature(orderHash, order);
+
+        // Validate that the user is not paused
+        require(!isUserPaused(order.maker), UserIsPaused());
     }
 
     /// @notice Matches orders against each other
