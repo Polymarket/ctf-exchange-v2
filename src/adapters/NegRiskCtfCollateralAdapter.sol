@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
 import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 
+import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
 import { INegRiskAdapter } from "src/adapters/interfaces/INegRiskAdapter.sol";
 
 import { CtfCollateralAdapter } from "./CtfCollateralAdapter.sol";
@@ -59,8 +59,10 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
     function _redeemPositions(bytes32 _conditionId, uint256[] memory) internal virtual override {
         uint256[] memory positionIds = _getPositionIds(_conditionId);
         uint256[] memory amounts = new uint256[](2);
+
         amounts[0] = conditionalTokens.balanceOf(address(this), positionIds[0]);
         amounts[1] = conditionalTokens.balanceOf(address(this), positionIds[1]);
+
         INegRiskAdapter(negRiskAdapter).redeemPositions(_conditionId, amounts);
     }
 }

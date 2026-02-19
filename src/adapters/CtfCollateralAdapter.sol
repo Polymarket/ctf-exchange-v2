@@ -3,11 +3,11 @@ pragma solidity 0.8.30;
 
 import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 
-import { ERC1155TokenReceiver } from "src/exchange/mixins/ERC1155TokenReceiver.sol";
-import { CollateralToken } from "src/collateral/CollateralToken.sol";
-import { ICollateralTokenCallbacks } from "src/collateral/interfaces/ICollateralTokenCallbacks.sol";
 import { IConditionalTokens } from "src/adapters/interfaces/IConditionalTokens.sol";
 import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
+import { CollateralToken } from "src/collateral/CollateralToken.sol";
+import { ICollateralTokenCallbacks } from "src/collateral/interfaces/ICollateralTokenCallbacks.sol";
+import { ERC1155TokenReceiver } from "src/exchange/mixins/ERC1155TokenReceiver.sol";
 
 /// @title CtfCollateralAdapter
 /// @author Polymarket
