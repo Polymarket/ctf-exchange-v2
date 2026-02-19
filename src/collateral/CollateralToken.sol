@@ -18,7 +18,8 @@ abstract contract CollateralTokenEvents {
 
 /// @title CollateralToken
 /// @author Polymarket
-/// @notice ROLE_1: Wrapper/Unwrapper
+/// @notice ROLE_0: Admin
+/// @notice ROLE_1: Router
 contract CollateralToken is
     UUPSUpgradeable,
     Initializable,
@@ -30,14 +31,31 @@ contract CollateralToken is
 {
     using SafeTransferLib for address;
 
+    /*--------------------------------------------------------------
+                                 STATE
+    --------------------------------------------------------------*/
+
     address public immutable usdc;
     address public immutable usdce;
     address public immutable vault;
+
+    /*--------------------------------------------------------------
+                               MODIFIERS
+    --------------------------------------------------------------*/
 
     modifier onlyValidAsset(address _asset) {
         require(_asset == usdc || _asset == usdce, InvalidAsset());
         _;
     }
+
+    modifier onlyAdmin() {
+        require(hasRoles(msg.sender, _ROLE_0), OnlyAdmin());
+        _;
+    }
+
+    /*--------------------------------------------------------------
+                              CONSTRUCTOR
+    --------------------------------------------------------------*/
 
     constructor(address _usdc, address _usdce, address _vault) {
         usdc = _usdc;
@@ -47,12 +65,20 @@ contract CollateralToken is
         _disableInitializers();
     }
 
+    /*--------------------------------------------------------------
+                               INITIALIZE
+    --------------------------------------------------------------*/
+
     /// @notice Initializes the contract with the given owner.
     /// @dev This replaces the constructor for upgradeable contracts.
     /// @param _owner The address to set as the owner of the contract.
     function initialize(address _owner) external initializer {
         _initializeOwner(_owner);
     }
+
+    /*--------------------------------------------------------------
+                                  VIEW
+    --------------------------------------------------------------*/
 
     function name() public pure override returns (string memory) {
         return "PolyMarketCollateralToken";
@@ -65,6 +91,10 @@ contract CollateralToken is
     function decimals() public pure override returns (uint8) {
         return 6;
     }
+
+    /*--------------------------------------------------------------
+                                EXTERNAL
+    --------------------------------------------------------------*/
 
     /// @notice Wraps a supported asset into the collateral token
     /// @param _asset The asset to wrap
@@ -120,8 +150,30 @@ contract CollateralToken is
         emit Unwrapped(msg.sender, _asset, _to, _amount);
     }
 
+    /*--------------------------------------------------------------
+                               ONLY ADMIN
+    --------------------------------------------------------------*/
+
+    /// @notice Adds a new router to the contract
+    /// @param _router The address of the new router
+    /// @dev The caller must have the ROLE_0 role
+    function addRouter(address _router) external onlyAdmin {
+        grantRoles(_router, _ROLE_1);
+    }
+
+    /// @notice Removes a router from the contract
+    /// @param _router The address of the router to remove
+    /// @dev The caller must have the ROLE_0 role
+    function removeRouter(address _router) external onlyAdmin {
+        revokeRoles(_router, _ROLE_1);
+    }
+
+    /*--------------------------------------------------------------
+                               ONLY OWNER
+    --------------------------------------------------------------*/
+
     /// @dev Authorizes an upgrade to a new implementation.
     /// @dev Only the owner can authorize upgrades.
-    /// @param newImplementation The address of the new implementation contract.
-    function _authorizeUpgrade(address newImplementation) internal override onlyOwner { }
+    /// @param _newImplementation The address of the new implementation contract.
+    function _authorizeUpgrade(address _newImplementation) internal override onlyOwner { }
 }

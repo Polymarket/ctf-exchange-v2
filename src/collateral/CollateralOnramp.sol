@@ -16,13 +16,25 @@ import { CollateralToken } from "./CollateralToken.sol";
 contract CollateralOnramp is OwnableRoles, CollateralErrors, Pausable {
     using SafeTransferLib for address;
 
+    /*--------------------------------------------------------------
+                                 STATE
+    --------------------------------------------------------------*/
+
     address public immutable collateralToken;
+
+    /*--------------------------------------------------------------
+                              CONSTRUCTOR
+    --------------------------------------------------------------*/
 
     constructor(address _owner, address _collateralToken) {
         collateralToken = _collateralToken;
 
         _initializeOwner(_owner);
     }
+
+    /*--------------------------------------------------------------
+                                EXTERNAL
+    --------------------------------------------------------------*/
 
     /// @notice Wraps a supported asset into the collateral token
     /// @param _asset The asset to wrap
