@@ -22,44 +22,21 @@ library CTFHelpers {
         return positionIds_;
     }
 
-    /// @notice Returns an array with each element set to the same value
-    /// @param _length  - the length of the array
-    /// @param _value   - the value of each element
-    /// @return values_ - the array of values
-    function values(uint256 _length, uint256 _value) internal pure returns (uint256[] memory) {
-        uint256[] memory values_ = new uint256[](_length);
-        uint256 i;
-
-        while (i < _length) {
-            values_[i] = _value;
-            unchecked {
-                ++i;
-            }
-        }
-        return values_;
-    }
-
     /// @notice returns the partition for a binary conditional token
-    /// @return partition - the partition [1,2] = [0b01, 0b10]
-    function partition() internal pure returns (uint256[] memory) {
-        uint256[] memory partition_ = new uint256[](2);
-        // YES
-        partition_[0] = 1;
-        // NO
-        partition_[1] = 2;
-        return partition_;
-    }
-
-    /// @notice returns the payouts for a binary conditional token
-    /// @notice payouts are [1,0] if _outcome is true and [0,1] otherwise
-    /// @param _outcome - the boolean outcome
-    /// @return payouts - the payouts
-    function payouts(bool _outcome) internal pure returns (uint256[] memory) {
-        uint256[] memory payouts_ = new uint256[](2);
-        // YES
-        payouts_[0] = _outcome ? 1 : 0;
-        // NO
-        payouts_[1] = _outcome ? 0 : 1;
-        return payouts_;
+    /// @return partition_ - the partition [1,2] = [0b01, 0b10]
+    function partition() internal pure returns (uint256[] memory partition_) {
+        assembly ("memory-safe") {
+            partition_ := mload(0x40)
+            mstore(partition_, 2)
+            mstore(add(partition_, 0x20), 1)
+            mstore(add(partition_, 0x40), 2)
+            mstore(0x40, add(partition_, 0x60))
+        }
+        // uint256[] memory partition_ = new uint256[](2);
+        // // YES
+        // partition_[0] = 1;
+        // // NO
+        // partition_[1] = 2;
+        // return partition_;
     }
 }

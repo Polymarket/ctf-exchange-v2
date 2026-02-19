@@ -62,6 +62,7 @@ abstract contract Fees is IFees {
     /// @param _maxFeeRateBps - The new max fee rate in bps (e.g., 500 = 5%), max (99.99%)
     function _setMaxFeeRate(uint256 _maxFeeRateBps) internal override {
         require(_maxFeeRateBps < MAX_FEE_RATE_BPS_CAP, MaxFeeRateExceedsCeiling());
+
         maxFeeRateBps = _maxFeeRateBps;
         emit MaxFeeRateUpdated(_maxFeeRateBps);
     }

@@ -41,11 +41,13 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
                                 EXTERNAL
     --------------------------------------------------------------*/
 
-    function splitPosition(address, bytes32, bytes32 _conditionId, uint256[] calldata, uint256 _amount) external {
+    function splitPosition(address, bytes32, bytes32 _conditionId, uint256[] calldata _partition, uint256 _amount)
+        external
+    {
         collateralToken.safeTransferFrom(msg.sender, collateralToken, _amount);
         CollateralToken(collateralToken).unwrap(usdce, address(this), _amount, "");
 
-        _splitPosition(_conditionId, _amount);
+        _splitPosition(_conditionId, _partition, _amount);
 
         uint256[] memory positionIds = _getPositionIds(_conditionId);
         uint256[] memory amounts = new uint256[](2);
@@ -55,7 +57,9 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
         conditionalTokens.safeBatchTransferFrom(address(this), msg.sender, positionIds, amounts, "");
     }
 
-    function mergePositions(address, bytes32, bytes32 _conditionId, uint256[] calldata, uint256 _amount) external {
+    function mergePositions(address, bytes32, bytes32 _conditionId, uint256[] calldata _partition, uint256 _amount)
+        external
+    {
         uint256[] memory positionIds = _getPositionIds(_conditionId);
 
         uint256[] memory amounts = new uint256[](2);
@@ -64,7 +68,7 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
 
         conditionalTokens.safeBatchTransferFrom(msg.sender, address(this), positionIds, amounts, "");
 
-        _mergePositions(_conditionId, _amount);
+        _mergePositions(_conditionId, _partition, _amount);
 
         usdce.safeTransfer(collateralToken, _amount);
         CollateralToken(collateralToken).wrap(usdce, msg.sender, _amount, "");
@@ -95,12 +99,12 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver, ICollateralTokenCallbacks
         return CTFHelpers.positionIds(usdce, _conditionId);
     }
 
-    function _splitPosition(bytes32 _conditionId, uint256 _amount) internal virtual {
-        conditionalTokens.splitPosition(usdce, bytes32(0), _conditionId, CTFHelpers.partition(), _amount);
+    function _splitPosition(bytes32 _conditionId, uint256[] calldata _partition, uint256 _amount) internal virtual {
+        conditionalTokens.splitPosition(usdce, bytes32(0), _conditionId, _partition, _amount);
     }
 
-    function _mergePositions(bytes32 _conditionId, uint256 _amount) internal virtual {
-        conditionalTokens.mergePositions(usdce, bytes32(0), _conditionId, CTFHelpers.partition(), _amount);
+    function _mergePositions(bytes32 _conditionId, uint256[] calldata _partition, uint256 _amount) internal virtual {
+        conditionalTokens.mergePositions(usdce, bytes32(0), _conditionId, _partition, _amount);
     }
 
     function _redeemPositions(bytes32 _conditionId, uint256[] memory) internal virtual {

@@ -6,8 +6,6 @@ import { Order, Side, ExchangeInitParams } from "src/exchange/libraries/Structs.
 import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
 
 import { CTFExchange } from "src/exchange/CTFExchange.sol";
-import { PolyProxyFactoryMock } from "./dev/mocks/PolyProxyFactoryMock.sol";
-import { PolySafeFactoryMock } from "./dev/mocks/PolySafeFactoryMock.sol";
 
 import { Collateral, CollateralSetup } from "src/test/dev/CollateralSetup.sol";
 import { USDCe } from "src/test/dev/mocks/USDCe.sol";
@@ -42,17 +40,14 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         no = positionIds[1];
 
         // 5. Create new CTFExchange with collateral: collateralToken, outcomeTokenFactory: adapter
-        PolyProxyFactoryMock mockProxyFactory = new PolyProxyFactoryMock(address(0x1234));
-        PolySafeFactoryMock mockSafeFactory = new PolySafeFactoryMock(address(0x5678));
-
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({
             admin: admin,
             collateral: address(collateral.token),
             ctf: address(ctf),
             outcomeTokenFactory: address(adapter),
-            proxyFactory: address(mockProxyFactory),
-            safeFactory: address(mockSafeFactory),
+            proxyFactory: proxyFactory,
+            safeFactory: safeFactory,
             feeReceiver: feeReceiver
         });
 
@@ -316,17 +311,14 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         vm.prank(admin);
         collateral.token.grantRoles(address(badAdapter), 1 << 1);
 
-        PolyProxyFactoryMock mockProxyFactory = new PolyProxyFactoryMock(address(0x1234));
-        PolySafeFactoryMock mockSafeFactory = new PolySafeFactoryMock(address(0x5678));
-
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({
             admin: admin,
             collateral: address(collateral.token),
             ctf: address(ctf),
             outcomeTokenFactory: address(badAdapter),
-            proxyFactory: address(mockProxyFactory),
-            safeFactory: address(mockSafeFactory),
+            proxyFactory: proxyFactory,
+            safeFactory: safeFactory,
             feeReceiver: feeReceiver
         });
 

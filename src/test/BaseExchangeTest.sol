@@ -5,8 +5,8 @@ import { TestHelper } from "./dev/TestHelper.sol";
 
 import { USDC } from "./dev/mocks/USDC.sol";
 import { ERC1271Mock } from "./dev/mocks/ERC1271Mock.sol";
-import { PolyProxyFactoryMock } from "./dev/mocks/PolyProxyFactoryMock.sol";
-import { PolySafeFactoryMock } from "./dev/mocks/PolySafeFactoryMock.sol";
+import { MockProxyFactory } from "./dev/mocks/MockProxyFactory.sol";
+import { MockSafeFactory } from "./dev/mocks/MockSafeFactory.sol";
 
 import { Deployer } from "./dev/util/Deployer.sol";
 
@@ -42,6 +42,9 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITrading
     address public carla;
     address public feeReceiver = address(9);
 
+    address public proxyFactory;
+    address public safeFactory;
+
     ERC1271Mock public contractWallet;
 
     // ERC20 transfer event
@@ -73,8 +76,8 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITrading
         contractWallet = new ERC1271Mock(carla);
 
         // Deploy mock factories
-        PolyProxyFactoryMock proxyFactory = new PolyProxyFactoryMock(address(0x1234));
-        PolySafeFactoryMock safeFactory = new PolySafeFactoryMock(address(0x5678));
+        proxyFactory = address(new MockProxyFactory());
+        safeFactory = address(new MockSafeFactory());
 
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({
@@ -82,8 +85,8 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITrading
             collateral: address(usdc),
             ctf: address(ctf),
             outcomeTokenFactory: address(ctf),
-            proxyFactory: address(proxyFactory),
-            safeFactory: address(safeFactory),
+            proxyFactory: proxyFactory,
+            safeFactory: safeFactory,
             feeReceiver: feeReceiver
         });
 
