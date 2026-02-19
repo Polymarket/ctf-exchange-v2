@@ -57,7 +57,9 @@ library CollateralSetup {
         collateral.token.addRouter(address(collateral.offramp));
         collateral.onramp.grantRoles(_admin, ADMIN_ROLE);
         collateral.offramp.grantRoles(_admin, ADMIN_ROLE);
+        vm.stopPrank();
 
+        vm.startPrank(_owner);
         CollateralVault(collateral.vault)
             .approve(address(collateral.usdc), address(collateral.token), type(uint256).max);
         CollateralVault(collateral.vault)
