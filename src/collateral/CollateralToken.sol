@@ -175,6 +175,14 @@ contract CollateralToken is
     }
 
     /*--------------------------------------------------------------
+                           SOLADY OVERRIDES
+    --------------------------------------------------------------*/
+
+    function _givePermit2InfiniteAllowance() internal view override returns (bool) {
+        return false;
+    }
+
+    /*--------------------------------------------------------------
                           UUPS UPGRADE AUTHORIZATION
     --------------------------------------------------------------*/
 
