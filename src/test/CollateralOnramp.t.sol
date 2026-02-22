@@ -12,27 +12,11 @@ contract CollateralOnrampTest is TestHelper {
     address owner = alice;
 
     Collateral collateral;
-    USDC usdc;
     USDCe usdce;
 
     function setUp() public {
         collateral = CollateralSetup._deploy(owner);
-        usdc = collateral.usdc;
         usdce = collateral.usdce;
-    }
-
-    function test_CollateralOnramp_wrapUSDC() public {
-        uint256 amount = 100_000_000;
-        usdc.mint(alice, amount);
-
-        vm.startPrank(alice);
-        usdc.approve(address(collateral.onramp), amount);
-        collateral.onramp.wrap(address(usdc), alice, amount);
-        vm.stopPrank();
-
-        assertEq(usdc.balanceOf(alice), 0);
-        assertEq(usdc.balanceOf(collateral.vault), amount);
-        assertEq(collateral.token.balanceOf(alice), amount);
     }
 
     function test_CollateralOnramp_wrapUSDCe() public {
@@ -41,26 +25,12 @@ contract CollateralOnrampTest is TestHelper {
 
         vm.startPrank(alice);
         usdce.approve(address(collateral.onramp), amount);
-        collateral.onramp.wrap(address(usdce), alice, amount);
+        collateral.onramp.wrap(alice, amount);
         vm.stopPrank();
 
         assertEq(usdce.balanceOf(alice), 0);
         assertEq(usdce.balanceOf(collateral.vault), amount);
         assertEq(collateral.token.balanceOf(alice), amount);
-    }
-
-    function test_revert_CollateralOnramp_wrapUSDC_paused() public {
-        vm.prank(owner);
-        collateral.onramp.pause(address(usdc));
-
-        uint256 amount = 100_000_000;
-        usdc.mint(alice, amount);
-
-        vm.startPrank(alice);
-        usdc.approve(address(collateral.onramp), amount);
-        vm.expectRevert(CollateralErrors.OnlyUnpaused.selector);
-        collateral.onramp.wrap(address(usdc), alice, amount);
-        vm.stopPrank();
     }
 
     function test_revert_CollateralOnramp_wrapUSDCe_paused() public {
@@ -73,43 +43,38 @@ contract CollateralOnrampTest is TestHelper {
         vm.startPrank(alice);
         usdce.approve(address(collateral.onramp), amount);
         vm.expectRevert(CollateralErrors.OnlyUnpaused.selector);
-        collateral.onramp.wrap(address(usdce), alice, amount);
+        collateral.onramp.wrap(alice, amount);
         vm.stopPrank();
     }
 
     function test_Pausable_unpause() public {
-        // First pause USDC
         vm.prank(owner);
-        collateral.onramp.pause(address(usdc));
+        collateral.onramp.pause(address(usdce));
 
         uint256 amount = 100_000_000;
-        usdc.mint(alice, amount);
+        usdce.mint(alice, amount);
 
-        // Verify that wrapping is blocked when paused
         vm.startPrank(alice);
-        usdc.approve(address(collateral.onramp), amount);
+        usdce.approve(address(collateral.onramp), amount);
         vm.expectRevert(CollateralErrors.OnlyUnpaused.selector);
-        collateral.onramp.wrap(address(usdc), alice, amount);
+        collateral.onramp.wrap(alice, amount);
         vm.stopPrank();
 
-        // Now unpause USDC
         vm.prank(owner);
-        collateral.onramp.unpause(address(usdc));
+        collateral.onramp.unpause(address(usdce));
 
-        // Wrapping should now work
         vm.startPrank(alice);
-        collateral.onramp.wrap(address(usdc), alice, amount);
+        collateral.onramp.wrap(alice, amount);
         vm.stopPrank();
 
-        // Verify successful wrap
-        assertEq(usdc.balanceOf(alice), 0);
-        assertEq(usdc.balanceOf(collateral.vault), amount);
+        assertEq(usdce.balanceOf(alice), 0);
+        assertEq(usdce.balanceOf(collateral.vault), amount);
         assertEq(collateral.token.balanceOf(alice), amount);
     }
 
     function test_revert_Pausable_pause_unauthorized() public {
         vm.prank(brian);
         vm.expectRevert(Unauthorized.selector);
-        collateral.onramp.pause(address(usdc));
+        collateral.onramp.pause(address(usdce));
     }
 }

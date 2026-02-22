@@ -21,13 +21,15 @@ contract CollateralOfframp is OwnableRoles, CollateralErrors, Pausable {
     --------------------------------------------------------------*/
 
     address public immutable collateralToken;
+    address public immutable asset;
 
     /*--------------------------------------------------------------
                               CONSTRUCTOR
     --------------------------------------------------------------*/
 
-    constructor(address _owner, address _collateralToken) {
+    constructor(address _owner, address _collateralToken, address _asset) {
         collateralToken = _collateralToken;
+        asset = _asset;
 
         _initializeOwner(_owner);
     }
@@ -36,13 +38,12 @@ contract CollateralOfframp is OwnableRoles, CollateralErrors, Pausable {
                                 EXTERNAL
     --------------------------------------------------------------*/
 
-    /// @notice Unwraps a supported asset from the collateral token
-    /// @param _asset The asset to unwrap
+    /// @notice Unwraps the asset from the collateral token
     /// @param _to The address to unwrap the asset to
     /// @param _amount The amount of asset to unwrap
     /// @dev The asset must not be paused
-    function unwrap(address _asset, address _to, uint256 _amount) external onlyUnpaused(_asset) {
+    function unwrap(address _to, uint256 _amount) external onlyUnpaused(asset) {
         collateralToken.safeTransferFrom(msg.sender, collateralToken, _amount);
-        CollateralToken(collateralToken).unwrap(_asset, _to, _amount, address(0), "");
+        CollateralToken(collateralToken).unwrap(asset, _to, _amount, address(0), "");
     }
 }

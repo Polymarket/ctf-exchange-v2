@@ -79,7 +79,7 @@ contract NegRiskCtfCollateralAdapterTest is TestHelper {
         vm.startPrank(alice);
         usdce.approve(address(collateral.onramp), amount);
 
-        collateral.onramp.wrap(address(usdce), alice, amount);
+        collateral.onramp.wrap(alice, amount);
 
         assertEq(usdce.balanceOf(alice), 0);
         assertEq(collateral.token.balanceOf(alice), amount);

@@ -86,7 +86,7 @@ contract MatchOrdersNegRiskCtfCollateralAdapterTest is BaseExchangeTest {
         usdce.mint(to, amount);
         vm.startPrank(to);
         usdce.approve(address(collateral.onramp), amount);
-        collateral.onramp.wrap(address(usdce), to, amount);
+        collateral.onramp.wrap(to, amount);
         collateral.token.approve(spender, amount);
         vm.stopPrank();
     }
