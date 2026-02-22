@@ -25,7 +25,6 @@ struct Collateral {
 
 library CollateralSetup {
     uint256 internal constant ADMIN_ROLE = 1 << 0;
-    uint256 internal constant CALLER_ROLE = 1 << 1;
 
     function _deploy(address _admin) internal returns (Collateral memory) {
         return _deploy(_admin, _admin);
