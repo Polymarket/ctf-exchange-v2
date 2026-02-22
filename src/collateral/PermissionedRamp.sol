@@ -57,6 +57,8 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
     /// @param _amount The amount of asset to wrap
     /// @param _deadline The deadline for the witness signature
     /// @param _signature The witness signature
+    /// @dev The asset must not be paused
+    /// @dev The signature must be from a valid witness over the EIP-712 Wrap struct
     function wrap(address _asset, address _to, uint256 _amount, uint256 _deadline, bytes calldata _signature)
         external
         onlyUnpaused(_asset)
@@ -72,6 +74,8 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
     /// @param _amount The amount of asset to unwrap
     /// @param _deadline The deadline for the witness signature
     /// @param _signature The witness signature
+    /// @dev The asset must not be paused
+    /// @dev The signature must be from a valid witness over the EIP-712 Unwrap struct
     function unwrap(address _asset, address _to, uint256 _amount, uint256 _deadline, bytes calldata _signature)
         external
         onlyUnpaused(_asset)
@@ -85,14 +89,14 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
                                ONLY ADMIN
     --------------------------------------------------------------*/
 
-    /// @notice Adds a witness
-    /// @param _witness The address to authorize as witness
+    /// @notice Adds a new witness to the contract
+    /// @param _witness The address of the new witness
     function addWitness(address _witness) external onlyRoles(_ROLE_0) {
         _grantRoles(_witness, _ROLE_1);
     }
 
-    /// @notice Removes a witness
-    /// @param _witness The address to deauthorize as witness
+    /// @notice Removes a witness from the contract
+    /// @param _witness The address of the witness to remove
     function removeWitness(address _witness) external onlyRoles(_ROLE_0) {
         _removeRoles(_witness, _ROLE_1);
     }

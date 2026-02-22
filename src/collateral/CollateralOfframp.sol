@@ -5,16 +5,22 @@ import { OwnableRoles } from "lib/solady/src/auth/OwnableRoles.sol";
 import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 
 import { CollateralErrors } from "./abstract/CollateralErrors.sol";
-import { Pausable } from "./abstract/Pausable.sol";
 
 import { CollateralToken } from "./CollateralToken.sol";
 
 /// @title CollateralOfframp
 /// @author Polymarket
-/// @notice Offramp for the PolymarketCollateralToken
+/// @notice Permissionless offramp for a single asset from the PolymarketCollateralToken
 /// @notice ROLE_0: Admin
-contract CollateralOfframp is OwnableRoles, CollateralErrors, Pausable {
+contract CollateralOfframp is OwnableRoles, CollateralErrors {
     using SafeTransferLib for address;
+
+    /*--------------------------------------------------------------
+                                 EVENTS
+    --------------------------------------------------------------*/
+
+    event Paused();
+    event Unpaused();
 
     /*--------------------------------------------------------------
                                  STATE
@@ -22,6 +28,8 @@ contract CollateralOfframp is OwnableRoles, CollateralErrors, Pausable {
 
     address public immutable collateralToken;
     address public immutable asset;
+
+    bool public paused;
 
     /*--------------------------------------------------------------
                               CONSTRUCTOR
@@ -41,9 +49,26 @@ contract CollateralOfframp is OwnableRoles, CollateralErrors, Pausable {
     /// @notice Unwraps the asset from the collateral token
     /// @param _to The address to unwrap the asset to
     /// @param _amount The amount of asset to unwrap
-    /// @dev The asset must not be paused
-    function unwrap(address _to, uint256 _amount) external onlyUnpaused(asset) {
+    /// @dev The contract must not be paused
+    function unwrap(address _to, uint256 _amount) external {
+        require(!paused, OnlyUnpaused());
         collateralToken.safeTransferFrom(msg.sender, collateralToken, _amount);
         CollateralToken(collateralToken).unwrap(asset, _to, _amount, address(0), "");
+    }
+
+    /*--------------------------------------------------------------
+                               ONLY ADMIN
+    --------------------------------------------------------------*/
+
+    /// @notice Pauses unwrapping
+    function pause() external onlyRoles(_ROLE_0) {
+        paused = true;
+        emit Paused();
+    }
+
+    /// @notice Unpauses unwrapping
+    function unpause() external onlyRoles(_ROLE_0) {
+        paused = false;
+        emit Unpaused();
     }
 }

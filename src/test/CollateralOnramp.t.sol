@@ -4,7 +4,7 @@ pragma solidity 0.8.30;
 import { TestHelper } from "src/test/dev/TestHelper.sol";
 
 import { CollateralErrors } from "src/collateral/abstract/CollateralErrors.sol";
-import { Collateral, CollateralSetup, USDC, USDCe } from "src/test/dev/CollateralSetup.sol";
+import { Collateral, CollateralSetup, USDCe } from "src/test/dev/CollateralSetup.sol";
 
 contract CollateralOnrampTest is TestHelper {
     error Unauthorized();
@@ -35,7 +35,7 @@ contract CollateralOnrampTest is TestHelper {
 
     function test_revert_CollateralOnramp_wrapUSDCe_paused() public {
         vm.prank(owner);
-        collateral.onramp.pause(address(usdce));
+        collateral.onramp.pause();
 
         uint256 amount = 100_000_000;
         usdce.mint(alice, amount);
@@ -49,7 +49,7 @@ contract CollateralOnrampTest is TestHelper {
 
     function test_Pausable_unpause() public {
         vm.prank(owner);
-        collateral.onramp.pause(address(usdce));
+        collateral.onramp.pause();
 
         uint256 amount = 100_000_000;
         usdce.mint(alice, amount);
@@ -61,7 +61,7 @@ contract CollateralOnrampTest is TestHelper {
         vm.stopPrank();
 
         vm.prank(owner);
-        collateral.onramp.unpause(address(usdce));
+        collateral.onramp.unpause();
 
         vm.startPrank(alice);
         collateral.onramp.wrap(alice, amount);
@@ -75,6 +75,6 @@ contract CollateralOnrampTest is TestHelper {
     function test_revert_Pausable_pause_unauthorized() public {
         vm.prank(brian);
         vm.expectRevert(Unauthorized.selector);
-        collateral.onramp.pause(address(usdce));
+        collateral.onramp.pause();
     }
 }

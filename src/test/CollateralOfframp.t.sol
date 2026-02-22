@@ -46,7 +46,7 @@ contract CollateralOfframpTest is TestHelper {
         vm.stopPrank();
 
         vm.prank(owner);
-        collateral.offramp.pause(address(usdce));
+        collateral.offramp.pause();
 
         vm.startPrank(alice);
         collateral.token.approve(address(collateral.offramp), amount);
@@ -65,7 +65,7 @@ contract CollateralOfframpTest is TestHelper {
         vm.stopPrank();
 
         vm.prank(owner);
-        collateral.offramp.pause(address(usdce));
+        collateral.offramp.pause();
 
         vm.startPrank(alice);
         collateral.token.approve(address(collateral.offramp), amount);
@@ -74,7 +74,7 @@ contract CollateralOfframpTest is TestHelper {
         vm.stopPrank();
 
         vm.prank(owner);
-        collateral.offramp.unpause(address(usdce));
+        collateral.offramp.unpause();
 
         vm.prank(alice);
         collateral.offramp.unwrap(alice, amount);
@@ -86,6 +86,6 @@ contract CollateralOfframpTest is TestHelper {
     function test_revert_Pausable_pause_unauthorized() public {
         vm.prank(brian);
         vm.expectRevert(Unauthorized.selector);
-        collateral.offramp.pause(address(usdce));
+        collateral.offramp.pause();
     }
 }
