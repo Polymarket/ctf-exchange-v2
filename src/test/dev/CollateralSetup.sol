@@ -50,8 +50,8 @@ library CollateralSetup {
         collateral.token = CollateralToken(collateralProxy);
         collateral.token.initialize(_owner, _admin);
 
-        collateral.onramp = new CollateralOnramp(_owner, _admin, address(collateral.token), address(collateral.usdce));
-        collateral.offramp = new CollateralOfframp(_owner, _admin, address(collateral.token), address(collateral.usdce));
+        collateral.onramp = new CollateralOnramp(_owner, _admin, address(collateral.token));
+        collateral.offramp = new CollateralOfframp(_owner, _admin, address(collateral.token));
         collateral.permissionedRamp = new PermissionedRamp(_owner, _admin, address(collateral.token));
 
         vm.startPrank(_admin);
