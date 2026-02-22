@@ -2,6 +2,8 @@
 pragma solidity 0.8.30;
 
 import { OwnableRoles } from "lib/solady/src/auth/OwnableRoles.sol";
+import { ECDSA } from "lib/solady/src/utils/ECDSA.sol";
+import { EIP712 } from "lib/solady/src/utils/EIP712.sol";
 import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 
 import { CollateralErrors } from "./abstract/CollateralErrors.sol";
@@ -11,10 +13,10 @@ import { CollateralToken } from "./CollateralToken.sol";
 
 /// @title PermissionedRamp
 /// @author Polymarket
-/// @notice Permissioned wrap/unwrap for the PolymarketCollateralToken
+/// @notice Permissioned wrap/unwrap for the PolymarketCollateralToken using EIP-712 witness signatures
 /// @notice ROLE_0: Admin
-/// @notice ROLE_1: Authorized caller
-contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable {
+/// @notice ROLE_1: Witness
+contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
     using SafeTransferLib for address;
 
     /*--------------------------------------------------------------
@@ -22,6 +24,18 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable {
     --------------------------------------------------------------*/
 
     address public immutable collateralToken;
+
+    mapping(address => uint256) public nonces;
+
+    /*--------------------------------------------------------------
+                               CONSTANTS
+    --------------------------------------------------------------*/
+
+    bytes32 internal constant _WRAP_TYPEHASH =
+        keccak256("Wrap(address sender,address asset,address to,uint256 amount,uint256 nonce,uint256 deadline)");
+
+    bytes32 internal constant _UNWRAP_TYPEHASH =
+        keccak256("Unwrap(address sender,address asset,address to,uint256 amount,uint256 nonce,uint256 deadline)");
 
     /*--------------------------------------------------------------
                               CONSTRUCTOR
@@ -41,7 +55,13 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable {
     /// @param _asset The asset to wrap
     /// @param _to The address to wrap the asset to
     /// @param _amount The amount of asset to wrap
-    function wrap(address _asset, address _to, uint256 _amount) external onlyRoles(_ROLE_1) onlyUnpaused(_asset) {
+    /// @param _deadline The deadline for the witness signature
+    /// @param _signature The witness signature
+    function wrap(address _asset, address _to, uint256 _amount, uint256 _deadline, bytes calldata _signature)
+        external
+        onlyUnpaused(_asset)
+    {
+        _validateSignature(_WRAP_TYPEHASH, _asset, _to, _amount, _deadline, _signature);
         _asset.safeTransferFrom(msg.sender, collateralToken, _amount);
         CollateralToken(collateralToken).wrap(_asset, _to, _amount, address(0), "");
     }
@@ -50,7 +70,13 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable {
     /// @param _asset The asset to unwrap
     /// @param _to The address to unwrap the asset to
     /// @param _amount The amount of asset to unwrap
-    function unwrap(address _asset, address _to, uint256 _amount) external onlyRoles(_ROLE_1) onlyUnpaused(_asset) {
+    /// @param _deadline The deadline for the witness signature
+    /// @param _signature The witness signature
+    function unwrap(address _asset, address _to, uint256 _amount, uint256 _deadline, bytes calldata _signature)
+        external
+        onlyUnpaused(_asset)
+    {
+        _validateSignature(_UNWRAP_TYPEHASH, _asset, _to, _amount, _deadline, _signature);
         collateralToken.safeTransferFrom(msg.sender, collateralToken, _amount);
         CollateralToken(collateralToken).unwrap(_asset, _to, _amount, address(0), "");
     }
@@ -59,15 +85,43 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable {
                                ONLY ADMIN
     --------------------------------------------------------------*/
 
-    /// @notice Adds an authorized caller
-    /// @param _caller The address to authorize
-    function addCaller(address _caller) external onlyRoles(_ROLE_0) {
-        _grantRoles(_caller, _ROLE_1);
+    /// @notice Adds a witness
+    /// @param _witness The address to authorize as witness
+    function addWitness(address _witness) external onlyRoles(_ROLE_0) {
+        _grantRoles(_witness, _ROLE_1);
     }
 
-    /// @notice Removes an authorized caller
-    /// @param _caller The address to deauthorize
-    function removeCaller(address _caller) external onlyRoles(_ROLE_0) {
-        _removeRoles(_caller, _ROLE_1);
+    /// @notice Removes a witness
+    /// @param _witness The address to deauthorize as witness
+    function removeWitness(address _witness) external onlyRoles(_ROLE_0) {
+        _removeRoles(_witness, _ROLE_1);
+    }
+
+    /*--------------------------------------------------------------
+                               INTERNAL
+    --------------------------------------------------------------*/
+
+    function _domainNameAndVersion() internal pure override returns (string memory name, string memory version) {
+        name = "PermissionedRamp";
+        version = "1";
+    }
+
+    function _validateSignature(
+        bytes32 _typehash,
+        address _asset,
+        address _to,
+        uint256 _amount,
+        uint256 _deadline,
+        bytes calldata _signature
+    ) internal {
+        require(block.timestamp <= _deadline, ExpiredDeadline());
+
+        uint256 nonce = nonces[msg.sender]++;
+
+        bytes32 structHash = keccak256(abi.encode(_typehash, msg.sender, _asset, _to, _amount, nonce, _deadline));
+        bytes32 digest = _hashTypedData(structHash);
+
+        address witness = ECDSA.recoverCalldata(digest, _signature);
+        require(hasAnyRole(witness, _ROLE_1), InvalidSignature());
     }
 }
