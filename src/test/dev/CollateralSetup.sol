@@ -50,17 +50,14 @@ library CollateralSetup {
         collateral.token = CollateralToken(collateralProxy);
         collateral.token.initialize(_owner, _admin);
 
-        collateral.onramp = new CollateralOnramp(_admin, address(collateral.token), address(collateral.usdce));
-        collateral.offramp = new CollateralOfframp(_admin, address(collateral.token), address(collateral.usdce));
-        collateral.permissionedRamp = new PermissionedRamp(_admin, address(collateral.token));
+        collateral.onramp = new CollateralOnramp(_owner, _admin, address(collateral.token), address(collateral.usdce));
+        collateral.offramp = new CollateralOfframp(_owner, _admin, address(collateral.token), address(collateral.usdce));
+        collateral.permissionedRamp = new PermissionedRamp(_owner, _admin, address(collateral.token));
 
         vm.startPrank(_admin);
         collateral.token.addRouter(address(collateral.onramp));
         collateral.token.addRouter(address(collateral.offramp));
         collateral.token.addRouter(address(collateral.permissionedRamp));
-        collateral.onramp.grantRoles(_admin, ADMIN_ROLE);
-        collateral.offramp.grantRoles(_admin, ADMIN_ROLE);
-        collateral.permissionedRamp.grantRoles(_admin, ADMIN_ROLE);
         vm.stopPrank();
 
         vm.startPrank(_owner);

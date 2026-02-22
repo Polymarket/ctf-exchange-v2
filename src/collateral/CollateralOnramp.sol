@@ -35,11 +35,12 @@ contract CollateralOnramp is OwnableRoles, CollateralErrors {
                               CONSTRUCTOR
     --------------------------------------------------------------*/
 
-    constructor(address _owner, address _collateralToken, address _asset) {
+    constructor(address _owner, address _admin, address _collateralToken, address _asset) {
         collateralToken = _collateralToken;
         asset = _asset;
 
         _initializeOwner(_owner);
+        _grantRoles(_admin, _ROLE_0);
     }
 
     /*--------------------------------------------------------------
@@ -59,6 +60,18 @@ contract CollateralOnramp is OwnableRoles, CollateralErrors {
     /*--------------------------------------------------------------
                                ONLY ADMIN
     --------------------------------------------------------------*/
+
+    /// @notice Adds a new admin to the contract
+    /// @param _admin The address of the new admin
+    function addAdmin(address _admin) external onlyRoles(_ROLE_0) {
+        _grantRoles(_admin, _ROLE_0);
+    }
+
+    /// @notice Removes an admin from the contract
+    /// @param _admin The address of the admin to remove
+    function removeAdmin(address _admin) external onlyRoles(_ROLE_0) {
+        _removeRoles(_admin, _ROLE_0);
+    }
 
     /// @notice Pauses wrapping
     function pause() external onlyRoles(_ROLE_0) {
