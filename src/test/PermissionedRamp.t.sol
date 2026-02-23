@@ -32,11 +32,14 @@ contract PermissionedRampTest is TestHelper {
 
     // --- helpers ---
 
-    function _signWrap(address _sender, address _asset, address _to, uint256 _amount, uint256 _nonce, uint256 _deadline)
-        internal
-        view
-        returns (bytes memory)
-    {
+    function _signWrap(
+        address _sender,
+        address _asset,
+        address _to,
+        uint256 _amount,
+        uint256 _nonce,
+        uint256 _deadline
+    ) internal view returns (bytes memory) {
         return _signWrap(witnessKey, _sender, _asset, _to, _amount, _nonce, _deadline);
     }
 
@@ -133,7 +136,7 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, deadline, sig);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig);
         vm.stopPrank();
 
         assertEq(usdc.balanceOf(brian), 0);
@@ -150,7 +153,7 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdce.approve(address(collateral.permissionedRamp), amount);
-        collateral.permissionedRamp.wrap(address(usdce), brian, amount, deadline, sig);
+        collateral.permissionedRamp.wrap(address(usdce), brian, amount, 0, deadline, sig);
         vm.stopPrank();
 
         assertEq(usdce.balanceOf(brian), 0);
@@ -169,9 +172,9 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount * 2);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, deadline, sig0);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig0);
         assertEq(collateral.permissionedRamp.nonces(brian), 1);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, deadline, sig1);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 1, deadline, sig1);
         assertEq(collateral.permissionedRamp.nonces(brian), 2);
         vm.stopPrank();
 
@@ -190,10 +193,10 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, deadline, wrapSig);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, wrapSig);
 
         collateral.token.approve(address(collateral.permissionedRamp), amount);
-        collateral.permissionedRamp.unwrap(address(usdc), brian, amount, deadline, unwrapSig);
+        collateral.permissionedRamp.unwrap(address(usdc), brian, amount, 1, deadline, unwrapSig);
         vm.stopPrank();
 
         assertEq(usdc.balanceOf(brian), amount);
@@ -211,10 +214,10 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdce.approve(address(collateral.permissionedRamp), amount);
-        collateral.permissionedRamp.wrap(address(usdce), brian, amount, deadline, wrapSig);
+        collateral.permissionedRamp.wrap(address(usdce), brian, amount, 0, deadline, wrapSig);
 
         collateral.token.approve(address(collateral.permissionedRamp), amount);
-        collateral.permissionedRamp.unwrap(address(usdce), brian, amount, deadline, unwrapSig);
+        collateral.permissionedRamp.unwrap(address(usdce), brian, amount, 1, deadline, unwrapSig);
         vm.stopPrank();
 
         assertEq(usdce.balanceOf(brian), amount);
@@ -235,7 +238,7 @@ contract PermissionedRampTest is TestHelper {
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
         vm.expectRevert(CollateralErrors.InvalidSignature.selector);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, deadline, sig);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig);
         vm.stopPrank();
     }
 
@@ -249,13 +252,29 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, deadline, wrapSig);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, wrapSig);
 
         bytes memory unwrapSig = _signUnwrap(badKey, brian, address(usdc), brian, amount, 1, deadline);
 
         collateral.token.approve(address(collateral.permissionedRamp), amount);
         vm.expectRevert(CollateralErrors.InvalidSignature.selector);
-        collateral.permissionedRamp.unwrap(address(usdc), brian, amount, deadline, unwrapSig);
+        collateral.permissionedRamp.unwrap(address(usdc), brian, amount, 1, deadline, unwrapSig);
+        vm.stopPrank();
+    }
+
+    // --- invalid nonce ---
+
+    function test_revert_PermissionedRamp_wrap_invalidNonce() public {
+        uint256 amount = 100_000_000;
+        uint256 deadline = block.timestamp + 1 hours;
+        usdc.mint(brian, amount);
+
+        bytes memory sig = _signWrap(brian, address(usdc), brian, amount, 1, deadline);
+
+        vm.startPrank(brian);
+        usdc.approve(address(collateral.permissionedRamp), amount);
+        vm.expectRevert(CollateralErrors.InvalidNonce.selector);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 1, deadline, sig);
         vm.stopPrank();
     }
 
@@ -270,11 +289,11 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount * 2);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, deadline, sig);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig);
 
-        // Replay with same signature fails (nonce incremented)
-        vm.expectRevert(CollateralErrors.InvalidSignature.selector);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, deadline, sig);
+        // Replay with same nonce fails
+        vm.expectRevert(CollateralErrors.InvalidNonce.selector);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig);
         vm.stopPrank();
     }
 
@@ -290,7 +309,7 @@ contract PermissionedRampTest is TestHelper {
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
         vm.expectRevert(CollateralErrors.ExpiredDeadline.selector);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, deadline, sig);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig);
         vm.stopPrank();
     }
 
@@ -303,14 +322,14 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, wrapDeadline, wrapSig);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, wrapDeadline, wrapSig);
 
         uint256 expiredDeadline = block.timestamp - 1;
         bytes memory unwrapSig = _signUnwrap(brian, address(usdc), brian, amount, 1, expiredDeadline);
 
         collateral.token.approve(address(collateral.permissionedRamp), amount);
         vm.expectRevert(CollateralErrors.ExpiredDeadline.selector);
-        collateral.permissionedRamp.unwrap(address(usdc), brian, amount, expiredDeadline, unwrapSig);
+        collateral.permissionedRamp.unwrap(address(usdc), brian, amount, 1, expiredDeadline, unwrapSig);
         vm.stopPrank();
     }
 
@@ -329,7 +348,7 @@ contract PermissionedRampTest is TestHelper {
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
         vm.expectRevert(CollateralErrors.OnlyUnpaused.selector);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, deadline, sig);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig);
         vm.stopPrank();
     }
 
@@ -342,7 +361,7 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, deadline, wrapSig);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, wrapSig);
         vm.stopPrank();
 
         vm.prank(owner);
@@ -353,7 +372,7 @@ contract PermissionedRampTest is TestHelper {
         vm.startPrank(brian);
         collateral.token.approve(address(collateral.permissionedRamp), amount);
         vm.expectRevert(CollateralErrors.OnlyUnpaused.selector);
-        collateral.permissionedRamp.unwrap(address(usdc), brian, amount, deadline, unwrapSig);
+        collateral.permissionedRamp.unwrap(address(usdc), brian, amount, 1, deadline, unwrapSig);
         vm.stopPrank();
     }
 
@@ -374,7 +393,7 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, deadline, sig);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig);
         vm.stopPrank();
 
         assertEq(collateral.token.balanceOf(brian), amount);
@@ -393,7 +412,7 @@ contract PermissionedRampTest is TestHelper {
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
         vm.expectRevert(CollateralErrors.InvalidSignature.selector);
-        collateral.permissionedRamp.wrap(address(usdc), brian, amount, deadline, sig);
+        collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig);
         vm.stopPrank();
     }
 }
