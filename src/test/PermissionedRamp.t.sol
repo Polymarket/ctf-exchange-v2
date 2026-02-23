@@ -32,14 +32,11 @@ contract PermissionedRampTest is TestHelper {
 
     // --- helpers ---
 
-    function _signWrap(
-        address _sender,
-        address _asset,
-        address _to,
-        uint256 _amount,
-        uint256 _nonce,
-        uint256 _deadline
-    ) internal view returns (bytes memory) {
+    function _signWrap(address _sender, address _asset, address _to, uint256 _amount, uint256 _nonce, uint256 _deadline)
+        internal
+        view
+        returns (bytes memory)
+    {
         return _signWrap(witnessKey, _sender, _asset, _to, _amount, _nonce, _deadline);
     }
 
