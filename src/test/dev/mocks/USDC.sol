@@ -4,6 +4,8 @@ pragma solidity 0.8.30;
 import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
 
 contract USDC is ERC20 {
+    constructor() ERC20() { }
+
     function name() public pure override returns (string memory) {
         return "USDC";
     }

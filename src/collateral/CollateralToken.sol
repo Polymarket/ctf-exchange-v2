@@ -64,7 +64,7 @@ contract CollateralToken is
     }
 
     /*--------------------------------------------------------------
-                             INITIALIZER
+                             INITIALIZE
     --------------------------------------------------------------*/
 
     /// @notice Initializes the contract with the given owner.
