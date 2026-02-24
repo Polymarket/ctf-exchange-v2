@@ -19,10 +19,6 @@ contract CollateralOfframpTest is TestHelper {
         collateral = CollateralSetup._deploy(owner);
         usdc = collateral.usdc;
         usdce = collateral.usdce;
-
-        // Grant admin role to owner for pause/unpause
-        vm.prank(owner);
-        collateral.offramp.grantRoles(owner, 1 << 0);
     }
 
     function test_CollateralOfframp_unwrapUSDC() public {

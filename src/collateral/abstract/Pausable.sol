@@ -13,24 +13,12 @@ abstract contract PausableEvents {
 /// @title Pausable
 /// @author Polymarket
 abstract contract Pausable is OwnableRoles, CollateralErrors, PausableEvents {
-    /*--------------------------------------------------------------
-                                 STATE
-    --------------------------------------------------------------*/
-
     mapping(address => bool) public paused;
-
-    /*--------------------------------------------------------------
-                               MODIFIERS
-    --------------------------------------------------------------*/
 
     modifier onlyUnpaused(address _asset) {
         require(!paused[_asset], OnlyUnpaused());
         _;
     }
-
-    /*--------------------------------------------------------------
-                               ONLY ADMIN
-    --------------------------------------------------------------*/
 
     /// @notice Pauses the wrapping/unwrapping of a supported asset
     /// @param _asset The asset to pause
