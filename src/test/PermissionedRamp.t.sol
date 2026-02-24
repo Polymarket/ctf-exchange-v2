@@ -234,7 +234,7 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
-        vm.expectRevert(PermissionedRamp.InvalidSignature.selector);
+        vm.expectRevert(CollateralErrors.InvalidSignature.selector);
         collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig);
         vm.stopPrank();
     }
@@ -254,7 +254,7 @@ contract PermissionedRampTest is TestHelper {
         bytes memory unwrapSig = _signUnwrap(badKey, brian, address(usdc), brian, amount, 1, deadline);
 
         collateral.token.approve(address(collateral.permissionedRamp), amount);
-        vm.expectRevert(PermissionedRamp.InvalidSignature.selector);
+        vm.expectRevert(CollateralErrors.InvalidSignature.selector);
         collateral.permissionedRamp.unwrap(address(usdc), brian, amount, 1, deadline, unwrapSig);
         vm.stopPrank();
     }
@@ -270,7 +270,7 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
-        vm.expectRevert(PermissionedRamp.InvalidNonce.selector);
+        vm.expectRevert(CollateralErrors.InvalidNonce.selector);
         collateral.permissionedRamp.wrap(address(usdc), brian, amount, 1, deadline, sig);
         vm.stopPrank();
     }
@@ -289,7 +289,7 @@ contract PermissionedRampTest is TestHelper {
         collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig);
 
         // Replay with same nonce fails
-        vm.expectRevert(PermissionedRamp.InvalidNonce.selector);
+        vm.expectRevert(CollateralErrors.InvalidNonce.selector);
         collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig);
         vm.stopPrank();
     }
@@ -305,7 +305,7 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
-        vm.expectRevert(PermissionedRamp.ExpiredDeadline.selector);
+        vm.expectRevert(CollateralErrors.ExpiredDeadline.selector);
         collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig);
         vm.stopPrank();
     }
@@ -325,7 +325,7 @@ contract PermissionedRampTest is TestHelper {
         bytes memory unwrapSig = _signUnwrap(brian, address(usdc), brian, amount, 1, expiredDeadline);
 
         collateral.token.approve(address(collateral.permissionedRamp), amount);
-        vm.expectRevert(PermissionedRamp.ExpiredDeadline.selector);
+        vm.expectRevert(CollateralErrors.ExpiredDeadline.selector);
         collateral.permissionedRamp.unwrap(address(usdc), brian, amount, 1, expiredDeadline, unwrapSig);
         vm.stopPrank();
     }
@@ -408,7 +408,7 @@ contract PermissionedRampTest is TestHelper {
 
         vm.startPrank(brian);
         usdc.approve(address(collateral.permissionedRamp), amount);
-        vm.expectRevert(PermissionedRamp.InvalidSignature.selector);
+        vm.expectRevert(CollateralErrors.InvalidSignature.selector);
         collateral.permissionedRamp.wrap(address(usdc), brian, amount, 0, deadline, sig);
         vm.stopPrank();
     }

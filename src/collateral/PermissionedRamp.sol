@@ -20,14 +20,6 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
     using SafeTransferLib for address;
 
     /*--------------------------------------------------------------
-                                ERRORS
-    --------------------------------------------------------------*/
-
-    error InvalidSignature();
-    error ExpiredDeadline();
-    error InvalidNonce();
-
-    /*--------------------------------------------------------------
                                  STATE
     --------------------------------------------------------------*/
 
