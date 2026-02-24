@@ -31,6 +31,10 @@ contract CollateralToken is
 {
     using SafeTransferLib for address;
 
+    /*--------------------------------------------------------------
+                                 STATE
+    --------------------------------------------------------------*/
+
     address public immutable usdc;
     address public immutable usdce;
     address public immutable vault;
@@ -64,7 +68,7 @@ contract CollateralToken is
     }
 
     /*--------------------------------------------------------------
-                             INITIALIZE
+                              INITIALIZE
     --------------------------------------------------------------*/
 
     /// @notice Initializes the contract with the given owner.
@@ -91,7 +95,7 @@ contract CollateralToken is
     }
 
     /*--------------------------------------------------------------
-                             EXTERNAL
+                               EXTERNAL
     --------------------------------------------------------------*/
 
     /// @notice Mints a new collateral token
