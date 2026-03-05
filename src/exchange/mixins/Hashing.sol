@@ -25,7 +25,7 @@ abstract contract Hashing is EIP712, IHashing {
 
     function _createStructHash(Order memory order) internal pure returns (bytes32) {
         bytes32 result;
-        assembly ("memory-safe") {
+        assembly {
             let prev := mload(sub(order, 0x20))
             mstore(sub(order, 0x20), ORDER_TYPEHASH)
             result := keccak256(sub(order, 0x20), 0x180)
