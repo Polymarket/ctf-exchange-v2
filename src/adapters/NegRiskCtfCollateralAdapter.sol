@@ -44,6 +44,7 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
     function convertPositions(bytes32 _marketId, uint256 _indexSet, uint256 _amount) external {
         INegRiskAdapter adapter = INegRiskAdapter(negRiskAdapter);
         uint256 questionCount = adapter.getQuestionCount(_marketId);
+        uint256 feeBips = adapter.getFeeBips(_marketId);
 
         // Pull NO tokens from caller
         {
@@ -57,7 +58,7 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
 
         // Send YES tokens to caller
         {
-            uint256 amountOut = _amount - (_amount * adapter.getFeeBips(_marketId) / adapter.FEE_DENOMINATOR());
+            uint256 amountOut = _amount - (_amount * feeBips / 10_000);
             (uint256[] memory ids, uint256[] memory amounts) =
                 _buildPositionArrays(adapter, _marketId, _indexSet, questionCount, true, amountOut);
             conditionalTokens.safeBatchTransferFrom(address(this), msg.sender, ids, amounts, "");
