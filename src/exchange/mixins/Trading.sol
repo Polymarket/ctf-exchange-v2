@@ -82,15 +82,24 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         uint256 takerFeeAmount,
         uint256[] memory makerFeeAmounts
     ) internal {
-        (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount);
-
         // Check if all matches are COMPLEMENTARY (all makers have opposite side to taker)
         if (_isAllComplementary(takerOrder.side, makerOrders)) {
+            (uint256 takerMakingAmount, uint256 takerTakingAmount, bytes32 takerOrderHash) =
+                _prepareComplementaryTaker(takerOrder, makerOrders, takerFillAmount, makerFillAmounts, takerFeeAmount);
             _settleComplementary(
-                takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, orderHash, takerFillAmount, takerFeeAmount
+                takerOrder,
+                makerOrders,
+                makerFillAmounts,
+                makerFeeAmounts,
+                takerOrderHash,
+                takerMakingAmount,
+                takerTakingAmount,
+                takerFeeAmount
             );
             return;
         }
+
+        (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount);
 
         (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(takerOrder);
 
@@ -137,7 +146,8 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         uint256[] memory makerFillAmounts,
         uint256[] memory makerFeeAmounts,
         bytes32 takerOrderHash,
-        uint256 takerFillAmount,
+        uint256 takerMakingAmount,
+        uint256 takerTakingAmount,
         uint256 takerFeeAmount
     ) internal {
         address taker = takerOrder.maker;
@@ -161,8 +171,57 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
 
         // Handle taker settlement
         _settleComplementaryTaker(
-            takerOrder, taker, takerIsBuy, totalTakerReceives, takerOrderHash, takerFillAmount, takerFeeAmount
+            takerOrder,
+            taker,
+            takerIsBuy,
+            totalTakerReceives,
+            takerOrderHash,
+            takerMakingAmount,
+            takerTakingAmount,
+            takerFeeAmount
         );
+    }
+
+    /// @notice Validates the taker side of a COMPLEMENTARY match using the maker-implied execution
+    /// @dev Ensures maker-side execution cannot consume more than the declared taker fill and that the taker
+    /// receives at least the amount their signed ratio guarantees for the actual spend
+    function _prepareComplementaryTaker(
+        Order memory takerOrder,
+        Order[] memory makerOrders,
+        uint256 takerFillAmount,
+        uint256[] memory makerFillAmounts,
+        uint256 takerFeeAmount
+    ) internal returns (uint256 takerMakingAmount, uint256 takerTakingAmount, bytes32 takerOrderHash) {
+        takerOrderHash = hashOrder(takerOrder);
+        _validateOrder(takerOrderHash, takerOrder);
+
+        uint256 actualTakerMakingAmount = 0;
+        uint256 actualTakerTakingAmount = 0;
+
+        for (uint256 i = 0; i < makerOrders.length;) {
+            Order memory makerOrder = makerOrders[i];
+            _validateOrdersMatch(takerOrder, makerOrder, MatchType.COMPLEMENTARY);
+
+            uint256 makerFillAmount = makerFillAmounts[i];
+            uint256 makerTakingAmount =
+                CalculatorHelper.calculateTakingAmount(makerFillAmount, makerOrder.makerAmount, makerOrder.takerAmount);
+
+            unchecked {
+                actualTakerMakingAmount += makerTakingAmount; // safety: bounded by actual token amounts transferred
+                actualTakerTakingAmount += makerFillAmount; // safety: bounded by actual token amounts transferred
+                ++i;
+            }
+        }
+
+        if (actualTakerMakingAmount > takerFillAmount) revert ComplementaryFillExceedsTakerFill();
+
+        uint256 minimumTakerTakingAmount =
+            _calculateTakingAndValidateFee(takerOrder, actualTakerMakingAmount, takerFeeAmount);
+        if (actualTakerTakingAmount < minimumTakerTakingAmount) revert TooLittleTokensReceived();
+
+        _updateOrderStatus(takerOrderHash, takerOrder, actualTakerMakingAmount);
+
+        return (actualTakerMakingAmount, actualTakerTakingAmount, takerOrderHash);
     }
 
     /// @notice Settles a single maker in COMPLEMENTARY match
@@ -224,7 +283,8 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         bool takerIsBuy,
         uint256 totalTakerReceives,
         bytes32 takerOrderHash,
-        uint256 takerFillAmount,
+        uint256 takerMakingAmount,
+        uint256 takerTakingAmount,
         uint256 takerFeeAmount
     ) internal {
         if (takerIsBuy) {
@@ -249,8 +309,8 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
                 taker: address(this),
                 side: takerOrder.side,
                 tokenId: takerOrder.tokenId,
-                makerAmountFilled: takerFillAmount,
-                takerAmountFilled: takerIsBuy ? takerFillAmount : totalTakerReceives,
+                makerAmountFilled: takerMakingAmount,
+                takerAmountFilled: takerTakingAmount,
                 fee: takerFeeAmount,
                 builder: takerOrder.builder,
                 metadata: takerOrder.metadata
@@ -457,7 +517,14 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         // Update the order status in storage
         _updateOrderStatus(orderHash, order, making);
 
-        // Calculate taking amount
+        takingAmount = _calculateTakingAndValidateFee(order, making, fee);
+    }
+
+    function _calculateTakingAndValidateFee(Order memory order, uint256 making, uint256 fee)
+        internal
+        view
+        returns (uint256 takingAmount)
+    {
         takingAmount = CalculatorHelper.calculateTakingAmount(making, order.makerAmount, order.takerAmount);
 
         // Validate fee against max fee rate (reads storage only when fee is non-zero)

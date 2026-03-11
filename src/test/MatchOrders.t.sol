@@ -536,6 +536,57 @@ contract MatchOrdersTest is BaseExchangeTest {
         exchange.matchOrders(conditionId, buy, makerOrders, takerOrderFillAmount, fillAmounts, 0, makerFeeAmounts);
     }
 
+    function test_MatchOrders_revert_ComplementaryFillExceedsTakerFill_Overspend() public {
+        dealUsdcAndApprove(bob, address(exchange), 100_000_000);
+        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
+
+        // Taker: BUY 50 YES for up to 100 USDC (2.00 price limit)
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.BUY);
+        // Maker: SELL 100 YES for 150 USDC (1.50 price, still crossing with taker)
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 150_000_000, Side.SELL);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 100_000_000;
+
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        // Maker execution implies 150 USDC of taker spend, but operator understates taker fill as 100 USDC.
+        vm.expectRevert(ComplementaryFillExceedsTakerFill.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 100_000_000, fillAmounts, 0, makerFeeAmounts);
+    }
+
+    function test_MatchOrders_Complementary_ConsumesActualTakerFill_WhenPriceImproves() public {
+        dealUsdcAndApprove(bob, address(exchange), 100_000_000);
+        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 10_000_000);
+
+        // Taker: BUY 100 YES for 100 USDC (1.00 price limit)
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 100_000_000, Side.BUY);
+        // Maker: SELL only 10 YES for 10 USDC
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 10_000_000, 10_000_000, Side.SELL);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 10_000_000;
+
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 100_000_000, fillAmounts, 0, makerFeeAmounts);
+
+        assertFalse(exchange.getOrderStatus(exchange.hashOrder(takerOrder)).filled);
+        assertEq(exchange.getOrderStatus(exchange.hashOrder(takerOrder)).remaining, 90_000_000);
+        assertCollateralBalance(bob, 90_000_000);
+        assertCTFBalance(bob, yes, 10_000_000);
+    }
+
     function test_MatchOrders_revert_FeeExceedsMaxRate_Sell() public {
         // Deals
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
@@ -774,11 +825,11 @@ contract MatchOrdersTest is BaseExchangeTest {
 
         vm.expectEmit(true, true, true, true);
         emit OrderFilled(
-            takerHash, bob, address(exchange), Side.BUY, yes, 50_000_000, 50_000_000, 2_500_000, bytes32(0), bytes32(0)
+            takerHash, bob, address(exchange), Side.BUY, yes, 50_000_000, 100_000_000, 2_500_000, bytes32(0), bytes32(0)
         );
 
         vm.expectEmit(true, true, true, true);
-        emit OrdersMatched(takerHash, bob, Side.BUY, yes, 50_000_000, 50_000_000);
+        emit OrdersMatched(takerHash, bob, Side.BUY, yes, 50_000_000, 100_000_000);
 
         vm.prank(admin);
         exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 2_500_000, makerFeeAmounts);
