@@ -511,7 +511,8 @@ contract MatchOrdersTest is BaseExchangeTest {
 
     function test_MatchOrders_revert_InvalidFillAmount() public {
         // Deals
-        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
+        // Fund taker sufficiently so the match reaches the final taker status check.
+        dealUsdcAndApprove(bob, address(exchange), 500_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 1_000_000_000);
 
         Order memory buy = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
@@ -537,7 +538,8 @@ contract MatchOrdersTest is BaseExchangeTest {
     }
 
     function test_MatchOrders_revert_ComplementaryFillExceedsTakerFill_Overspend() public {
-        dealUsdcAndApprove(bob, address(exchange), 100_000_000);
+        // Fund taker sufficiently so the match reaches the final aggregate fill check.
+        dealUsdcAndApprove(bob, address(exchange), 200_000_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
 
         // Taker: BUY 50 YES for up to 100 USDC (2.00 price limit)
