@@ -525,12 +525,9 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         uint256 takerTokenId = takerOrder.tokenId;
         require(takerTokenId == pos1 || takerTokenId == pos2, MismatchedTokenIds());
 
-        for (uint256 i = 0; i < makerOrders.length;) {
+        for (uint256 i = 0; i < makerOrders.length; ++i) {
             uint256 makerTokenId = makerOrders[i].tokenId;
             require(makerTokenId == pos1 || makerTokenId == pos2, MismatchedTokenIds());
-            unchecked {
-                ++i;
-            }
         }
     }
 
