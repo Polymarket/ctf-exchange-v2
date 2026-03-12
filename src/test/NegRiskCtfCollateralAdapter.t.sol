@@ -117,6 +117,147 @@ contract NegRiskCtfCollateralAdapterTest is TestHelper {
         assertEq(collateral.token.balanceOf(brian), amount);
     }
 
+    // --- helpers for convertPositions tests ---
+
+    function _splitAllQuestions(address _user, uint256 _amount) internal {
+        usdce.mint(_user, _amount * questionIds.length);
+
+        vm.startPrank(_user);
+        usdce.approve(address(collateral.onramp), _amount * questionIds.length);
+        collateral.onramp.wrap(address(usdce), _user, _amount * questionIds.length);
+
+        collateral.token.approve(address(negRiskCtfCollateralAdapter), _amount * questionIds.length);
+        for (uint256 i; i < questionIds.length; ++i) {
+            negRiskCtfCollateralAdapter.splitPosition(
+                address(0), bytes32(0), conditionIds[i], CTFHelpers.partition(), _amount
+            );
+        }
+        conditionalTokens.setApprovalForAll(address(negRiskCtfCollateralAdapter), true);
+        vm.stopPrank();
+    }
+
+    function test_NegRiskCtfCollateralAdapter_convertPositions_oneNoToYes() public {
+        _before(4);
+        _splitAllQuestions(alice, amount);
+
+        vm.prank(alice);
+        negRiskCtfCollateralAdapter.convertPositions(negRiskMarketId, 1, amount); // indexSet = 0b0001
+
+        // YES balances for questions 1,2,3: amount (from split) + amount (from convert) = 2*amount
+        for (uint256 i = 1; i < 4; ++i) {
+            bytes32 qId = bytes32(uint256(negRiskMarketId) | i);
+            uint256 yesPos = negRiskAdapter.getPositionId(qId, true);
+            assertEq(conditionalTokens.balanceOf(alice, yesPos), 2 * amount);
+        }
+
+        // NO token for question 0 should be gone (spent in convert)
+        bytes32 q0 = bytes32(uint256(negRiskMarketId) | 0);
+        uint256 noPos0 = negRiskAdapter.getPositionId(q0, false);
+        assertEq(conditionalTokens.balanceOf(alice, noPos0), 0);
+
+        // No collateral returned (noCount - 1 = 0)
+        assertEq(collateral.token.balanceOf(alice), 0);
+
+        // Adapter residual checks
+        assertEq(usdce.balanceOf(address(negRiskCtfCollateralAdapter)), 0);
+    }
+
+    function test_NegRiskCtfCollateralAdapter_convertPositions_twoNoToYes() public {
+        _before(4);
+        _splitAllQuestions(alice, amount);
+
+        vm.prank(alice);
+        negRiskCtfCollateralAdapter.convertPositions(negRiskMarketId, 3, amount); // indexSet = 0b0011
+
+        // YES balances for questions 2,3: amount (from split) + amount (from convert) = 2*amount
+        for (uint256 i = 2; i < 4; ++i) {
+            bytes32 qId = bytes32(uint256(negRiskMarketId) | i);
+            uint256 yesPos = negRiskAdapter.getPositionId(qId, true);
+            assertEq(conditionalTokens.balanceOf(alice, yesPos), 2 * amount);
+        }
+
+        // NO tokens for questions 0,1 should be gone
+        for (uint256 i = 0; i < 2; ++i) {
+            bytes32 qId = bytes32(uint256(negRiskMarketId) | i);
+            uint256 noPos = negRiskAdapter.getPositionId(qId, false);
+            assertEq(conditionalTokens.balanceOf(alice, noPos), 0);
+        }
+
+        // Collateral = (2-1) * amount = amount, wrapped as CollateralToken
+        assertEq(collateral.token.balanceOf(alice), amount);
+        assertEq(usdce.balanceOf(alice), 0);
+        assertEq(usdce.balanceOf(address(negRiskCtfCollateralAdapter)), 0);
+    }
+
+    function test_NegRiskCtfCollateralAdapter_convertPositions_threeNoToYes() public {
+        _before(4);
+        _splitAllQuestions(alice, amount);
+
+        vm.prank(alice);
+        negRiskCtfCollateralAdapter.convertPositions(negRiskMarketId, 7, amount); // indexSet = 0b0111
+
+        // YES balance for question 3: amount (from split) + amount (from convert) = 2*amount
+        bytes32 qId = bytes32(uint256(negRiskMarketId) | 3);
+        uint256 yesPos = negRiskAdapter.getPositionId(qId, true);
+        assertEq(conditionalTokens.balanceOf(alice, yesPos), 2 * amount);
+
+        // NO tokens for questions 0,1,2 should be gone
+        for (uint256 i = 0; i < 3; ++i) {
+            bytes32 qi = bytes32(uint256(negRiskMarketId) | i);
+            uint256 noPos = negRiskAdapter.getPositionId(qi, false);
+            assertEq(conditionalTokens.balanceOf(alice, noPos), 0);
+        }
+
+        // Collateral = (3-1) * amount = 2 * amount
+        assertEq(collateral.token.balanceOf(alice), 2 * amount);
+        assertEq(usdce.balanceOf(address(negRiskCtfCollateralAdapter)), 0);
+    }
+
+    function test_NegRiskCtfCollateralAdapter_convertPositions_withFees() public {
+        // Create market with 200 bips (2%) fee
+        bytes memory data = new bytes(0);
+        vm.prank(oracle);
+        negRiskMarketId = negRiskAdapter.prepareMarket(200, data);
+
+        for (uint8 i = 0; i < 4; ++i) {
+            vm.prank(oracle);
+            questionIds.push(negRiskAdapter.prepareQuestion(negRiskMarketId, data));
+            conditionIds.push(negRiskAdapter.getConditionId(questionIds[i]));
+        }
+
+        _splitAllQuestions(alice, amount);
+
+        vm.prank(alice);
+        negRiskCtfCollateralAdapter.convertPositions(negRiskMarketId, 3, amount); // indexSet = 0b0011
+
+        uint256 fee = amount * 200 / 10_000;
+        uint256 amountOut = amount - fee;
+
+        // YES balances for questions 2,3: amount (from split, no fee) + amountOut (from convert, after fee)
+        for (uint256 i = 2; i < 4; ++i) {
+            bytes32 qId = bytes32(uint256(negRiskMarketId) | i);
+            uint256 yesPos = negRiskAdapter.getPositionId(qId, true);
+            assertEq(conditionalTokens.balanceOf(alice, yesPos), amount + amountOut);
+        }
+
+        // Collateral = (2-1) * amountOut
+        assertEq(collateral.token.balanceOf(alice), amountOut);
+        assertEq(usdce.balanceOf(address(negRiskCtfCollateralAdapter)), 0);
+    }
+
+    function test_NegRiskCtfCollateralAdapter_convertPositions_zeroAmount() public {
+        _before(4);
+        _splitAllQuestions(alice, amount);
+
+        uint256 collateralBefore = collateral.token.balanceOf(alice);
+
+        vm.prank(alice);
+        negRiskCtfCollateralAdapter.convertPositions(negRiskMarketId, 3, 0);
+
+        assertEq(collateral.token.balanceOf(alice), collateralBefore);
+        assertEq(usdce.balanceOf(address(negRiskCtfCollateralAdapter)), 0);
+    }
+
     function test_NegRiskCtfCollateralAdapter_redeemPositions(bool _outcome) public {
         test_NegRiskCtfCollateralAdapter_splitPosition();
 
