@@ -781,9 +781,7 @@ contract MatchOrdersTest is BaseExchangeTest {
         bytes32 otherConditionId = _prepareCondition(admin, hex"5678");
 
         // Compute a tokenId from the other market
-        uint256 foreignTokenId = ctf.getPositionId(
-            address(usdc), ctf.getCollectionId(bytes32(0), otherConditionId, 2)
-        );
+        uint256 foreignTokenId = ctf.getPositionId(address(usdc), ctf.getCollectionId(bytes32(0), otherConditionId, 2));
 
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
         Order memory makerOrder = _createAndSignOrder(carlaPK, foreignTokenId, 50_000_000, 100_000_000, Side.BUY);
