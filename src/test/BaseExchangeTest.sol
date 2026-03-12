@@ -38,8 +38,10 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITrading
     address public admin = alice;
     uint256 internal bobPK = 0xB0B;
     uint256 internal carlaPK = 0xCA414;
+    uint256 internal dylanPK = 0xD14A4;
     address public bob;
     address public carla;
+    address public dylanAddr;
     address public feeReceiver = address(9);
 
     address public proxyFactory;
@@ -61,6 +63,8 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITrading
         vm.label(bob, "bob");
         carla = vm.addr(carlaPK);
         vm.label(carla, "carla");
+        dylanAddr = vm.addr(dylanPK);
+        vm.label(dylanAddr, "dylan");
         vm.label(feeReceiver, "feeReceiver");
 
         usdc = new USDC();
@@ -84,6 +88,7 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITrading
             admin: admin,
             collateral: address(usdc),
             ctf: address(ctf),
+            ctfCollateral: address(usdc),
             outcomeTokenFactory: address(ctf),
             proxyFactory: proxyFactory,
             safeFactory: safeFactory,
@@ -93,6 +98,7 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITrading
         exchange = new CTFExchange(p);
         exchange.addOperator(bob);
         exchange.addOperator(carla);
+        exchange.addOperator(dylanAddr);
         vm.stopPrank();
     }
 

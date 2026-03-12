@@ -8,6 +8,9 @@ struct ExchangeInitParams {
     address collateral;
     /// @notice The Conditional Tokens Framework address
     address ctf;
+    /// @notice The collateral address used by the CTF for position ID derivation
+    /// @dev May differ from `collateral` when using adapters (e.g. USDC.e vs CollateralToken)
+    address ctfCollateral;
     /// @notice The Outcome Token Factory
     /// @dev Must be the Conditional Tokens Framework address or the Neg Risk Adapter address
     address outcomeTokenFactory;

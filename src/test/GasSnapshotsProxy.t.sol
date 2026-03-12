@@ -25,6 +25,7 @@ contract GasSnapshotsProxy is BaseExchangeTest {
             admin: admin,
             collateral: address(usdc),
             ctf: address(ctf),
+            ctfCollateral: address(usdc),
             outcomeTokenFactory: address(ctf),
             proxyFactory: proxyFactory,
             safeFactory: safeFactory,
