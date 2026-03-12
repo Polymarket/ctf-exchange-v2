@@ -30,6 +30,7 @@ echo "Deploy args:
 Admin: $ADMIN
 Collateral: $COLLATERAL
 ConditionalTokensFramework: $CTF
+CTFCollateral: $CTF_COLLATERAL
 NegRiskAdapter: $NEG_RISK_ADAPTER
 ProxyFactory: $PROXY_FACTORY
 SafeFactory: $SAFE_FACTORY
@@ -42,7 +43,7 @@ OUTPUT="$(forge script ExchangeDeployment \
     --json \
     --broadcast \
     --with-gas-price 200000000000 \
-    -s "deployNrExchange(address,address,address,address,address,address,address)" $ADMIN $COLLATERAL $CTF $NEG_RISK_ADAPTER $PROXY_FACTORY $SAFE_FACTORY $FEE_RECEIVER)"
+    -s "deployNrExchange(address,address,address,address,address,address,address,address)" $ADMIN $COLLATERAL $CTF $CTF_COLLATERAL $NEG_RISK_ADAPTER $PROXY_FACTORY $SAFE_FACTORY $FEE_RECEIVER)"
 
 EXCHANGE=$(echo "$OUTPUT" | grep "{" | jq -r .returns.exchange.value)
 echo "Exchange deployed: $EXCHANGE"
