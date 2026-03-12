@@ -6,6 +6,7 @@ import { IUserPausable } from "../interfaces/IUserPausable.sol";
 
 import { CalculatorHelper } from "../libraries/CalculatorHelper.sol";
 import { Order, Side, MatchType, OrderStatus } from "../libraries/Structs.sol";
+import { CTHelpers } from "src/adapters/libraries/CTHelpers.sol";
 
 import { Hashing } from "./Hashing.sol";
 import { UserPausable } from "./UserPausable.sol";
@@ -82,6 +83,9 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         uint256 takerFeeAmount,
         uint256[] memory makerFeeAmounts
     ) internal {
+        // Validate all tokenIds are valid positions for this conditionId
+        _validateTokenIds(conditionId, takerOrder, makerOrders);
+
         (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount);
 
         // Check if all matches are COMPLEMENTARY (all makers have opposite side to taker)
@@ -509,6 +513,24 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         assembly ("memory-safe") {
             makerAssetId := mul(side, tokenId)
             takerAssetId := sub(tokenId, makerAssetId)
+        }
+    }
+
+    /// @notice Validates that all order tokenIds are valid positions for the given conditionId
+    function _validateTokenIds(bytes32 conditionId, Order memory takerOrder, Order[] memory makerOrders) internal view {
+        address col = getCtfCollateral();
+        uint256 pos1 = CTHelpers.getPositionId(col, CTHelpers.getCollectionId(bytes32(0), conditionId, 1));
+        uint256 pos2 = CTHelpers.getPositionId(col, CTHelpers.getCollectionId(bytes32(0), conditionId, 2));
+
+        uint256 takerTokenId = takerOrder.tokenId;
+        require(takerTokenId == pos1 || takerTokenId == pos2, MismatchedTokenIds());
+
+        for (uint256 i = 0; i < makerOrders.length;) {
+            uint256 makerTokenId = makerOrders[i].tokenId;
+            require(makerTokenId == pos1 || makerTokenId == pos2, MismatchedTokenIds());
+            unchecked {
+                ++i;
+            }
         }
     }
 
