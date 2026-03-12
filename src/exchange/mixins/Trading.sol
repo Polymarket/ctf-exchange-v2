@@ -536,6 +536,8 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
     /// @param makerOrder   - The maker order
     function _validateOrdersMatch(Order memory takerOrder, Order memory makerOrder, MatchType matchType) internal pure {
         if (matchType == MatchType.COMPLEMENTARY) {
+            require(takerOrder.tokenId == makerOrder.tokenId, MismatchedTokenIds());
+
             // For BUY vs SELL on the same token, the crossing condition is:
             //   buyPrice >= sellPrice
             //
@@ -549,8 +551,6 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
             if (takerOrder.makerAmount * makerOrder.makerAmount < takerOrder.takerAmount * makerOrder.takerAmount) {
                 revert NotCrossing();
             }
-
-            require(takerOrder.tokenId == makerOrder.tokenId, MismatchedTokenIds());
         } else {
             require(takerOrder.tokenId != makerOrder.tokenId, MismatchedTokenIds());
 
