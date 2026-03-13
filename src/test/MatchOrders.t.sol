@@ -797,6 +797,84 @@ contract MatchOrdersTest is BaseExchangeTest {
         assertCTFBalance(carla, yes, 100_000_000);
     }
 
+    function test_MatchOrders_revert_MismatchedTokenIds_MintSameTokenId() public {
+        // Taker: BUY YES, Maker1: BUY YES (same token!), Maker2: BUY NO
+        // Maker1 buying the same token as taker is invalid for MINT
+        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
+        dealUsdcAndApprove(carla, address(exchange), 50_000_000);
+        dealUsdcAndApprove(dylanAddr, address(exchange), 50_000_000);
+
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory makerOrder1 = _createAndSignOrder(carlaPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory makerOrder2 = _createAndSignOrder(dylanPK, no, 50_000_000, 100_000_000, Side.BUY);
+
+        Order[] memory makerOrders = new Order[](2);
+        makerOrders[0] = makerOrder1;
+        makerOrders[1] = makerOrder2;
+
+        uint256[] memory fillAmounts = new uint256[](2);
+        fillAmounts[0] = 50_000_000;
+        fillAmounts[1] = 50_000_000;
+
+        uint256[] memory makerFeeAmounts = new uint256[](2);
+        makerFeeAmounts[0] = 0;
+        makerFeeAmounts[1] = 0;
+
+        vm.expectRevert(MismatchedTokenIds.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 0, makerFeeAmounts);
+    }
+
+    function test_MatchOrders_revert_MismatchedTokenIds_InvalidTokenId() public {
+        // Maker uses a tokenId from a different market — should be rejected
+        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
+        dealUsdcAndApprove(carla, address(exchange), 50_000_000);
+
+        // Create a second condition with different tokenIds
+        bytes32 otherConditionId = _prepareCondition(admin, hex"5678");
+
+        // Compute a tokenId from the other market
+        uint256 foreignTokenId = ctf.getPositionId(address(usdc), ctf.getCollectionId(bytes32(0), otherConditionId, 2));
+
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, foreignTokenId, 50_000_000, 100_000_000, Side.BUY);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 50_000_000;
+
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        vm.expectRevert(MismatchedTokenIds.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 0, makerFeeAmounts);
+    }
+
+    function test_MatchOrders_revert_MismatchedTokenIds_TokenIdZeroCollateralExtraction() public {
+        // tokenId=0 represents collateral transfers and must never be accepted as a CTF outcome position.
+        dealUsdcAndApprove(bob, address(exchange), 150_000_000);
+        dealUsdcAndApprove(carla, address(exchange), 50_000_000);
+
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 150_000_000, 100_000_000, Side.BUY);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, 0, 50_000_000, 100_000_000, Side.BUY);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 50_000_000;
+
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        vm.expectRevert(MismatchedTokenIds.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 150_000_000, fillAmounts, 0, makerFeeAmounts);
+    }
+
     function test_MatchOrders_Events_Complementary_WithFees() public {
         dealUsdcAndApprove(bob, address(exchange), 52_500_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);

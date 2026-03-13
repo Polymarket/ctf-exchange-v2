@@ -50,6 +50,7 @@ contract GasSnapshotsCtfCollateralAdapter is BaseExchangeTest {
             admin: admin,
             collateral: address(collateral.token),
             ctf: address(ctf),
+            ctfCollateral: address(usdce),
             outcomeTokenFactory: address(adapter),
             proxyFactory: address(mockProxyFactory),
             safeFactory: address(mockSafeFactory),

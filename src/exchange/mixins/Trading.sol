@@ -6,6 +6,7 @@ import { IUserPausable } from "../interfaces/IUserPausable.sol";
 
 import { CalculatorHelper } from "../libraries/CalculatorHelper.sol";
 import { Order, Side, MatchType, OrderStatus } from "../libraries/Structs.sol";
+import { CTHelpers } from "src/adapters/libraries/CTHelpers.sol";
 
 import { Hashing } from "./Hashing.sol";
 import { UserPausable } from "./UserPausable.sol";
@@ -84,6 +85,8 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
     ) internal {
         require(makerOrders.length > 0, NoMakerOrders());
 
+        // Validate all tokenIds are valid positions for this conditionId
+        _validateTokenIds(conditionId, takerOrder, makerOrders);
         // Check if all matches are COMPLEMENTARY (all makers have opposite side to taker)
         if (_isAllComplementary(takerOrder.side, makerOrders)) {
             _settleComplementary(
@@ -545,11 +548,28 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         }
     }
 
+    /// @notice Validates that all order tokenIds are valid positions for the given conditionId
+    function _validateTokenIds(bytes32 conditionId, Order memory takerOrder, Order[] memory makerOrders) internal view {
+        address col = getCtfCollateral();
+        uint256 pos1 = CTHelpers.getPositionId(col, CTHelpers.getCollectionId(bytes32(0), conditionId, 1));
+        uint256 pos2 = CTHelpers.getPositionId(col, CTHelpers.getCollectionId(bytes32(0), conditionId, 2));
+
+        uint256 takerTokenId = takerOrder.tokenId;
+        require(takerTokenId == pos1 || takerTokenId == pos2, MismatchedTokenIds());
+
+        for (uint256 i = 0; i < makerOrders.length; ++i) {
+            uint256 makerTokenId = makerOrders[i].tokenId;
+            require(makerTokenId == pos1 || makerTokenId == pos2, MismatchedTokenIds());
+        }
+    }
+
     /// @notice Ensures the taker and maker orders can be matched against each other
     /// @param takerOrder   - The taker order
     /// @param makerOrder   - The maker order
     function _validateOrdersMatch(Order memory takerOrder, Order memory makerOrder, MatchType matchType) internal pure {
         if (matchType == MatchType.COMPLEMENTARY) {
+            require(takerOrder.tokenId == makerOrder.tokenId, MismatchedTokenIds());
+
             // For BUY vs SELL on the same token, the crossing condition is:
             //   buyPrice >= sellPrice
             //
@@ -563,9 +583,9 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
             if (takerOrder.makerAmount * makerOrder.makerAmount < takerOrder.takerAmount * makerOrder.takerAmount) {
                 revert NotCrossing();
             }
-
-            require(takerOrder.tokenId == makerOrder.tokenId, MismatchedTokenIds());
         } else {
+            require(takerOrder.tokenId != makerOrder.tokenId, MismatchedTokenIds());
+
             if (matchType == MatchType.MINT) {
                 require(
                     takerOrder.takerAmount * makerOrder.makerAmount + makerOrder.takerAmount * takerOrder.makerAmount

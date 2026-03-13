@@ -71,6 +71,7 @@ contract GasSnapshotsNegRiskCtfCollateralAdapter is BaseExchangeTest {
             admin: admin,
             collateral: address(collateral.token),
             ctf: address(ctf),
+            ctfCollateral: wrappedCol,
             outcomeTokenFactory: address(adapter),
             proxyFactory: address(mockProxyFactory),
             safeFactory: address(mockSafeFactory),
