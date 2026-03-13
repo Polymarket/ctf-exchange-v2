@@ -254,6 +254,68 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(takerOrder);
     }
 
+    function test_CTFExchange_matchOrders_revert_NoMakerOrders() public {
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order[] memory makerOrders = new Order[](0);
+        uint256[] memory fillAmounts = new uint256[](0);
+        uint256[] memory feeAmounts = new uint256[](0);
+
+        vm.expectRevert(NoMakerOrders.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 0, feeAmounts);
+    }
+
+    function test_CTFExchange_matchOrders_revert_MismatchedArrayLengths() public {
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        // fillAmounts has length 2, mismatched with makerOrders length 1
+        uint256[] memory fillAmounts = new uint256[](2);
+        uint256[] memory feeAmounts = new uint256[](1);
+
+        vm.expectRevert(MismatchedArrayLengths.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 0, feeAmounts);
+    }
+
+    function test_CTFExchange_UserPausable_revert_UserAlreadyPaused() public {
+        vm.prank(bob);
+        exchange.pauseUser();
+
+        // Calling pauseUser() again should revert
+        vm.expectRevert(UserAlreadyPaused.selector);
+        vm.prank(bob);
+        exchange.pauseUser();
+    }
+
+    function test_CTFExchange_UserPausable_rePauseAfterUnpause() public {
+        vm.prank(bob);
+        exchange.pauseUser();
+
+        // Unpause first, then re-pause should succeed
+        vm.prank(bob);
+        exchange.unpauseUser();
+
+        vm.prank(bob);
+        exchange.pauseUser();
+    }
+
+    function test_CTFExchange_SetUserPauseBlockInterval_revert_ExceedsMax() public {
+        vm.expectRevert(ExceedsMaxPauseInterval.selector);
+        vm.prank(admin);
+        exchange.setUserPauseBlockInterval(302_401);
+    }
+
+    function test_CTFExchange_SetUserPauseBlockInterval_MaxValue() public {
+        // Setting exactly MAX_PAUSE_BLOCK_INTERVAL (7 days at 2s Polygon blocks) should succeed
+        vm.prank(admin);
+        exchange.setUserPauseBlockInterval(302_400);
+        assertEq(exchange.userPauseBlockInterval(), 302_400);
+    }
+
     function test_CTFExchange_ValidateOrder_UserPaused() public {
         Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
 
