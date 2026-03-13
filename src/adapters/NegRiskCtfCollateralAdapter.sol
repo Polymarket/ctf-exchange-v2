@@ -5,6 +5,7 @@ import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 
 import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
 import { INegRiskAdapter } from "src/adapters/interfaces/INegRiskAdapter.sol";
+import { CollateralToken } from "src/collateral/CollateralToken.sol";
 
 import { CtfCollateralAdapter } from "./CtfCollateralAdapter.sol";
 
@@ -37,8 +38,75 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
     }
 
     /*--------------------------------------------------------------
+                                EXTERNAL
+    --------------------------------------------------------------*/
+
+    function convertPositions(bytes32 _marketId, uint256 _indexSet, uint256 _amount) external {
+        INegRiskAdapter adapter = INegRiskAdapter(negRiskAdapter);
+        uint256 questionCount = adapter.getQuestionCount(_marketId);
+        uint256 feeBips = adapter.getFeeBips(_marketId);
+
+        // Pull NO tokens from caller
+        {
+            (uint256[] memory ids, uint256[] memory amounts) =
+                _buildPositionArrays(adapter, _marketId, _indexSet, questionCount, false, _amount);
+            conditionalTokens.safeBatchTransferFrom(msg.sender, address(this), ids, amounts, "");
+        }
+
+        // Convert positions via NegRiskAdapter
+        adapter.convertPositions(_marketId, _indexSet, _amount);
+
+        // Send YES tokens to caller
+        {
+            uint256 amountOut = _amount - (_amount * feeBips / 10_000);
+            (uint256[] memory ids, uint256[] memory amounts) =
+                _buildPositionArrays(adapter, _marketId, _indexSet, questionCount, true, amountOut);
+            conditionalTokens.safeBatchTransferFrom(address(this), msg.sender, ids, amounts, "");
+        }
+
+        // Wrap any received USDC.e into CollateralToken
+        uint256 usdceAmount = usdce.balanceOf(address(this));
+        if (usdceAmount > 0) {
+            usdce.safeTransfer(collateralToken, usdceAmount);
+            CollateralToken(collateralToken).wrap(usdce, msg.sender, usdceAmount, address(0), "");
+        }
+    }
+
+    /*--------------------------------------------------------------
                                 INTERNAL
     --------------------------------------------------------------*/
+
+    /// @dev Builds arrays of position IDs and amounts for either the NO side (inSet=false) or YES side (inSet=true).
+    ///      When inSet=false, selects questions whose bit IS set in _indexSet (NO positions).
+    ///      When inSet=true, selects questions whose bit is NOT set in _indexSet (YES positions).
+    function _buildPositionArrays(
+        INegRiskAdapter _adapter,
+        bytes32 _marketId,
+        uint256 _indexSet,
+        uint256 _questionCount,
+        bool _yesPositions,
+        uint256 _amount
+    ) internal view returns (uint256[] memory ids, uint256[] memory amounts) {
+        uint256 count;
+        for (uint256 i; i < _questionCount; ++i) {
+            bool inSet = _indexSet & (1 << i) != 0;
+            if (inSet != _yesPositions) ++count;
+        }
+
+        ids = new uint256[](count);
+        amounts = new uint256[](count);
+        uint256 idx;
+
+        for (uint256 i; i < _questionCount; ++i) {
+            bool inSet = _indexSet & (1 << i) != 0;
+            if (inSet != _yesPositions) {
+                bytes32 questionId = bytes32(uint256(_marketId) | i);
+                ids[idx] = _adapter.getPositionId(questionId, _yesPositions);
+                amounts[idx] = _amount;
+                ++idx;
+            }
+        }
+    }
 
     function _getPositionIds(bytes32 _conditionId) internal view virtual override returns (uint256[] memory) {
         return CTFHelpers.positionIds(wrappedCollateral, _conditionId);

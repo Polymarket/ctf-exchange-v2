@@ -1,0 +1,47 @@
+name: Polybius PR Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  review:
+    if: >-
+      github.event_name == 'pull_request' &&
+      !github.event.pull_request.draft
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Polybius PR review
+        run: |
+          curl -sSf --max-time 10 -X POST "${{ secrets.POLYBIUS_WEBHOOK_URL }}/webhook" \
+            -H "Authorization: Bearer ${{ secrets.POLYBIUS_WEBHOOK_SECRET }}" \
+            -H "Content-Type: application/json" \
+            -d '{"type":"pr_review","channel":"${{ secrets.POLYBIUS_CHANNEL_ID }}","repo":"${{ github.repository }}","pr_number":${{ github.event.pull_request.number }},"event":"${{ github.event.action }}"}'
+
+  comment:
+    if: >-
+      github.event_name == 'issue_comment' &&
+      github.event.issue.pull_request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Polybius PR comment handler
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          jq -n \
+            --arg type "pr_comment" \
+            --arg channel "${{ secrets.POLYBIUS_CHANNEL_ID }}" \
+            --arg repo "${{ github.repository }}" \
+            --argjson pr_number ${{ github.event.issue.number }} \
+            --arg comment_author "${{ github.event.comment.user.login }}" \
+            --arg comment_body "$COMMENT_BODY" \
+            --arg comment_url "${{ github.event.comment.html_url }}" \
+            '{type:$type,channel:$channel,repo:$repo,pr_number:$pr_number,comment_author:$comment_author,comment_body:$comment_body,comment_url:$comment_url}' \
+          | curl -sSf --max-time 10 -X POST "${{ secrets.POLYBIUS_WEBHOOK_URL }}/webhook" \
+              -H "Authorization: Bearer ${{ secrets.POLYBIUS_WEBHOOK_SECRET }}" \
+              -H "Content-Type: application/json" \
+              -d @-

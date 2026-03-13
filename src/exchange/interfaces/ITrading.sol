@@ -9,6 +9,7 @@ interface ITradingEE {
     error MakingGtRemaining();
     error NotCrossing();
     error TooLittleTokensReceived();
+    error ComplementaryFillExceedsTakerFill();
     error MismatchedTokenIds();
     error FeeExceedsProceeds();
 
