@@ -624,5 +624,4 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
             sstore(status.slot, packed)
         }
     }
-
 }
