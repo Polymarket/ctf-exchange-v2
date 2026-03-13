@@ -625,9 +625,4 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         }
     }
 
-    function _updateTakingWithSurplus(uint256 minimumAmount, uint256 tokenId) internal view returns (uint256) {
-        uint256 actualAmount = _getBalance(tokenId);
-        require(actualAmount >= minimumAmount, TooLittleTokensReceived());
-        return actualAmount;
-    }
 }
