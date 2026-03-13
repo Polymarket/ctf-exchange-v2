@@ -327,7 +327,45 @@ contract PreapprovedTest is BaseExchangeTest {
     }
 
     // ──────────────────────────────────────────────────
-    // Test 8: Invalid signature without preapproval reverts (negative control)
+    // Test 8: Preapproved order with malformed signature still matches
+    // ──────────────────────────────────────────────────
+
+    function test_matchOrders_preapproved_malformedSignature() public {
+        vm.pauseGasMetering();
+        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
+        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
+
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
+
+        // Preapprove the maker order, then set its signature to empty bytes (malformed)
+        vm.prank(admin);
+        exchange.preapproveOrder(makerOrder);
+        makerOrder.signature = hex"";
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 100_000_000;
+
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        vm.resumeGasMetering();
+
+        // Should succeed: preapproval check runs first, short-circuiting the malformed signature
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 0, makerFeeAmounts);
+
+        vm.pauseGasMetering();
+        assertCollateralBalance(bob, 0);
+        assertCTFBalance(bob, yes, 100_000_000);
+        assertTrue(exchange.getOrderStatus(exchange.hashOrder(makerOrder)).filled);
+    }
+
+    // ──────────────────────────────────────────────────
+    // Test 9: Invalid signature without preapproval reverts (negative control)
     // ──────────────────────────────────────────────────
 
     function test_matchOrders_invalidSignature_notPreapproved_reverts() public {
