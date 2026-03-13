@@ -54,6 +54,9 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
     }
 
     function _validateOrder(bytes32 orderHash, Order memory order) internal view {
+        // Validate order is not zero-sized
+        require(order.makerAmount > 0, ZeroMakerAmount());
+
         // Validate signature
         validateOrderSignature(orderHash, order);
 
