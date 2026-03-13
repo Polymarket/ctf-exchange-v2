@@ -85,16 +85,15 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
     ) internal {
         // Validate all tokenIds are valid positions for this conditionId
         _validateTokenIds(conditionId, takerOrder, makerOrders);
-
-        (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount);
-
         // Check if all matches are COMPLEMENTARY (all makers have opposite side to taker)
         if (_isAllComplementary(takerOrder.side, makerOrders)) {
             _settleComplementary(
-                takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, orderHash, takerFillAmount, takerFeeAmount
+                takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, takerFillAmount, takerFeeAmount
             );
             return;
         }
+
+        (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount);
 
         (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(takerOrder);
 
@@ -140,38 +139,56 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         Order[] memory makerOrders,
         uint256[] memory makerFillAmounts,
         uint256[] memory makerFeeAmounts,
-        bytes32 takerOrderHash,
         uint256 takerFillAmount,
         uint256 takerFeeAmount
     ) internal {
+        bytes32 takerOrderHash = hashOrder(takerOrder);
+        _validateOrder(takerOrderHash, takerOrder);
+
         address taker = takerOrder.maker;
         bool takerIsBuy = takerOrder.side == Side.BUY;
         uint256 totalMakerFees = 0;
-        uint256 totalTakerReceives = 0;
+        uint256 executedTakerMakingAmount = 0;
+        uint256 executedTakerTakingAmount = 0;
 
         for (uint256 i = 0; i < makerOrders.length;) {
-            (uint256 makerFee, uint256 makerCollateral) = _settleComplementaryMaker(
+            (uint256 makerFee, uint256 makerImpliedTakerMakingAmount) = _settleComplementaryMaker(
                 takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i], taker, takerIsBuy
             );
             unchecked {
                 totalMakerFees += makerFee;
-                totalTakerReceives += makerCollateral;
+                executedTakerMakingAmount += makerImpliedTakerMakingAmount;
+                executedTakerTakingAmount += makerFillAmounts[i];
                 ++i;
             }
         }
+
+        if (executedTakerMakingAmount > takerFillAmount) revert ComplementaryFillExceedsTakerFill();
+
+        uint256 minimumTakerTakingAmount =
+            _calculateTakingAndValidateFee(takerOrder, executedTakerMakingAmount, takerFeeAmount);
+        if (executedTakerTakingAmount < minimumTakerTakingAmount) revert TooLittleTokensReceived();
+
+        _updateOrderStatus(takerOrderHash, takerOrder, executedTakerMakingAmount);
 
         // Batch transfer accumulated maker SELL fees from taker
         if (totalMakerFees > 0) _transfer(taker, getFeeReceiver(), 0, totalMakerFees);
 
         // Handle taker settlement
         _settleComplementaryTaker(
-            takerOrder, taker, takerIsBuy, totalTakerReceives, takerOrderHash, takerFillAmount, takerFeeAmount
+            takerOrder,
+            taker,
+            takerIsBuy,
+            takerOrderHash,
+            executedTakerMakingAmount,
+            executedTakerTakingAmount,
+            takerFeeAmount
         );
     }
 
     /// @notice Settles a single maker in COMPLEMENTARY match
     /// @return makerFee - Fee to batch (for maker SELL only)
-    /// @return makerCollateral - Collateral received by exchange (for taker SELL only)
+    /// @return makerImpliedTakerMakingAmount - Taker-side order consumption implied by the maker's ratio
     function _settleComplementaryMaker(
         Order memory takerOrder,
         Order memory makerOrder,
@@ -179,10 +196,11 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         uint256 feeAmount,
         address taker,
         bool takerIsBuy
-    ) internal returns (uint256 makerFee, uint256 makerCollateral) {
+    ) internal returns (uint256 makerFee, uint256 makerImpliedTakerMakingAmount) {
         _validateOrdersMatch(takerOrder, makerOrder, MatchType.COMPLEMENTARY);
 
         (uint256 taking, bytes32 orderHash) = _performOrderChecks(makerOrder, fillAmount, feeAmount);
+        makerImpliedTakerMakingAmount = taking;
 
         if (takerIsBuy) {
             // Taker BUY ↔ Maker SELL: direct transfers both ways
@@ -201,7 +219,6 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
             // Taker SELL ↔ Maker BUY: CTF direct, collateral through exchange
             _transfer(taker, makerOrder.maker, takerOrder.tokenId, taking); // CTF: taker → maker
             _transfer(makerOrder.maker, address(this), 0, fillAmount); // Collateral: maker → exchange
-            makerCollateral = fillAmount;
             if (feeAmount > 0) _chargeFee(makerOrder.maker, feeAmount);
         }
 
@@ -226,17 +243,17 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         Order memory takerOrder,
         address taker,
         bool takerIsBuy,
-        uint256 totalTakerReceives,
         bytes32 takerOrderHash,
-        uint256 takerFillAmount,
+        uint256 executedTakerMakingAmount,
+        uint256 executedTakerTakingAmount,
         uint256 takerFeeAmount
     ) internal {
         if (takerIsBuy) {
             if (takerFeeAmount > 0) _chargeFee(taker, takerFeeAmount);
         } else {
-            uint256 takerProceeds = totalTakerReceives;
+            uint256 takerProceeds = executedTakerTakingAmount;
             if (takerFeeAmount > 0) {
-                require(takerFeeAmount <= totalTakerReceives, FeeExceedsProceeds());
+                require(takerFeeAmount <= executedTakerTakingAmount, FeeExceedsProceeds());
                 unchecked {
                     takerProceeds -= takerFeeAmount;
                 }
@@ -253,8 +270,8 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
                 taker: address(this),
                 side: takerOrder.side,
                 tokenId: takerOrder.tokenId,
-                makerAmountFilled: takerFillAmount,
-                takerAmountFilled: takerIsBuy ? takerFillAmount : totalTakerReceives,
+                makerAmountFilled: executedTakerMakingAmount,
+                takerAmountFilled: executedTakerTakingAmount,
                 fee: takerFeeAmount,
                 builder: takerOrder.builder,
                 metadata: takerOrder.metadata
@@ -461,7 +478,14 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         // Update the order status in storage
         _updateOrderStatus(orderHash, order, making);
 
-        // Calculate taking amount
+        takingAmount = _calculateTakingAndValidateFee(order, making, fee);
+    }
+
+    function _calculateTakingAndValidateFee(Order memory order, uint256 making, uint256 fee)
+        internal
+        view
+        returns (uint256 takingAmount)
+    {
         takingAmount = CalculatorHelper.calculateTakingAmount(making, order.makerAmount, order.takerAmount);
 
         // Validate fee against max fee rate (reads storage only when fee is non-zero)
