@@ -4,6 +4,7 @@ pragma solidity <0.9.0;
 interface IAuthEE {
     error NotAdmin();
     error NotOperator();
+    error LastAdmin();
 
     /// @notice Emitted when a new admin is added
     event NewAdmin(address indexed newAdminAddress, address indexed admin);

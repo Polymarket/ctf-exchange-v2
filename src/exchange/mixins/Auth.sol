@@ -9,6 +9,9 @@ abstract contract Auth is IAuth {
     /// @dev The set of addresses authorized as Admins
     mapping(address => uint256) internal admins;
 
+    /// @dev The number of active admins
+    uint256 internal adminCount;
+
     /// @dev The set of addresses authorized as Operators
     mapping(address => uint256) internal operators;
 
@@ -24,6 +27,7 @@ abstract contract Auth is IAuth {
 
     constructor(address admin) {
         admins[admin] = 1;
+        adminCount = 1;
         operators[admin] = 1;
     }
 
@@ -39,6 +43,7 @@ abstract contract Auth is IAuth {
     /// Can only be called by a current admin
     /// @param admin_ - The new admin
     function addAdmin(address admin_) external onlyAdmin {
+        if (admins[admin_] == 0) ++adminCount;
         admins[admin_] = 1;
         emit NewAdmin(admin_, msg.sender);
     }
@@ -55,6 +60,10 @@ abstract contract Auth is IAuth {
     /// Can only be called by a current admin
     /// @param admin - The admin to be removed
     function removeAdmin(address admin) external onlyAdmin {
+        if (admins[admin] == 1) {
+            require(adminCount > 1, LastAdmin());
+            --adminCount;
+        }
         admins[admin] = 0;
         emit RemovedAdmin(admin, msg.sender);
     }
@@ -70,6 +79,8 @@ abstract contract Auth is IAuth {
     /// @notice Removes the admin role for the caller
     /// Can only be called by an existing admin
     function renounceAdminRole() external onlyAdmin {
+        require(adminCount > 1, LastAdmin());
+        --adminCount;
         admins[msg.sender] = 0;
         emit RemovedAdmin(msg.sender, msg.sender);
     }

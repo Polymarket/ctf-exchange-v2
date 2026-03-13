@@ -57,6 +57,10 @@ contract CTFExchangeTest is BaseExchangeTest {
         assertTrue(exchange.isAdmin(admin));
         assertTrue(exchange.isOperator(admin));
 
+        // Add a second admin so renounce is allowed
+        vm.prank(admin);
+        exchange.addAdmin(henry);
+
         // Successfully renounces the admin role
         vm.prank(admin);
         exchange.renounceAdminRole();
@@ -67,6 +71,32 @@ contract CTFExchangeTest is BaseExchangeTest {
         vm.prank(admin);
         exchange.renounceOperatorRole();
         assertFalse(exchange.isOperator(admin));
+    }
+
+    function test_CTFExchange_Auth_revert_RemoveLastAdmin() public {
+        // Cannot remove the only admin
+        vm.expectRevert(LastAdmin.selector);
+        vm.prank(admin);
+        exchange.removeAdmin(admin);
+    }
+
+    function test_CTFExchange_Auth_revert_RenounceLastAdmin() public {
+        // Cannot renounce when you're the only admin
+        vm.expectRevert(LastAdmin.selector);
+        vm.prank(admin);
+        exchange.renounceAdminRole();
+    }
+
+    function test_CTFExchange_Auth_RemoveAdminWithMultiple() public {
+        // Add a second admin
+        vm.prank(admin);
+        exchange.addAdmin(henry);
+        assertTrue(exchange.isAdmin(henry));
+
+        // Can remove one of two admins
+        vm.prank(admin);
+        exchange.removeAdmin(henry);
+        assertFalse(exchange.isAdmin(henry));
     }
 
     function test_CTFExchange_Pause() public {

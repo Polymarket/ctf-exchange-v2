@@ -242,10 +242,6 @@ contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITrading
         return ERC1155(address(ctf)).balanceOf(_who, _tokenId);
     }
 
-    function calculatePrice(uint256 makerAmount, uint256 takerAmount, Side side) public pure returns (uint256) {
-        return CalculatorHelper._calculatePrice(makerAmount, takerAmount, side);
-    }
-
     function _getTakingAmount(uint256 _making, uint256 _makerAmount, uint256 _takerAmount)
         internal
         pure
