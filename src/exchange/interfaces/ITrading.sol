@@ -12,6 +12,7 @@ interface ITradingEE {
     error ComplementaryFillExceedsTakerFill();
     error MismatchedTokenIds();
     error FeeExceedsProceeds();
+    error NoMakerOrders();
 
     /// @notice Emitted when an order is filled
     event OrderFilled(

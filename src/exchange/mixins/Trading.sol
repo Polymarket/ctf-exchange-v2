@@ -82,6 +82,8 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         uint256 takerFeeAmount,
         uint256[] memory makerFeeAmounts
     ) internal {
+        require(makerOrders.length > 0, NoMakerOrders());
+
         // Check if all matches are COMPLEMENTARY (all makers have opposite side to taker)
         if (_isAllComplementary(takerOrder.side, makerOrders)) {
             _settleComplementary(
@@ -97,14 +99,10 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         // Transfer takerOrder making amount from taker order to the Exchange
         _transfer(takerOrder.maker, address(this), makerAssetId, takerFillAmount);
 
-        // Settle the maker orders (returns accumulated exchange-paid fees)
-        uint256 makerExchangeFees =
-            _settleMakerOrders(conditionId, takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts);
-
-        // Batch transfer maker SELL fees before taker settlement (so refund logic doesn't see them as leftover)
-        if (makerExchangeFees > 0) _transfer(address(this), getFeeReceiver(), 0, makerExchangeFees);
-
-        taking = _updateTakingWithSurplus(taking, takerAssetId);
+        // Settle maker orders with delta-based surplus (prevents pre-existing balance inflation)
+        taking = _settleMakersAndComputeTaking(
+            conditionId, takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, taking, takerAssetId
+        );
 
         // Settle the taker order (returns exchange-paid fee if SELL)
         uint256 takerExchangeFee =
@@ -363,6 +361,30 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
                 ++i; // safety: i < length which fits in memory
             }
         }
+    }
+
+    /// @notice Settles maker orders and computes taker's actual taking as a balance delta
+    /// @dev Snapshots takerAssetId balance before/after to avoid inflating taking with pre-existing tokens
+    function _settleMakersAndComputeTaking(
+        bytes32 conditionId,
+        Order memory takerOrder,
+        Order[] memory makerOrders,
+        uint256[] memory makerFillAmounts,
+        uint256[] memory makerFeeAmounts,
+        uint256 minimumTaking,
+        uint256 takerAssetId
+    ) internal returns (uint256) {
+        uint256 balanceBefore = _getBalance(takerAssetId);
+
+        uint256 makerExchangeFees =
+            _settleMakerOrders(conditionId, takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts);
+
+        // Batch transfer maker SELL fees before taker settlement (so refund logic doesn't see them as leftover)
+        if (makerExchangeFees > 0) _transfer(address(this), getFeeReceiver(), 0, makerExchangeFees);
+
+        uint256 actualTaking = _getBalance(takerAssetId) - balanceBefore;
+        require(actualTaking >= minimumTaking, TooLittleTokensReceived());
+        return actualTaking;
     }
 
     /// @notice Prepares a maker order for batch settlement
