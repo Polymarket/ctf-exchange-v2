@@ -112,9 +112,10 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
             // Batch transfer maker SELL fees before taker settlement (so refund logic doesn't see them as leftover)
             if (makerExchangeFees > 0) _transfer(address(this), getFeeReceiver(), 0, makerExchangeFees);
 
-            uint256 actualTaking = _getBalance(takerAssetId) - balanceBefore;
-            require(actualTaking >= taking, TooLittleTokensReceived());
-            taking = actualTaking;
+            uint256 balanceAfter = _getBalance(takerAssetId);
+            require(balanceAfter >= taking + balanceBefore, TooLittleTokensReceived());
+            // Actual taking amount
+            taking = balanceAfter - balanceBefore;
         }
 
         // Settle the taker order (returns exchange-paid fee if SELL)
