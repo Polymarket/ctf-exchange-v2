@@ -1,15 +1,15 @@
 {
-  "neg_risk_ctf_collateral_adapter_combo_complementary_merge_10makers": "920525",
-  "neg_risk_ctf_collateral_adapter_combo_complementary_merge_20makers": "1384208",
-  "neg_risk_ctf_collateral_adapter_combo_complementary_mint_10makers": "949653",
-  "neg_risk_ctf_collateral_adapter_combo_complementary_mint_20makers": "1412851",
+  "neg_risk_ctf_collateral_adapter_combo_complementary_merge_10makers": "920461",
+  "neg_risk_ctf_collateral_adapter_combo_complementary_merge_20makers": "1384144",
+  "neg_risk_ctf_collateral_adapter_combo_complementary_mint_10makers": "949589",
+  "neg_risk_ctf_collateral_adapter_combo_complementary_mint_20makers": "1412787",
   "neg_risk_ctf_collateral_adapter_complementary_10makers": "530785",
   "neg_risk_ctf_collateral_adapter_complementary_1maker": "134924",
   "neg_risk_ctf_collateral_adapter_complementary_5makers": "310726",
-  "neg_risk_ctf_collateral_adapter_merge_10makers": "961664",
-  "neg_risk_ctf_collateral_adapter_merge_1maker": "539270",
-  "neg_risk_ctf_collateral_adapter_merge_5makers": "726728",
-  "neg_risk_ctf_collateral_adapter_mint_10makers": "1011956",
-  "neg_risk_ctf_collateral_adapter_mint_1maker": "603710",
-  "neg_risk_ctf_collateral_adapter_mint_5makers": "784879"
+  "neg_risk_ctf_collateral_adapter_merge_10makers": "961600",
+  "neg_risk_ctf_collateral_adapter_merge_1maker": "539206",
+  "neg_risk_ctf_collateral_adapter_merge_5makers": "726664",
+  "neg_risk_ctf_collateral_adapter_mint_10makers": "1011892",
+  "neg_risk_ctf_collateral_adapter_mint_1maker": "603646",
+  "neg_risk_ctf_collateral_adapter_mint_5makers": "784815"
 }
