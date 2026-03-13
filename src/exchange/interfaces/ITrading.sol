@@ -5,7 +5,6 @@ import { OrderStatus, Order, Side } from "../libraries/Structs.sol";
 
 interface ITradingEE {
     error OrderAlreadyFilled();
-    error OrderExpired();
     error MakingGtRemaining();
     error NotCrossing();
     error TooLittleTokensReceived();
