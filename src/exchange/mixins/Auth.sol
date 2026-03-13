@@ -75,20 +75,4 @@ abstract contract Auth is IAuth {
         operators[operator] = 0;
         emit RemovedOperator(operator, msg.sender);
     }
-
-    /// @notice Removes the admin role for the caller
-    /// Can only be called by an existing admin
-    function renounceAdminRole() external onlyAdmin {
-        require(adminCount > 1, LastAdmin());
-        --adminCount;
-        admins[msg.sender] = 0;
-        emit RemovedAdmin(msg.sender, msg.sender);
-    }
-
-    /// @notice Removes the operator role for the caller
-    /// Can only be called by an exiting operator
-    function renounceOperatorRole() external onlyOperator {
-        operators[msg.sender] = 0;
-        emit RemovedOperator(msg.sender, msg.sender);
-    }
 }

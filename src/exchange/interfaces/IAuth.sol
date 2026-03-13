@@ -31,8 +31,4 @@ interface IAuth is IAuthEE {
     function removeAdmin(address) external;
 
     function removeOperator(address) external;
-
-    function renounceAdminRole() external;
-
-    function renounceOperatorRole() external;
 }
