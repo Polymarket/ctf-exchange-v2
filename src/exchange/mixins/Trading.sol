@@ -365,6 +365,14 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
 
     /// @notice Settles maker orders and computes taker's actual taking as a balance delta
     /// @dev Snapshots takerAssetId balance before/after to avoid inflating taking with pre-existing tokens
+    /// @param conditionId      - The conditionId of the market being traded
+    /// @param takerOrder       - The active taker order
+    /// @param makerOrders      - The array of maker orders to settle
+    /// @param makerFillAmounts - The array of fill amounts for each maker order
+    /// @param makerFeeAmounts  - The array of fee amounts for each maker order
+    /// @param minimumTaking    - The minimum taking amount the taker must receive (from order ratio)
+    /// @param takerAssetId     - The asset ID the taker receives
+    /// @return actualTaking    - The actual amount received by the exchange for the taker (balance delta)
     function _settleMakersAndComputeTaking(
         bytes32 conditionId,
         Order memory takerOrder,

@@ -836,4 +836,32 @@ contract MatchOrdersTest is BaseExchangeTest {
         vm.prank(admin);
         exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 2_500_000, makerFeeAmounts);
     }
+
+    function test_MatchOrders_revert_NoMakerOrders_Buy() public {
+        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
+
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+
+        Order[] memory makerOrders = new Order[](0);
+        uint256[] memory fillAmounts = new uint256[](0);
+        uint256[] memory makerFeeAmounts = new uint256[](0);
+
+        vm.expectRevert(NoMakerOrders.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 0, makerFeeAmounts);
+    }
+
+    function test_MatchOrders_revert_NoMakerOrders_Sell() public {
+        dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
+
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 100_000_000, 50_000_000, Side.SELL);
+
+        Order[] memory makerOrders = new Order[](0);
+        uint256[] memory fillAmounts = new uint256[](0);
+        uint256[] memory makerFeeAmounts = new uint256[](0);
+
+        vm.expectRevert(NoMakerOrders.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 100_000_000, fillAmounts, 0, makerFeeAmounts);
+    }
 }
