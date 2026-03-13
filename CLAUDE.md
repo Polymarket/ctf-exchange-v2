@@ -23,6 +23,18 @@ This codebase has been audited. All future changes must follow these constraints
   2. Unit tests covering every new line and branch (see Testing section)
 - **Gas snapshots**: If a fix changes gas usage, regenerate `.gas-snapshot` with `forge snapshot`.
 
+## Gas Consciousness
+
+This codebase is heavily gas-optimized — assembly-level event emission (`log4`/`log3`/`log2` in `Events.sol`), packed storage slots (`OrderStatus` packs `filled` + `remaining` into 32 bytes), COMPLEMENTARY settlement that eliminates exchange intermediary transfers, inline assembly for CREATE2 and price calculations, and batch CTF operations. Every change must respect this standard.
+
+Before making any change, think hard about gas impact:
+
+- **Always call out** why a change is necessary and what the trade-offs are with respect to gas. If a fix increases gas, explicitly state the cost and justify why correctness or security outweighs it.
+- **Prefer gas-efficient patterns**: Use assembly where the codebase already does (events, hashing, address computation). Avoid unnecessary storage reads/writes. Batch operations where possible. Use Solady over OpenZeppelin.
+- **Measure impact**: Run `forge snapshot` before and after every change and compare the `.gas-snapshot` diff. If gas increases substantially on hot paths (order matching, settlement), flag it for review.
+- **Storage layout matters**: Pack related fields into single slots. Avoid adding new storage variables to frequently-read contracts without considering SLOAD cost.
+- **Hot path awareness**: `matchOrders` → `_matchOrders` → `_settleComplementary` / `_settleMakerOrders` is the hot path. Any gas regression here affects every trade.
+
 ## Build & Verification Commands
 
 ```bash
