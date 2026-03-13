@@ -891,6 +891,7 @@ contract MatchOrdersTest is BaseExchangeTest {
         vm.prank(admin);
         exchange.matchOrders(conditionId, takerOrder, makerOrders, 150_000_000, fillAmounts, 0, makerFeeAmounts);
     }
+
     function test_MatchOrders_Events_Complementary_WithFees() public {
         dealUsdcAndApprove(bob, address(exchange), 52_500_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
