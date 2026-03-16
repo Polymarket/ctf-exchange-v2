@@ -108,18 +108,17 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
 
         // Settle maker orders (arithmetic-tracked balance, no external balance queries)
         uint256 refund;
+        uint256 totalExchangeFees;
         {
-            uint256 fees;
             uint256 recv;
-            (fees, recv, refund) = _settleMakerOrders(
+            (totalExchangeFees, recv, refund) = _settleMakerOrders(
                 conditionId, takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, takerFillAmount
             );
-            if (fees > 0) _transfer(address(this), getFeeReceiver(), 0, fees);
             require(recv >= taking, TooLittleTokensReceived());
             taking = recv;
         }
 
-        // Settle the taker order and transfer SELL fee
+        // Settle the taker order
         {
             uint256 takerExchangeFee = _settleTakerOrder(takerOrder, taking, takerFeeAmount, refund);
 
@@ -138,7 +137,11 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
                 })
             );
 
-            if (takerExchangeFee > 0) _transfer(address(this), getFeeReceiver(), 0, takerExchangeFee);
+            // Batch all SELL fees (maker + taker) into one transfer
+            unchecked {
+                totalExchangeFees += takerExchangeFee; // safety: sum bounded by real token supply
+            }
+            if (totalExchangeFees > 0) _transfer(address(this), getFeeReceiver(), 0, totalExchangeFees);
         }
     }
 
