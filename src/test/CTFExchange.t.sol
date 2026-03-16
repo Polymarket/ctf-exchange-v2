@@ -30,6 +30,12 @@ contract CTFExchangeTest is BaseExchangeTest {
     }
 
     function test_CTFExchange_Auth_RemoveAdmin() public {
+        // First add henry as admin and operator
+        vm.startPrank(admin);
+        exchange.addAdmin(henry);
+        exchange.addOperator(henry);
+        vm.stopPrank();
+
         vm.expectEmit(true, true, true, true);
         emit RemovedAdmin(henry, admin);
         emit RemovedOperator(henry, admin);
@@ -43,6 +49,14 @@ contract CTFExchangeTest is BaseExchangeTest {
         assertFalse(exchange.isOperator(henry));
     }
 
+    function test_CTFExchange_Auth_RenounceOperator() public {
+        assertTrue(exchange.isOperator(admin));
+
+        vm.prank(admin);
+        exchange.renounceOperatorRole();
+        assertFalse(exchange.isOperator(admin));
+    }
+
     function test_CTFExchange_Auth_NotAdmin() public {
         vm.expectRevert(NotAdmin.selector);
         exchange.addAdmin(address(1));
@@ -53,6 +67,30 @@ contract CTFExchangeTest is BaseExchangeTest {
         vm.expectRevert(LastAdmin.selector);
         vm.prank(admin);
         exchange.removeAdmin(admin);
+    }
+
+    function test_CTFExchange_Auth_revert_RemoveNonAdmin() public {
+        vm.expectRevert(NotAdmin.selector);
+        vm.prank(admin);
+        exchange.removeAdmin(henry);
+    }
+
+    function test_CTFExchange_Auth_revert_RemoveNonOperator() public {
+        vm.expectRevert(NotOperator.selector);
+        vm.prank(admin);
+        exchange.removeOperator(henry);
+    }
+
+    function test_CTFExchange_Auth_revert_AddExistingAdmin() public {
+        vm.expectRevert(AlreadyAdmin.selector);
+        vm.prank(admin);
+        exchange.addAdmin(admin);
+    }
+
+    function test_CTFExchange_Auth_revert_AddExistingOperator() public {
+        vm.expectRevert(AlreadyOperator.selector);
+        vm.prank(admin);
+        exchange.addOperator(admin);
     }
 
     function test_CTFExchange_Auth_RemoveAdminWithMultiple() public {

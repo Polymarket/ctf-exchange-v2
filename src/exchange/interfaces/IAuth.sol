@@ -5,6 +5,8 @@ interface IAuthEE {
     error NotAdmin();
     error NotOperator();
     error LastAdmin();
+    error AlreadyAdmin();
+    error AlreadyOperator();
 
     /// @notice Emitted when a new admin is added
     event NewAdmin(address indexed newAdminAddress, address indexed admin);
@@ -31,4 +33,6 @@ interface IAuth is IAuthEE {
     function removeAdmin(address) external;
 
     function removeOperator(address) external;
+
+    function renounceOperatorRole() external;
 }
