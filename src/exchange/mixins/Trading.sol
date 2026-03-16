@@ -93,23 +93,26 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
             return;
         }
 
+        if (takerOrder.side == Side.BUY) {
+            _matchBuyOrders(
+                conditionId, takerOrder, makerOrders, takerFillAmount, makerFillAmounts, takerFeeAmount, makerFeeAmounts
+            );
+            return;
+        }
+
         (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount);
 
         (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(takerOrder);
 
-        // Transfer takerOrder making amount from taker order to the Exchange
         _transfer(takerOrder.maker, address(this), makerAssetId, takerFillAmount);
 
-        // Settle the maker orders (returns accumulated exchange-paid fees)
         uint256 makerExchangeFees =
             _settleMakerOrders(conditionId, takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts);
 
-        // Batch transfer maker SELL fees before taker settlement (so refund logic doesn't see them as leftover)
         if (makerExchangeFees > 0) _transfer(address(this), getFeeReceiver(), 0, makerExchangeFees);
 
         taking = _updateTakingWithSurplus(taking, takerAssetId);
 
-        // Settle the taker order (returns exchange-paid fee if SELL)
         uint256 takerExchangeFee =
             _settleTakerOrder(takerOrder.side, taking, takerOrder.maker, makerAssetId, takerAssetId, takerFeeAmount);
 
@@ -128,7 +131,6 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
             })
         );
 
-        // Transfer taker SELL fee (if any) after events
         if (takerExchangeFee > 0) _transfer(address(this), getFeeReceiver(), 0, takerExchangeFee);
     }
 
@@ -171,11 +173,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
 
         _updateOrderStatus(takerOrderHash, takerOrder, executedTakerMakingAmount);
 
-        // Batch transfer accumulated maker SELL fees from taker
-        if (totalMakerFees > 0) _transfer(taker, getFeeReceiver(), 0, totalMakerFees);
-
-        // Handle taker settlement
-        _settleComplementaryTaker(
+        totalMakerFees += _settleComplementaryTaker(
             takerOrder,
             taker,
             takerIsBuy,
@@ -184,6 +182,8 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
             executedTakerTakingAmount,
             takerFeeAmount
         );
+
+        if (totalMakerFees > 0) _transfer(takerIsBuy ? taker : address(this), getFeeReceiver(), 0, totalMakerFees);
     }
 
     /// @notice Settles a single maker in COMPLEMENTARY match
@@ -218,8 +218,11 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         } else {
             // Taker SELL ↔ Maker BUY: CTF direct, collateral through exchange
             _transfer(taker, makerOrder.maker, takerOrder.tokenId, taking); // CTF: taker → maker
-            _transfer(makerOrder.maker, address(this), 0, fillAmount); // Collateral: maker → exchange
-            if (feeAmount > 0) _chargeFee(makerOrder.maker, feeAmount);
+            _transfer(makerOrder.maker, address(this), 0, fillAmount + feeAmount); // Collateral: maker → exchange
+            if (feeAmount > 0) {
+                makerFee = feeAmount;
+                _emitFeeCharged(getFeeReceiver(), feeAmount);
+            }
         }
 
         _emitOrderFilledEvent(
@@ -247,9 +250,12 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         uint256 executedTakerMakingAmount,
         uint256 executedTakerTakingAmount,
         uint256 takerFeeAmount
-    ) internal {
+    ) internal returns (uint256 batchedFee) {
         if (takerIsBuy) {
-            if (takerFeeAmount > 0) _chargeFee(taker, takerFeeAmount);
+            if (takerFeeAmount > 0) {
+                batchedFee = takerFeeAmount;
+                _emitFeeCharged(getFeeReceiver(), takerFeeAmount);
+            }
         } else {
             uint256 takerProceeds = executedTakerTakingAmount;
             if (takerFeeAmount > 0) {
@@ -257,8 +263,8 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
                 unchecked {
                     takerProceeds -= takerFeeAmount;
                 }
+                batchedFee = takerFeeAmount;
                 _emitFeeCharged(getFeeReceiver(), takerFeeAmount);
-                _transfer(address(this), getFeeReceiver(), 0, takerFeeAmount);
             }
             _transfer(address(this), taker, 0, takerProceeds);
         }
@@ -272,6 +278,49 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
                 tokenId: takerOrder.tokenId,
                 makerAmountFilled: executedTakerMakingAmount,
                 takerAmountFilled: executedTakerTakingAmount,
+                fee: takerFeeAmount,
+                builder: takerOrder.builder,
+                metadata: takerOrder.metadata
+            })
+        );
+    }
+
+    function _matchBuyOrders(
+        bytes32 conditionId,
+        Order memory takerOrder,
+        Order[] memory makerOrders,
+        uint256 takerFillAmount,
+        uint256[] memory makerFillAmounts,
+        uint256 takerFeeAmount,
+        uint256[] memory makerFeeAmounts
+    ) internal {
+        (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount);
+        (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(takerOrder);
+
+        _transfer(takerOrder.maker, address(this), makerAssetId, takerFillAmount + takerFeeAmount);
+
+        uint256 batchedExchangeFees =
+            _settleMakerOrders(conditionId, takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts);
+
+        if (takerFeeAmount > 0) {
+            batchedExchangeFees += takerFeeAmount;
+            _emitFeeCharged(getFeeReceiver(), takerFeeAmount);
+        }
+
+        if (batchedExchangeFees > 0) _transfer(address(this), getFeeReceiver(), 0, batchedExchangeFees);
+
+        taking = _updateTakingWithSurplus(taking, takerAssetId);
+        _settleTakerOrder(takerOrder.side, taking, takerOrder.maker, makerAssetId, takerAssetId, 0);
+
+        _emitTakerFilledEvents(
+            OrderFilledParams({
+                orderHash: orderHash,
+                maker: takerOrder.maker,
+                taker: address(this),
+                side: takerOrder.side,
+                tokenId: takerOrder.tokenId,
+                makerAmountFilled: takerFillAmount,
+                takerAmountFilled: taking,
                 fee: takerFeeAmount,
                 builder: takerOrder.builder,
                 metadata: takerOrder.metadata
@@ -356,7 +405,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         if (totalMintAmount > 0) _mint(conditionId, totalMintAmount);
         if (totalMergeAmount > 0) _merge(conditionId, totalMergeAmount);
 
-        // Phase 3: Distribute proceeds to all makers, accumulating exchange-paid fees
+        // Phase 3: Distribute proceeds to all makers, accumulating exchange-held fees
         for (uint256 i = 0; i < length;) {
             unchecked {
                 totalExchangeFees += _distributeMakerProceeds(prepared[i], takerOrder.maker); // safety: each fee <=
@@ -388,8 +437,9 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
 
         (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(makerOrder);
 
-        // Transfer making amount from maker to the Exchange
-        _transfer(makerOrder.maker, address(this), makerAssetId, fillAmount);
+        _transfer(
+            makerOrder.maker, address(this), makerAssetId, fillAmount + (makerOrder.side == Side.BUY ? feeAmount : 0)
+        );
 
         prepared = PreparedMakerOrder({
             orderHash: orderHash,
@@ -410,7 +460,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
     /// @notice Distributes proceeds to a maker after batch CTF operations
     /// @param p            - The prepared maker order data
     /// @param takerMaker   - The taker order's maker address (for event)
-    /// @return exchangeFee - Fee amount to be paid from exchange (for SELL orders), 0 for BUY orders
+    /// @return exchangeFee - Fee amount already held by the exchange and ready to batch
     function _distributeMakerProceeds(PreparedMakerOrder memory p, address takerMaker)
         internal
         returns (uint256 exchangeFee)
@@ -431,13 +481,13 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         // Transfer order proceeds from the Exchange to the order maker
         _transfer(address(this), p.maker, p.takerAssetId, proceeds);
 
-        // Charge fees (emit event, transfer batched for SELL or immediate for BUY)
+        // Charge fees (emit event only; transfer already pooled through the exchange)
         if (p.side == Side.SELL) {
             // SELL: emit event now, transfer will be batched later
             if (p.feeAmount > 0) _emitFeeCharged(getFeeReceiver(), p.feeAmount);
         } else if (p.feeAmount > 0) {
-            // BUY: fee transferred from maker directly (cannot batch)
-            _chargeFee(p.maker, p.feeAmount);
+            exchangeFee = p.feeAmount;
+            _emitFeeCharged(getFeeReceiver(), p.feeAmount);
         }
 
         // Emit the order filled event
