@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "combo_complementary_merge_10makers": "699045",
   "combo_complementary_merge_20makers": "1162994",
   "combo_complementary_mint_10makers": "702500",
@@ -15,4 +16,22 @@
   "mint_1maker": "295491",
   "mint_20makers": "1160761",
   "mint_5makers": "476831"
+=======
+  "combo_complementary_merge_10makers": "699789",
+  "combo_complementary_merge_20makers": "1164263",
+  "combo_complementary_mint_10makers": "703110",
+  "combo_complementary_mint_20makers": "1167138",
+  "complementary_10makers": "547903",
+  "complementary_1maker": "151425",
+  "complementary_20makers": "989735",
+  "complementary_5makers": "327501",
+  "merge_10makers": "688133",
+  "merge_1maker": "265021",
+  "merge_20makers": "1160856",
+  "merge_5makers": "452798",
+  "mint_10makers": "704775",
+  "mint_1maker": "295633",
+  "mint_20makers": "1161986",
+  "mint_5makers": "477201"
+>>>>>>> origin/main
 }

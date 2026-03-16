@@ -3,6 +3,8 @@ pragma solidity 0.8.30;
 
 interface IUserPausableEE {
     error UserIsPaused();
+    error UserAlreadyPaused();
+    error ExceedsMaxPauseInterval();
 
     /// @notice Emitted when the user pause block interval is updated
     event UserPauseBlockIntervalUpdated(uint256 oldInterval, uint256 newInterval);

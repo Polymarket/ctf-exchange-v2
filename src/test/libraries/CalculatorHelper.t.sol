@@ -17,6 +17,23 @@ contract CalculatorHelperTest is Test {
         assertEq(CalculatorHelper.calculateTakingAmount(making, makerAmount, takerAmount), expected);
     }
 
+    function test_CalculatorHelper_revert_CalculateTakingAmountOverflow() public {
+        // makingAmount * takerAmount overflows uint256
+        uint256 makingAmount = type(uint256).max;
+        uint256 takerAmount = 2;
+        uint256 makerAmount = 1;
+        vm.expectRevert();
+        this.externalCalculateTakingAmount(makingAmount, makerAmount, takerAmount);
+    }
+
+    function externalCalculateTakingAmount(uint256 makingAmount, uint256 makerAmount, uint256 takerAmount)
+        external
+        pure
+        returns (uint256)
+    {
+        return CalculatorHelper.calculateTakingAmount(makingAmount, makerAmount, takerAmount);
+    }
+
     function test_CalculatorHelper_FuzzCalculatePrice(uint128 makerAmount, uint128 takerAmount, uint8 sideInt)
         public
         pure

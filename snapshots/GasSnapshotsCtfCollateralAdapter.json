@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "ctf_collateral_adapter_combo_complementary_merge_10makers": "837834",
   "ctf_collateral_adapter_combo_complementary_merge_20makers": "1304746",
   "ctf_collateral_adapter_combo_complementary_mint_10makers": "845882",
@@ -12,4 +13,19 @@
   "ctf_collateral_adapter_mint_10makers": "847598",
   "ctf_collateral_adapter_mint_1maker": "436259",
   "ctf_collateral_adapter_mint_5makers": "618803"
+=======
+  "ctf_collateral_adapter_combo_complementary_merge_10makers": "838578",
+  "ctf_collateral_adapter_combo_complementary_merge_20makers": "1306015",
+  "ctf_collateral_adapter_combo_complementary_mint_10makers": "846492",
+  "ctf_collateral_adapter_combo_complementary_mint_20makers": "1313441",
+  "ctf_collateral_adapter_complementary_10makers": "550671",
+  "ctf_collateral_adapter_complementary_1maker": "151682",
+  "ctf_collateral_adapter_complementary_5makers": "328874",
+  "ctf_collateral_adapter_merge_10makers": "879977",
+  "ctf_collateral_adapter_merge_1maker": "453973",
+  "ctf_collateral_adapter_merge_5makers": "643035",
+  "ctf_collateral_adapter_mint_10makers": "848253",
+  "ctf_collateral_adapter_mint_1maker": "436401",
+  "ctf_collateral_adapter_mint_5makers": "619173"
+>>>>>>> origin/main
 }

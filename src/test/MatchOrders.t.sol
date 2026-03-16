@@ -699,7 +699,7 @@ contract MatchOrdersTest is BaseExchangeTest {
         uint256[] memory fillAmounts = new uint256[](0);
         uint256[] memory makerFeeAmounts = new uint256[](0);
 
-        vm.expectRevert(FeeExceedsMaxRate.selector);
+        vm.expectRevert(NoMakerOrders.selector);
         vm.prank(admin);
         exchange.matchOrders(conditionId, takerOrder, makerOrders, 0, fillAmounts, totalExpectedSpend, makerFeeAmounts);
     }
