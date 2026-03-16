@@ -100,13 +100,15 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
 
         (uint256 taking, bytes32 orderHash) = _performOrderChecks(takerOrder, takerFillAmount, takerFeeAmount);
 
-        (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(takerOrder);
-
         // Transfer takerOrder making amount from taker order to the Exchange
-        _transfer(takerOrder.maker, address(this), makerAssetId, takerFillAmount);
+        {
+            (uint256 makerAssetId,) = _deriveAssetIds(takerOrder);
+            _transfer(takerOrder.maker, address(this), makerAssetId, takerFillAmount);
+        }
 
         // Settle maker orders with delta-based surplus (prevents pre-existing balance inflation)
         {
+            (, uint256 takerAssetId) = _deriveAssetIds(takerOrder);
             uint256 balanceBefore = _getBalance(takerAssetId);
 
             uint256 makerExchangeFees =
@@ -121,27 +123,27 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
             taking = balanceAfter - balanceBefore;
         }
 
-        // Settle the taker order (returns exchange-paid fee if SELL)
-        uint256 takerExchangeFee =
-            _settleTakerOrder(takerOrder.side, taking, takerOrder.maker, makerAssetId, takerAssetId, takerFeeAmount);
+        // Settle the taker order and transfer SELL fee
+        {
+            uint256 takerExchangeFee = _settleTakerOrder(takerOrder, taking, takerFeeAmount);
 
-        _emitTakerFilledEvents(
-            OrderFilledParams({
-                orderHash: orderHash,
-                maker: takerOrder.maker,
-                taker: address(this),
-                side: takerOrder.side,
-                tokenId: takerOrder.tokenId,
-                makerAmountFilled: takerFillAmount,
-                takerAmountFilled: taking,
-                fee: takerFeeAmount,
-                builder: takerOrder.builder,
-                metadata: takerOrder.metadata
-            })
-        );
+            _emitTakerFilledEvents(
+                OrderFilledParams({
+                    orderHash: orderHash,
+                    maker: takerOrder.maker,
+                    taker: address(this),
+                    side: takerOrder.side,
+                    tokenId: takerOrder.tokenId,
+                    makerAmountFilled: takerFillAmount,
+                    takerAmountFilled: taking,
+                    fee: takerFeeAmount,
+                    builder: takerOrder.builder,
+                    metadata: takerOrder.metadata
+                })
+            );
 
-        // Transfer taker SELL fee (if any) after events
-        if (takerExchangeFee > 0) _transfer(address(this), getFeeReceiver(), 0, takerExchangeFee);
+            if (takerExchangeFee > 0) _transfer(address(this), getFeeReceiver(), 0, takerExchangeFee);
+        }
     }
 
     /// @notice Settles COMPLEMENTARY orders with direct peer-to-peer transfers
@@ -295,14 +297,14 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
     /// @dev Transfer proceeds from Exchange to order maker
     /// @dev Charge fee on Collateral proceeds if Sell, or on order maker Collateral if Buy
     /// @return exchangeFee - Fee amount to be paid from exchange (for SELL orders), 0 for BUY orders
-    function _settleTakerOrder(
-        Side side,
-        uint256 takingAmount,
-        address maker,
-        uint256 makerAssetId,
-        uint256 takerAssetId,
-        uint256 feeAmount
-    ) internal returns (uint256 exchangeFee) {
+    function _settleTakerOrder(Order memory order, uint256 takingAmount, uint256 feeAmount)
+        internal
+        returns (uint256 exchangeFee)
+    {
+        (uint256 makerAssetId, uint256 takerAssetId) = _deriveAssetIds(order);
+        address maker = order.maker;
+        Side side = order.side;
+
         uint256 proceeds = takingAmount;
         if (side == Side.SELL) {
             // SELL: fee deducted from proceeds, will be batched
@@ -338,35 +340,36 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         uint256[] memory makerFeeAmounts
     ) internal returns (uint256 totalExchangeFees) {
         uint256 length = makerOrders.length;
-
-        // Phase 1: Prepare all maker orders (validate, transfer from makers, accumulate batch totals)
         PreparedMakerOrder[] memory prepared = new PreparedMakerOrder[](length);
-        uint256 totalMintAmount = 0;
-        uint256 totalMergeAmount = 0;
 
-        for (uint256 i = 0; i < length;) {
-            prepared[i] = _prepareMakerOrder(takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i]);
+        // Phase 1 + 2: Prepare all maker orders, accumulate batch totals, execute CTF operations
+        {
+            uint256 totalMintAmount;
+            uint256 totalMergeAmount;
 
-            // Accumulate batch totals based on match type
-            if (prepared[i].matchType == MatchType.MINT) {
-                unchecked {
-                    totalMintAmount += prepared[i].takingAmount; // safety: token amounts can't realistically overflow
-                    // uint256
+            for (uint256 i = 0; i < length;) {
+                prepared[i] = _prepareMakerOrder(takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i]);
+
+                // Accumulate batch totals based on match type
+                if (prepared[i].matchType == MatchType.MINT) {
+                    unchecked {
+                        totalMintAmount += prepared[i].takingAmount; // safety: token amounts can't realistically
+                        // overflow uint256
+                    }
+                } else if (prepared[i].matchType == MatchType.MERGE) {
+                    unchecked {
+                        totalMergeAmount += prepared[i].makingAmount; // safety: token amounts can't realistically
+                        // overflow uint256
+                    }
                 }
-            } else if (prepared[i].matchType == MatchType.MERGE) {
                 unchecked {
-                    totalMergeAmount += prepared[i].makingAmount; // safety: token amounts can't realistically overflow
-                    // uint256
+                    ++i; // safety: i < length which fits in memory
                 }
             }
-            unchecked {
-                ++i; // safety: i < length which fits in memory
-            }
+
+            if (totalMintAmount > 0) _mint(conditionId, totalMintAmount);
+            if (totalMergeAmount > 0) _merge(conditionId, totalMergeAmount);
         }
-
-        // Phase 2: Execute batched CTF operations (one mint and/or one merge)
-        if (totalMintAmount > 0) _mint(conditionId, totalMintAmount);
-        if (totalMergeAmount > 0) _merge(conditionId, totalMergeAmount);
 
         // Phase 3: Distribute proceeds to all makers, accumulating exchange-paid fees
         for (uint256 i = 0; i < length;) {
