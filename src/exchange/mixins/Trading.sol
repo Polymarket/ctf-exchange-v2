@@ -421,21 +421,6 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         }
     }
 
-    /// @notice Prepares a maker order for batch settlement
-    /// @dev Validates, calculates amounts, transfers from maker to exchange
-    /// @param takerOrder   - The taker order
-    /// @param makerOrder   - The maker order
-    /// @param fillAmount   - The fill amount
-    /// @param feeAmount    - The fee amount
-    /// @return prepared    - The prepared maker order data
-    function _prepareMakerOrder(Order memory takerOrder, Order memory makerOrder, uint256 fillAmount, uint256 feeAmount)
-        internal
-        returns (PreparedMakerOrder memory prepared)
-    {
-        MatchType matchType = _deriveMatchType(takerOrder, makerOrder);
-        return _prepareMakerOrder(takerOrder, makerOrder, fillAmount, feeAmount, matchType);
-    }
-
     function _prepareMakerOrder(
         Order memory takerOrder,
         Order memory makerOrder,
