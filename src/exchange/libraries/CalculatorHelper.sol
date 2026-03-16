@@ -7,11 +7,6 @@ library CalculatorHelper {
         pure
         returns (uint256)
     {
-        // division by zero in the EVM returns 0
-        uint256 result;
-        assembly ("memory-safe") {
-            result := div(mul(makingAmount, takerAmount), makerAmount)
-        }
-        return result;
+        return (makingAmount * takerAmount) / makerAmount;
     }
 }
