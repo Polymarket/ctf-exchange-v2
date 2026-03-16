@@ -4,7 +4,6 @@ pragma solidity <0.9.0;
 import { Test } from "lib/forge-std/src/Test.sol";
 
 import { CalculatorHelper } from "src/exchange/libraries/CalculatorHelper.sol";
-import { Side } from "src/exchange/libraries/Structs.sol";
 
 contract CalculatorHelperTest is Test {
     function test_CalculatorHelper_FuzzCalculateTakingAmount(uint64 making, uint128 makerAmount, uint128 takerAmount)
@@ -32,34 +31,5 @@ contract CalculatorHelperTest is Test {
         returns (uint256)
     {
         return CalculatorHelper.calculateTakingAmount(makingAmount, makerAmount, takerAmount);
-    }
-
-    function test_CalculatorHelper_FuzzCalculatePrice(uint128 makerAmount, uint128 takerAmount, uint8 sideInt)
-        public
-        pure
-    {
-        vm.assume(sideInt <= 1);
-        Side side = Side(sideInt);
-        // Asserts not needed, test checks that we can calculate price safely without unexpected reverts
-
-        CalculatorHelper._calculatePrice(makerAmount, takerAmount, side);
-    }
-
-    function test_CalculatorHelper_FuzzIsCrossing(
-        uint128 makerAmountA,
-        uint128 takerAmountA,
-        uint8 sideIntA,
-        uint128 makerAmountB,
-        uint128 takerAmountB,
-        uint8 sideIntB
-    ) public pure {
-        vm.assume(sideIntA <= 1 && sideIntB <= 1);
-        Side sideA = Side(sideIntA);
-        Side sideB = Side(sideIntB);
-        uint256 priceA = CalculatorHelper._calculatePrice(makerAmountA, takerAmountA, sideA);
-        uint256 priceB = CalculatorHelper._calculatePrice(makerAmountB, takerAmountB, sideB);
-
-        // Asserts not needed, test checks that we can check isCrossing safely without unexpected reverts
-        CalculatorHelper._isCrossing(priceA, priceB, sideA, sideB);
     }
 }

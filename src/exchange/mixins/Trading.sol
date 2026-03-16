@@ -52,6 +52,9 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
     }
 
     function _validateOrder(bytes32 orderHash, Order memory order) internal view {
+        // Validate order is not zero-sized
+        require(order.makerAmount > 0, ZeroMakerAmount());
+
         // Validate signature
         validateOrderSignature(orderHash, order);
 
@@ -355,7 +358,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         if (side == Side.SELL) {
             // SELL: emit event now, transfer will be batched later
             if (feeAmount > 0) _emitFeeCharged(getFeeReceiver(), feeAmount);
-        } else if (feeAmount > 0) {
+        } else {
             // BUY: fee transferred from maker directly (cannot batch)
             _chargeFee(maker, feeAmount);
         }
@@ -652,7 +655,6 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
     }
 
     function _chargeFee(address payer, uint256 fee) internal {
-        // Charge fee to the payer if any
         if (fee > 0) {
             address receiver = getFeeReceiver();
             _transfer(payer, receiver, 0, fee);

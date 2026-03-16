@@ -20,7 +20,7 @@ abstract contract UserPausable is IUserPausable {
     /// @param user - The user address to check
     function isUserPaused(address user) public view override returns (bool) {
         uint256 blockPausedAt = userPausedBlockAt[user];
-        return blockPausedAt > 0 && block.number > blockPausedAt;
+        return blockPausedAt > 0 && block.number >= blockPausedAt;
     }
 
     /// @notice Allows a user to pause their account

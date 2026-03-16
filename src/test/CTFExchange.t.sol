@@ -30,6 +30,12 @@ contract CTFExchangeTest is BaseExchangeTest {
     }
 
     function test_CTFExchange_Auth_RemoveAdmin() public {
+        // First add henry as admin and operator
+        vm.startPrank(admin);
+        exchange.addAdmin(henry);
+        exchange.addOperator(henry);
+        vm.stopPrank();
+
         vm.expectEmit(true, true, true, true);
         emit RemovedAdmin(henry, admin);
         emit RemovedOperator(henry, admin);
@@ -43,30 +49,60 @@ contract CTFExchangeTest is BaseExchangeTest {
         assertFalse(exchange.isOperator(henry));
     }
 
+    function test_CTFExchange_Auth_RenounceOperator() public {
+        assertTrue(exchange.isOperator(admin));
+
+        vm.prank(admin);
+        exchange.renounceOperatorRole();
+        assertFalse(exchange.isOperator(admin));
+    }
+
     function test_CTFExchange_Auth_NotAdmin() public {
         vm.expectRevert(NotAdmin.selector);
         exchange.addAdmin(address(1));
     }
 
-    function test_CTFExchange_Auth_Renounce() public {
-        // Non admin cannot renounce
+    function test_CTFExchange_Auth_revert_RemoveLastAdmin() public {
+        // Cannot remove the only admin
+        vm.expectRevert(LastAdmin.selector);
+        vm.prank(admin);
+        exchange.removeAdmin(admin);
+    }
+
+    function test_CTFExchange_Auth_revert_RemoveNonAdmin() public {
         vm.expectRevert(NotAdmin.selector);
-        vm.prank(address(12));
-        exchange.renounceAdminRole();
-
-        assertTrue(exchange.isAdmin(admin));
-        assertTrue(exchange.isOperator(admin));
-
-        // Successfully renounces the admin role
         vm.prank(admin);
-        exchange.renounceAdminRole();
-        assertFalse(exchange.isAdmin(admin));
-        assertTrue(exchange.isOperator(admin));
+        exchange.removeAdmin(henry);
+    }
 
-        // Successfully renounces the operator role
+    function test_CTFExchange_Auth_revert_RemoveNonOperator() public {
+        vm.expectRevert(NotOperator.selector);
         vm.prank(admin);
-        exchange.renounceOperatorRole();
-        assertFalse(exchange.isOperator(admin));
+        exchange.removeOperator(henry);
+    }
+
+    function test_CTFExchange_Auth_revert_AddExistingAdmin() public {
+        vm.expectRevert(AlreadyAdmin.selector);
+        vm.prank(admin);
+        exchange.addAdmin(admin);
+    }
+
+    function test_CTFExchange_Auth_revert_AddExistingOperator() public {
+        vm.expectRevert(AlreadyOperator.selector);
+        vm.prank(admin);
+        exchange.addOperator(admin);
+    }
+
+    function test_CTFExchange_Auth_RemoveAdminWithMultiple() public {
+        // Add a second admin
+        vm.prank(admin);
+        exchange.addAdmin(henry);
+        assertTrue(exchange.isAdmin(henry));
+
+        // Can remove one of two admins
+        vm.prank(admin);
+        exchange.removeAdmin(henry);
+        assertFalse(exchange.isAdmin(henry));
     }
 
     function test_CTFExchange_Pause() public {
@@ -254,6 +290,15 @@ contract CTFExchangeTest is BaseExchangeTest {
         exchange.validateOrder(takerOrder);
     }
 
+    function test_CTFExchange_supportsInterface() public view {
+        // ERC1155TokenReceiver interface
+        assertTrue(exchange.supportsInterface(0x4e2312e0));
+        // ERC165 interface
+        assertTrue(exchange.supportsInterface(0x01ffc9a7));
+        // Unsupported interface
+        assertFalse(exchange.supportsInterface(0xdeadbeef));
+    }
+
     function test_CTFExchange_matchOrders_revert_NoMakerOrders() public {
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
         Order[] memory makerOrders = new Order[](0);
@@ -314,6 +359,23 @@ contract CTFExchangeTest is BaseExchangeTest {
         vm.prank(admin);
         exchange.setUserPauseBlockInterval(302_400);
         assertEq(exchange.userPauseBlockInterval(), 302_400);
+    }
+
+    function test_CTFExchange_UserPaused_ExactBoundaryBlock() public {
+        Order memory order = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+
+        vm.prank(bob);
+        exchange.pauseUser();
+
+        uint256 pausedAt = exchange.userPausedBlockAt(bob);
+
+        // Advance to exactly blockPausedAt (not one past it)
+        vm.roll(pausedAt);
+
+        // User should be paused at exactly blockPausedAt (>= check)
+        assertTrue(exchange.isUserPaused(bob));
+        vm.expectRevert(UserIsPaused.selector);
+        exchange.validateOrder(order);
     }
 
     function test_CTFExchange_ValidateOrder_UserPaused() public {

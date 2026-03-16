@@ -5,7 +5,6 @@ import { OrderStatus, Order, Side } from "../libraries/Structs.sol";
 
 interface ITradingEE {
     error OrderAlreadyFilled();
-    error OrderExpired();
     error MakingGtRemaining();
     error NotCrossing();
     error TooLittleTokensReceived();
@@ -13,6 +12,7 @@ interface ITradingEE {
     error MismatchedTokenIds();
     error MismatchedArrayLengths();
     error NoMakerOrders();
+    error ZeroMakerAmount();
     error FeeExceedsProceeds();
 
     /// @notice Emitted when an order is filled

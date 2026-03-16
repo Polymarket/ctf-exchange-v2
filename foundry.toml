@@ -6,6 +6,9 @@ out = "out"
 optimizer_runs = 1000000
 fs_permissions = [{ access = "read", path = "./artifacts/"}]
 
+[profile.ci]
+ffi = false
+
 # fuzz settings
 [profile.default.fuzz]
 runs = 256
