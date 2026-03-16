@@ -892,6 +892,42 @@ contract MatchOrdersTest is BaseExchangeTest {
         exchange.matchOrders(conditionId, takerOrder, makerOrders, 150_000_000, fillAmounts, 0, makerFeeAmounts);
     }
 
+    function test_MatchOrders_revert_InvalidFillAmount_ZeroSizedMakerInMixedBatch() public {
+        uint256 davePK = 0xD00D;
+        address dave = vm.addr(davePK);
+
+        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
+        dealUsdcAndApprove(dave, address(exchange), 50_000_000);
+        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 1);
+
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory zeroComplementaryMaker = _createAndSignOrder(carlaPK, yes, 0, 0, Side.SELL);
+        Order memory mintMaker = _createAndSignOrder(davePK, no, 50_000_000, 100_000_000, Side.BUY);
+
+        bytes32 zeroComplementaryHash = exchange.hashOrder(zeroComplementaryMaker);
+
+        Order[] memory makerOrders = new Order[](2);
+        makerOrders[0] = zeroComplementaryMaker;
+        makerOrders[1] = mintMaker;
+
+        uint256[] memory fillAmounts = new uint256[](2);
+        fillAmounts[0] = 0;
+        fillAmounts[1] = 50_000_000;
+
+        uint256[] memory makerFeeAmounts = new uint256[](2);
+        makerFeeAmounts[0] = 0;
+        makerFeeAmounts[1] = 0;
+
+        vm.expectRevert(InvalidFillAmount.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 0, makerFeeAmounts);
+
+        assertFalse(exchange.getOrderStatus(zeroComplementaryHash).filled);
+        assertEq(exchange.getOrderStatus(zeroComplementaryHash).remaining, 0);
+        assertCollateralBalance(carla, 0);
+        assertCTFBalance(carla, yes, 1);
+    }
+
     function test_MatchOrders_Events_Complementary_WithFees() public {
         dealUsdcAndApprove(bob, address(exchange), 52_500_000);
         dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);

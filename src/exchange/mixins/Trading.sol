@@ -619,6 +619,8 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
 
         // Validate that the order can be filled
         require(!filled, OrderAlreadyFilled());
+        require(order.makerAmount != 0, InvalidFillAmount());
+        require(makingAmount != 0, InvalidFillAmount());
 
         // Update remaining if the order is new/has not been filled
         remaining = remaining == 0 ? order.makerAmount : remaining;
