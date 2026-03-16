@@ -653,6 +653,23 @@ contract MatchOrdersTest is BaseExchangeTest {
         );
     }
 
+    function test_MatchOrders_revert_FeeExceedsMaxRate_BuyWithNoMakersAndZeroFill() public {
+        uint256 takerFillAmount = 50_000_000;
+        uint256 totalExpectedSpend = 52_500_000;
+
+        dealUsdcAndApprove(bob, address(exchange), totalExpectedSpend);
+
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, takerFillAmount, 100_000_000, Side.BUY);
+
+        Order[] memory makerOrders = new Order[](0);
+        uint256[] memory fillAmounts = new uint256[](0);
+        uint256[] memory makerFeeAmounts = new uint256[](0);
+
+        vm.expectRevert(FeeExceedsMaxRate.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 0, fillAmounts, totalExpectedSpend, makerFeeAmounts);
+    }
+
     function test_MatchOrders_WithMaxFeeRate_Sell() public {
         vm.pauseGasMetering();
         dealOutcomeTokensAndApprove(bob, address(exchange), yes, 100_000_000);
