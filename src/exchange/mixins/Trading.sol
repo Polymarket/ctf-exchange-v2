@@ -106,26 +106,22 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
             _transfer(takerOrder.maker, address(this), makerAssetId, takerFillAmount);
         }
 
-        // Settle maker orders with delta-based surplus (prevents pre-existing balance inflation)
+        // Settle maker orders (arithmetic-tracked balance, no external balance queries)
+        uint256 refund;
         {
-            (, uint256 takerAssetId) = _deriveAssetIds(takerOrder);
-            uint256 balanceBefore = _getBalance(takerAssetId);
-
-            uint256 makerExchangeFees =
-                _settleMakerOrders(conditionId, takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts);
-
-            // Batch transfer maker SELL fees before taker settlement (so refund logic doesn't see them as leftover)
-            if (makerExchangeFees > 0) _transfer(address(this), getFeeReceiver(), 0, makerExchangeFees);
-
-            uint256 balanceAfter = _getBalance(takerAssetId);
-            require(balanceAfter >= taking + balanceBefore, TooLittleTokensReceived());
-            // Actual taking amount
-            taking = balanceAfter - balanceBefore;
+            uint256 fees;
+            uint256 recv;
+            (fees, recv, refund) = _settleMakerOrders(
+                conditionId, takerOrder, makerOrders, makerFillAmounts, makerFeeAmounts, takerFillAmount
+            );
+            if (fees > 0) _transfer(address(this), getFeeReceiver(), 0, fees);
+            require(recv >= taking, TooLittleTokensReceived());
+            taking = recv;
         }
 
         // Settle the taker order and transfer SELL fee
         {
-            uint256 takerExchangeFee = _settleTakerOrder(takerOrder, taking, takerFeeAmount);
+            uint256 takerExchangeFee = _settleTakerOrder(takerOrder, taking, takerFeeAmount, refund);
 
             _emitTakerFilledEvents(
                 OrderFilledParams({
@@ -297,7 +293,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
     /// @dev Transfer proceeds from Exchange to order maker
     /// @dev Charge fee on Collateral proceeds if Sell, or on order maker Collateral if Buy
     /// @return exchangeFee - Fee amount to be paid from exchange (for SELL orders), 0 for BUY orders
-    function _settleTakerOrder(Order memory order, uint256 takingAmount, uint256 feeAmount)
+    function _settleTakerOrder(Order memory order, uint256 takingAmount, uint256 feeAmount, uint256 refund)
         internal
         returns (uint256 exchangeFee)
     {
@@ -327,27 +323,34 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
             _chargeFee(maker, feeAmount);
         }
 
-        // Refund any leftover tokens
-        uint256 refund = _getBalance(makerAssetId);
+        // Refund any leftover makerAsset to the taker
         if (refund > 0) _transfer(address(this), maker, makerAssetId, refund);
     }
 
+    /// @notice Settles all maker orders: validate, batch CTF ops, distribute proceeds
+    /// @dev Tracks balance arithmetic internally to avoid external balance queries
+    /// @param takerFillAmount     - The taker's deposited making amount (for refund computation)
+    /// @return totalExchangeFees  - Accumulated SELL maker fees to batch-transfer
+    /// @return takerReceivable    - Tokens of takerAssetId accrued for the taker
+    /// @return refund             - Leftover makerAssetId to refund to the taker
     function _settleMakerOrders(
         bytes32 conditionId,
         Order memory takerOrder,
         Order[] memory makerOrders,
         uint256[] memory makerFillAmounts,
-        uint256[] memory makerFeeAmounts
-    ) internal returns (uint256 totalExchangeFees) {
-        uint256 length = makerOrders.length;
-        PreparedMakerOrder[] memory prepared = new PreparedMakerOrder[](length);
+        uint256[] memory makerFeeAmounts,
+        uint256 takerFillAmount
+    ) internal returns (uint256 totalExchangeFees, uint256 takerReceivable, uint256 refund) {
+        PreparedMakerOrder[] memory prepared = new PreparedMakerOrder[](makerOrders.length);
 
         // Phase 1 + 2: Prepare all maker orders, accumulate batch totals, execute CTF operations
         {
             uint256 totalMintAmount;
             uint256 totalMergeAmount;
+            uint256 mergeTaking;
+            uint256 mintMaking;
 
-            for (uint256 i = 0; i < length;) {
+            for (uint256 i = 0; i < makerOrders.length;) {
                 prepared[i] = _prepareMakerOrder(takerOrder, makerOrders[i], makerFillAmounts[i], makerFeeAmounts[i]);
 
                 // Accumulate batch totals based on match type
@@ -355,11 +358,19 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
                     unchecked {
                         totalMintAmount += prepared[i].takingAmount; // safety: token amounts can't realistically
                         // overflow uint256
+                        mintMaking += prepared[i].makingAmount;
                     }
                 } else if (prepared[i].matchType == MatchType.MERGE) {
                     unchecked {
                         totalMergeAmount += prepared[i].makingAmount; // safety: token amounts can't realistically
                         // overflow uint256
+                        mergeTaking += prepared[i].takingAmount;
+                    }
+                } else {
+                    // COMPLEMENTARY: maker deposits taker's desired asset, receives taker's deposited asset
+                    unchecked {
+                        takerReceivable += prepared[i].makingAmount;
+                        refund += prepared[i].takingAmount; // temporarily accumulates compTaking
                     }
                 }
                 unchecked {
@@ -369,10 +380,20 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
 
             if (totalMintAmount > 0) _mint(conditionId, totalMintAmount);
             if (totalMergeAmount > 0) _merge(conditionId, totalMergeAmount);
+
+            // Finalize takerReceivable: CTF production + COMP deposits - MERGE maker consumption
+            takerReceivable += totalMintAmount + totalMergeAmount;
+            unchecked {
+                takerReceivable -= mergeTaking; // safety: mergeTaking <= totalMergeAmount (crossing check)
+            }
+
+            // Finalize refund: taker deposit + MINT maker contributions - CTF consumption - COMP payouts
+            // refund currently holds compTaking (accumulated above)
+            refund = takerFillAmount + mintMaking - totalMintAmount - totalMergeAmount - refund;
         }
 
         // Phase 3: Distribute proceeds to all makers, accumulating exchange-paid fees
-        for (uint256 i = 0; i < length;) {
+        for (uint256 i = 0; i < makerOrders.length;) {
             unchecked {
                 totalExchangeFees += _distributeMakerProceeds(prepared[i], takerOrder.maker); // safety: each fee <=
                 // takingAmount (FeeExceedsProceeds), sum bounded by real token supply

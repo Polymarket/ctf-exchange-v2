@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
-import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
-
 import { IAssets } from "../interfaces/IAssets.sol";
 import { IAssetOperations } from "../interfaces/IAssetOperations.sol";
 import { IConditionalTokens } from "../interfaces/IConditionalTokens.sol";
@@ -16,11 +13,6 @@ import { Assets } from "./Assets.sol";
 /// @notice Operations on the CTF and Collateral assets
 abstract contract AssetOperations is Assets, IAssetOperations {
     bytes32 public constant parentCollectionId = bytes32(0);
-
-    function _getBalance(uint256 tokenId) internal view override returns (uint256) {
-        if (tokenId == 0) return ERC20(getCollateral()).balanceOf(address(this));
-        return ERC1155(getCtf()).balanceOf(address(this), tokenId);
-    }
 
     function _transfer(address from, address to, uint256 id, uint256 value) internal override {
         if (id == 0) return _transferCollateral(from, to, value);
