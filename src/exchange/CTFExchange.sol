@@ -49,6 +49,12 @@ contract CTFExchange is Auth, ERC1155TokenReceiver, Pausable, Trading {
         uint256 takerFeeAmount,
         uint256[] memory makerFeeAmounts
     ) external onlyOperator notPaused {
+        uint256 makerLength = makerOrders.length;
+        require(makerLength > 0, NoMakerOrders());
+        require(
+            makerLength == makerFillAmounts.length && makerLength == makerFeeAmounts.length, MismatchedArrayLengths()
+        );
+
         _matchOrders(
             conditionId, takerOrder, makerOrders, takerFillAmount, makerFillAmounts, takerFeeAmount, makerFeeAmounts
         );

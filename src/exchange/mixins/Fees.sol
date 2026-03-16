@@ -46,7 +46,6 @@ abstract contract Fees is IFees {
 
         // No limit enforced if rate is 0
         if (maxFeeRate == 0) return;
-        if (cashValue == 0) return;
         uint256 maxAllowedFee = (cashValue * maxFeeRate) / BPS_DENOMINATOR;
         require(fee <= maxAllowedFee, FeeExceedsMaxRate());
     }
