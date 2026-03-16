@@ -327,6 +327,40 @@ contract MatchOrdersTest is BaseExchangeTest {
         assertCollateralBalance(carla, 40_000_000);
     }
 
+    function test_MatchOrders_Mint_Fees_TakerRefund_PooledFeesNotRefunded() public {
+        dealUsdcAndApprove(bob, address(exchange), 62_500_000);
+        dealUsdcAndApprove(carla, address(exchange), 50_100_000);
+
+        uint256 takerFeeAmount = 2_500_000;
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 60_000_000, 100_000_000, Side.BUY);
+
+        uint256 makerFeeAmount = 100_000;
+        Order memory makerOrder = _createAndSignOrder(carlaPK, no, 50_000_000, 100_000_000, Side.BUY);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 50_000_000;
+
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = makerFeeAmount;
+
+        vm.prank(admin);
+        exchange.matchOrders(
+            conditionId, takerOrder, makerOrders, 60_000_000, fillAmounts, takerFeeAmount, makerFeeAmounts
+        );
+
+        assertCollateralBalance(bob, 10_000_000);
+        assertCTFBalance(bob, yes, 100_000_000);
+        assertCollateralBalance(carla, 0);
+        assertCTFBalance(carla, no, 100_000_000);
+        assertCollateralBalance(feeReceiver, takerFeeAmount + makerFeeAmount);
+        assertCollateralBalance(address(exchange), 0);
+        assertCTFBalance(address(exchange), yes, 0);
+        assertCTFBalance(address(exchange), no, 0);
+    }
+
     // /*//////////////////////////////////////////////////////////////
     //                            FAIL CASES
     // //////////////////////////////////////////////////////////////*/
