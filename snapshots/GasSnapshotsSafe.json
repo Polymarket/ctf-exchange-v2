@@ -1,23 +1,11 @@
 {
-<<<<<<< HEAD
-  "safe_complementary_10makers": "568469",
-  "safe_complementary_1maker": "155375",
-  "safe_complementary_5makers": "338807",
-  "safe_merge_10makers": "691029",
-  "safe_merge_1maker": "265376",
-  "safe_merge_5makers": "454254",
-  "safe_mint_10makers": "732981",
-  "safe_mint_1maker": "306026",
-  "safe_mint_5makers": "495483"
-=======
-  "safe_complementary_10makers": "570557",
-  "safe_complementary_1maker": "155753",
-  "safe_complementary_5makers": "339945",
-  "safe_merge_10makers": "691728",
-  "safe_merge_1maker": "265643",
-  "safe_merge_5makers": "454713",
-  "safe_mint_10makers": "733636",
-  "safe_mint_1maker": "306168",
-  "safe_mint_5makers": "495853"
->>>>>>> origin/main
+  "safe_complementary_10makers": "570645",
+  "safe_complementary_1maker": "155841",
+  "safe_complementary_5makers": "340033",
+  "safe_merge_10makers": "693205",
+  "safe_merge_1maker": "265842",
+  "safe_merge_5makers": "455480",
+  "safe_mint_10makers": "735156",
+  "safe_mint_1maker": "306491",
+  "safe_mint_5makers": "496708"
 }
