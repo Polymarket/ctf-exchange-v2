@@ -9,6 +9,9 @@ abstract contract Auth is IAuth {
     /// @dev The set of addresses authorized as Admins
     mapping(address => bool) internal admins;
 
+    /// @dev The number of active admins
+    uint256 internal adminCount;
+
     /// @dev The set of addresses authorized as Operators
     mapping(address => bool) internal operators;
 
@@ -24,6 +27,7 @@ abstract contract Auth is IAuth {
 
     constructor(address admin) {
         admins[admin] = true;
+        adminCount = 1;
         operators[admin] = true;
     }
 
@@ -39,6 +43,8 @@ abstract contract Auth is IAuth {
     /// Can only be called by a current admin
     /// @param admin_ - The new admin
     function addAdmin(address admin_) external onlyAdmin {
+        require(!admins[admin_], AlreadyAdmin());
+        ++adminCount;
         admins[admin_] = true;
         emit NewAdmin(admin_, msg.sender);
     }
@@ -47,6 +53,7 @@ abstract contract Auth is IAuth {
     /// Can only be called by a current admin
     /// @param operator_ - The new operator
     function addOperator(address operator_) external onlyAdmin {
+        require(!operators[operator_], AlreadyOperator());
         operators[operator_] = true;
         emit NewOperator(operator_, msg.sender);
     }
@@ -55,6 +62,9 @@ abstract contract Auth is IAuth {
     /// Can only be called by a current admin
     /// @param admin - The admin to be removed
     function removeAdmin(address admin) external onlyAdmin {
+        require(admins[admin], NotAdmin());
+        require(adminCount > 1, LastAdmin());
+        --adminCount;
         admins[admin] = false;
         emit RemovedAdmin(admin, msg.sender);
     }
@@ -63,19 +73,13 @@ abstract contract Auth is IAuth {
     /// Can only be called by a current admin
     /// @param operator - The operator to be removed
     function removeOperator(address operator) external onlyAdmin {
+        require(operators[operator], NotOperator());
         operators[operator] = false;
         emit RemovedOperator(operator, msg.sender);
     }
 
-    /// @notice Removes the admin role for the caller
-    /// Can only be called by an existing admin
-    function renounceAdminRole() external onlyAdmin {
-        admins[msg.sender] = false;
-        emit RemovedAdmin(msg.sender, msg.sender);
-    }
-
     /// @notice Removes the operator role for the caller
-    /// Can only be called by an exiting operator
+    /// @dev Can only be called by an existing operator
     function renounceOperatorRole() external onlyOperator {
         operators[msg.sender] = false;
         emit RemovedOperator(msg.sender, msg.sender);

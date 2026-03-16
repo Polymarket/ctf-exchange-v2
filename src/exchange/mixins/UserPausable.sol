@@ -7,6 +7,9 @@ import { IUserPausable } from "../interfaces/IUserPausable.sol";
 /// @notice Mixin to allow users to pause and unpause their accounts
 /// @author Polymarket
 abstract contract UserPausable is IUserPausable {
+    /// @notice Maximum allowed value for the user pause block interval
+    uint256 internal constant MAX_PAUSE_BLOCK_INTERVAL = 302_400;
+
     /// @notice The number of blocks after which a user's pause becomes effective
     uint256 public userPauseBlockInterval = 100;
 
@@ -22,6 +25,7 @@ abstract contract UserPausable is IUserPausable {
 
     /// @notice Allows a user to pause their account
     function pauseUser() external override {
+        require(userPausedBlockAt[msg.sender] == 0, UserAlreadyPaused());
         uint256 blockPausedAt = block.number + userPauseBlockInterval;
         userPausedBlockAt[msg.sender] = blockPausedAt;
         emit UserPaused(msg.sender, blockPausedAt);
@@ -36,6 +40,7 @@ abstract contract UserPausable is IUserPausable {
     /// @notice Sets the block interval after which a user's pause becomes effective
     /// @param blockInterval - The new block interval
     function _setUserPauseBlockInterval(uint256 blockInterval) internal {
+        require(blockInterval <= MAX_PAUSE_BLOCK_INTERVAL, ExceedsMaxPauseInterval());
         uint256 oldInterval = userPauseBlockInterval;
         userPauseBlockInterval = blockInterval;
         emit UserPauseBlockIntervalUpdated(oldInterval, blockInterval);
