@@ -36,8 +36,8 @@ contract PreapprovedTest is BaseExchangeTest {
         vm.prank(admin);
         exchange.preapproveOrder(makerOrder);
 
-        // Invalidate the ECDSA signature so only preapproval can authorize.
-        _invalidateSignature(makerOrder);
+        // Clear the signature so only preapproval can authorize.
+        makerOrder.signature = "";
 
         // Now invalidate the preapproval
         vm.expectEmit(true, false, false, false);
@@ -105,11 +105,11 @@ contract PreapprovedTest is BaseExchangeTest {
         // Maker: YES SELL (preapproved)
         Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
-        // Preapprove the maker order, then invalidate its signature
+        // Preapprove the maker order, then clear its signature
         // so only preapproval can authorize the match
         vm.prank(admin);
         exchange.preapproveOrder(makerOrder);
-        _invalidateSignature(makerOrder);
+        makerOrder.signature = "";
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
@@ -148,11 +148,11 @@ contract PreapprovedTest is BaseExchangeTest {
         // Maker: YES SELL
         Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
-        // Preapprove the taker order, then invalidate its signature
+        // Preapprove the taker order, then clear its signature
         // so only preapproval can authorize the match
         vm.prank(admin);
         exchange.preapproveOrder(takerOrder);
-        _invalidateSignature(takerOrder);
+        takerOrder.signature = "";
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
@@ -189,14 +189,14 @@ contract PreapprovedTest is BaseExchangeTest {
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
         Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
-        // Preapprove both, then invalidate signatures
+        // Preapprove both, then clear signatures
         // so only preapproval can authorize the match
         vm.startPrank(admin);
         exchange.preapproveOrder(takerOrder);
         exchange.preapproveOrder(makerOrder);
         vm.stopPrank();
-        _invalidateSignature(takerOrder);
-        _invalidateSignature(makerOrder);
+        takerOrder.signature = "";
+        makerOrder.signature = "";
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
@@ -231,11 +231,11 @@ contract PreapprovedTest is BaseExchangeTest {
         Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
         Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
-        // Preapprove the taker order, then invalidate its signature
+        // Preapprove the taker order, then clear its signature
         // so only preapproval can authorize the match
         vm.prank(admin);
         exchange.preapproveOrder(takerOrder);
-        _invalidateSignature(takerOrder);
+        takerOrder.signature = "";
 
         // Bob pauses himself
         vm.prank(bob);
@@ -275,11 +275,11 @@ contract PreapprovedTest is BaseExchangeTest {
         // Carla sells only 50 YES for 25 USDC (half fill)
         Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 50_000_000, 25_000_000, Side.SELL);
 
-        // Preapprove the taker order, then invalidate its signature
+        // Preapprove the taker order, then clear its signature
         // so only preapproval can authorize the match across both partial fills
         vm.prank(admin);
         exchange.preapproveOrder(takerOrder);
-        _invalidateSignature(takerOrder);
+        takerOrder.signature = "";
 
         Order[] memory makerOrders = new Order[](1);
         makerOrders[0] = makerOrder;
@@ -360,7 +360,124 @@ contract PreapprovedTest is BaseExchangeTest {
     }
 
     // ──────────────────────────────────────────────────
-    // Test 9: ERC1271 preapproved order works after signer invalidation
+    // Test 9: Empty signature with preapproval succeeds
+    // ──────────────────────────────────────────────────
+
+    function test_matchOrders_emptySignature_preapproved_complementary() public {
+        vm.pauseGasMetering();
+        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
+        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
+
+        // Create orders with valid signatures for preapproval
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
+
+        // Preapprove both orders (requires valid signature)
+        vm.startPrank(admin);
+        exchange.preapproveOrder(takerOrder);
+        exchange.preapproveOrder(makerOrder);
+        vm.stopPrank();
+
+        // Clear signatures to empty bytes — only preapproval should authorize
+        takerOrder.signature = "";
+        makerOrder.signature = "";
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 100_000_000;
+
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        vm.resumeGasMetering();
+
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 0, makerFeeAmounts);
+
+        vm.pauseGasMetering();
+        assertCollateralBalance(bob, 0);
+        assertCTFBalance(bob, yes, 100_000_000);
+        assertCTFBalance(carla, yes, 0);
+        assertCollateralBalance(carla, 50_000_000);
+        assertTrue(exchange.getOrderStatus(exchange.hashOrder(takerOrder)).filled);
+        assertTrue(exchange.getOrderStatus(exchange.hashOrder(makerOrder)).filled);
+    }
+
+    // ──────────────────────────────────────────────────
+    // Test 10: Empty signature without preapproval reverts
+    // ──────────────────────────────────────────────────
+
+    function test_matchOrders_emptySignature_notPreapproved_reverts() public {
+        vm.pauseGasMetering();
+        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
+        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
+
+        // Create orders but do NOT preapprove them
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
+
+        // Clear taker signature to empty — no preapproval exists
+        takerOrder.signature = "";
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 100_000_000;
+
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        vm.resumeGasMetering();
+
+        vm.expectRevert(InvalidSignature.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 0, makerFeeAmounts);
+    }
+
+    // ──────────────────────────────────────────────────
+    // Test 11: Empty signature with invalidated preapproval reverts
+    // ──────────────────────────────────────────────────
+
+    function test_matchOrders_emptySignature_invalidatedPreapproval_reverts() public {
+        vm.pauseGasMetering();
+        dealUsdcAndApprove(bob, address(exchange), 50_000_000);
+        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
+
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
+
+        bytes32 takerOrderHash = exchange.hashOrder(takerOrder);
+
+        // Preapprove, then invalidate
+        vm.startPrank(admin);
+        exchange.preapproveOrder(takerOrder);
+        exchange.invalidatePreapprovedOrder(takerOrderHash);
+        vm.stopPrank();
+
+        // Clear taker signature to empty — preapproval is invalidated
+        takerOrder.signature = "";
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 100_000_000;
+
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        vm.resumeGasMetering();
+
+        vm.expectRevert(InvalidSignature.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 0, makerFeeAmounts);
+    }
+
+    // ──────────────────────────────────────────────────
+    // Test 12: ERC1271 preapproved order works after signer invalidation
     // ──────────────────────────────────────────────────
 
     function test_matchOrders_preapproved1271_signerInvalidated() public {
@@ -404,8 +521,9 @@ contract PreapprovedTest is BaseExchangeTest {
             );
         }
 
-        // Verify: preapproved order from disabled wallet SUCCEEDS
+        // Verify: preapproved order from disabled wallet SUCCEEDS (using empty signature)
         {
+            preapprovedOrder.signature = "";
             dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
             Order memory makerForSuccess = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
 
