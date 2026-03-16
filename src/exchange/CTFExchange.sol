@@ -35,7 +35,6 @@ contract CTFExchange is Auth, ERC1155TokenReceiver, Pausable, Trading {
     /// @param takerOrder           - The active order to be matched
     /// @param makerOrders          - The array of maker orders to be matched against the active order
     /// @param takerFillAmount      - The amount to fill on the taker order, always in terms of the maker amount
-    /// taker amount
     /// @param makerFillAmounts     - The array of amounts to fill on the maker orders, always in terms of
     /// the maker amount
     /// @param takerFeeAmount       - The fee to be charged to the taker order
@@ -49,6 +48,12 @@ contract CTFExchange is Auth, ERC1155TokenReceiver, Pausable, Trading {
         uint256 takerFeeAmount,
         uint256[] memory makerFeeAmounts
     ) external onlyOperator notPaused {
+        uint256 makerLength = makerOrders.length;
+        require(makerLength > 0, NoMakerOrders());
+        require(
+            makerLength == makerFillAmounts.length && makerLength == makerFeeAmounts.length, MismatchedArrayLengths()
+        );
+
         _matchOrders(
             conditionId, takerOrder, makerOrders, takerFillAmount, makerFillAmounts, takerFeeAmount, makerFeeAmounts
         );

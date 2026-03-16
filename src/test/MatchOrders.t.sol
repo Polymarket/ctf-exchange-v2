@@ -537,6 +537,46 @@ contract MatchOrdersTest is BaseExchangeTest {
         exchange.matchOrders(conditionId, buy, makerOrders, takerOrderFillAmount, fillAmounts, 0, makerFeeAmounts);
     }
 
+    function test_MatchOrders_revert_ZeroMakerAmount() public {
+        // An order with makerAmount=0 should be rejected, not silently marked as filled
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, 50_000_000, 100_000_000, Side.BUY);
+        Order memory zeroMakerOrder = _createAndSignOrder(carlaPK, yes, 0, 0, Side.SELL);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = zeroMakerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 0;
+
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        vm.expectRevert(ZeroMakerAmount.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 50_000_000, fillAmounts, 0, makerFeeAmounts);
+    }
+
+    function test_MatchOrders_revert_ZeroMakerAmount_Taker() public {
+        // Taker order with makerAmount=0 should also be rejected
+        dealOutcomeTokensAndApprove(carla, address(exchange), yes, 100_000_000);
+
+        Order memory zeroTakerOrder = _createAndSignOrder(bobPK, yes, 0, 0, Side.BUY);
+        Order memory makerOrder = _createAndSignOrder(carlaPK, yes, 100_000_000, 50_000_000, Side.SELL);
+
+        Order[] memory makerOrders = new Order[](1);
+        makerOrders[0] = makerOrder;
+
+        uint256[] memory fillAmounts = new uint256[](1);
+        fillAmounts[0] = 100_000_000;
+
+        uint256[] memory makerFeeAmounts = new uint256[](1);
+        makerFeeAmounts[0] = 0;
+
+        vm.expectRevert(ZeroMakerAmount.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, zeroTakerOrder, makerOrders, 0, fillAmounts, 0, makerFeeAmounts);
+    }
+
     function test_MatchOrders_revert_ComplementaryFillExceedsTakerFill_Overspend() public {
         // Fund taker sufficiently so the match reaches the final aggregate fill check.
         dealUsdcAndApprove(bob, address(exchange), 200_000_000);
@@ -651,6 +691,23 @@ contract MatchOrdersTest is BaseExchangeTest {
         exchange.matchOrders(
             conditionId, takerOrder, makerOrders, takerFillAmount, fillAmounts, takerFeeAmount, makerFeeAmounts
         );
+    }
+
+    function test_MatchOrders_revert_FeeExceedsMaxRate_BuyWithNoMakersAndZeroFill() public {
+        uint256 takerFillAmount = 50_000_000;
+        uint256 totalExpectedSpend = 52_500_000;
+
+        dealUsdcAndApprove(bob, address(exchange), totalExpectedSpend);
+
+        Order memory takerOrder = _createAndSignOrder(bobPK, yes, takerFillAmount, 100_000_000, Side.BUY);
+
+        Order[] memory makerOrders = new Order[](0);
+        uint256[] memory fillAmounts = new uint256[](0);
+        uint256[] memory makerFeeAmounts = new uint256[](0);
+
+        vm.expectRevert(NoMakerOrders.selector);
+        vm.prank(admin);
+        exchange.matchOrders(conditionId, takerOrder, makerOrders, 0, fillAmounts, totalExpectedSpend, makerFeeAmounts);
     }
 
     function test_MatchOrders_WithMaxFeeRate_Sell() public {

@@ -54,6 +54,9 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
     }
 
     function _validateOrder(bytes32 orderHash, Order memory order) internal view {
+        // Validate order is not zero-sized
+        require(order.makerAmount > 0, ZeroMakerAmount());
+
         // Validate signature
         validateOrderSignature(orderHash, order);
 
@@ -228,7 +231,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
             // Taker SELL ↔ Maker BUY: CTF direct, collateral through exchange
             _transfer(taker, makerOrder.maker, takerOrder.tokenId, taking); // CTF: taker → maker
             _transfer(makerOrder.maker, address(this), 0, fillAmount); // Collateral: maker → exchange
-            if (feeAmount > 0) _chargeFee(makerOrder.maker, feeAmount);
+            _chargeFee(makerOrder.maker, feeAmount);
         }
 
         _emitOrderFilledEvent(
@@ -258,7 +261,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         uint256 takerFeeAmount
     ) internal {
         if (takerIsBuy) {
-            if (takerFeeAmount > 0) _chargeFee(taker, takerFeeAmount);
+            _chargeFee(taker, takerFeeAmount);
         } else {
             uint256 takerProceeds = executedTakerTakingAmount;
             if (takerFeeAmount > 0) {
@@ -317,7 +320,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         if (side == Side.SELL) {
             // SELL: emit event now, transfer will be batched later
             if (feeAmount > 0) _emitFeeCharged(getFeeReceiver(), feeAmount);
-        } else if (feeAmount > 0) {
+        } else {
             // BUY: fee transferred from maker directly (cannot batch)
             _chargeFee(maker, feeAmount);
         }
@@ -444,7 +447,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         if (p.side == Side.SELL) {
             // SELL: emit event now, transfer will be batched later
             if (p.feeAmount > 0) _emitFeeCharged(getFeeReceiver(), p.feeAmount);
-        } else if (p.feeAmount > 0) {
+        } else {
             // BUY: fee transferred from maker directly (cannot batch)
             _chargeFee(p.maker, p.feeAmount);
         }
@@ -604,7 +607,6 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
     }
 
     function _chargeFee(address payer, uint256 fee) internal {
-        // Charge fee to the payer if any
         if (fee > 0) {
             address receiver = getFeeReceiver();
             _transfer(payer, receiver, 0, fee);
