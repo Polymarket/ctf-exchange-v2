@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity 0.8.33;
 
 interface ICollateralToken {
     function mint(address _to, uint256 _amount) external;

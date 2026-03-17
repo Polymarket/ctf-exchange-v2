@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity 0.8.33;
 
 import { Deployer } from "src/test/dev/util/Deployer.sol";
 import { TestHelper } from "src/test/dev/TestHelper.sol";

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity 0.8.33;
 
 import { Script } from "lib/forge-std/src/Script.sol";
 import { CTFExchange } from "src/exchange/CTFExchange.sol";

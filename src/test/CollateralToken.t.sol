@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.30;
+pragma solidity 0.8.33;
 
 import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 import { Initializable } from "lib/solady/src/utils/Initializable.sol";
