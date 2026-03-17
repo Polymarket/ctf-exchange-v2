@@ -40,14 +40,19 @@ abstract contract Signatures is ISignatures, PolyFactoryHelper {
     }
 
     /// @notice Validates the signature of an order
+    /// @dev If the signature is empty, only preapproval is checked. This allows operators to omit
+    /// the signature for preapproved orders, saving calldata gas and skipping ECDSA recovery.
     /// @param orderHash - The hash of the order
     /// @param order     - The order
     function validateOrderSignature(bytes32 orderHash, Order memory order) public view override {
-        require(
-            isValidSignature(order.signer, order.maker, orderHash, order.signature, order.signatureType)
-                || isPreapproved(orderHash),
-            InvalidSignature()
-        );
+        if (order.signature.length == 0) {
+            require(isPreapproved(orderHash), InvalidSignature());
+        } else {
+            require(
+                isValidSignature(order.signer, order.maker, orderHash, order.signature, order.signatureType),
+                InvalidSignature()
+            );
+        }
     }
 
     /// @notice Verifies a signature for signed Order structs
