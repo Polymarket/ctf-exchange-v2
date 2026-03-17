@@ -34,14 +34,14 @@ abstract contract Fees is IFees {
     /// @param fee       - The fee amount being charged, denominated in collateral
     /// @param cashValue - The value of the trade, denominated in collateral
     function validateFee(uint256 fee, uint256 cashValue) public view override {
-        validateFeeWithMaxFeeRate(fee, cashValue, maxFeeRateBps);
+        _validateFeeWithMaxFeeRate(fee, cashValue, maxFeeRateBps);
     }
 
     /// @notice Validates that the fee does not exceed the specified maximum fee rate
     /// @param fee           - The fee amount being charged, denominated in collateral
     /// @param cashValue     - The value of the trade, denominated in collateral
     /// @param maxFeeRate    - The maximum fee rate allowed in basis points
-    function validateFeeWithMaxFeeRate(uint256 fee, uint256 cashValue, uint256 maxFeeRate) internal pure override {
+    function _validateFeeWithMaxFeeRate(uint256 fee, uint256 cashValue, uint256 maxFeeRate) internal pure override {
         if (fee == 0) return;
 
         // No limit enforced if rate is 0

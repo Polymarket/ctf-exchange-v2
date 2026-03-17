@@ -25,7 +25,7 @@ abstract contract IFees is IFeesEE {
 
     function validateFee(uint256 fee, uint256 cashValue) public view virtual;
 
-    function validateFeeWithMaxFeeRate(uint256 fee, uint256 cashValue, uint256 maxFeeRate) internal pure virtual;
+    function _validateFeeWithMaxFeeRate(uint256 fee, uint256 cashValue, uint256 maxFeeRate) internal pure virtual;
 
     function _setFeeReceiver(address receiver) internal virtual;
 

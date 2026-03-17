@@ -15,7 +15,7 @@ import { Assets } from "./Assets.sol";
 /// @title Asset Operations
 /// @notice Operations on the CTF and Collateral assets
 abstract contract AssetOperations is Assets, IAssetOperations {
-    bytes32 public constant parentCollectionId = bytes32(0);
+    bytes32 public constant PARENT_COLLECTION_ID = bytes32(0);
 
     function _getBalance(uint256 tokenId) internal view override returns (uint256) {
         if (tokenId == 0) return ERC20(getCollateral()).balanceOf(address(this));
@@ -40,13 +40,13 @@ abstract contract AssetOperations is Assets, IAssetOperations {
     function _mint(bytes32 conditionId, uint256 amount) internal override {
         uint256[] memory partition = _getPartition();
         IConditionalTokens(getOutcomeTokenFactory())
-            .splitPosition(getCollateral(), parentCollectionId, conditionId, partition, amount);
+            .splitPosition(getCollateral(), PARENT_COLLECTION_ID, conditionId, partition, amount);
     }
 
     function _merge(bytes32 conditionId, uint256 amount) internal override {
         uint256[] memory partition = _getPartition();
         IConditionalTokens(getOutcomeTokenFactory())
-            .mergePositions(getCollateral(), parentCollectionId, conditionId, partition, amount);
+            .mergePositions(getCollateral(), PARENT_COLLECTION_ID, conditionId, partition, amount);
     }
 
     /// @dev Returns the binary partition [1, 2] for CTF operations

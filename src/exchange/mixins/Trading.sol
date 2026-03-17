@@ -570,7 +570,7 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         // Validate fee against max fee rate (reads storage only when fee is non-zero)
         if (fee != 0) {
             uint256 cashValue = order.side == Side.BUY ? making : takingAmount;
-            validateFeeWithMaxFeeRate(fee, cashValue, maxFeeRateBps);
+            _validateFeeWithMaxFeeRate(fee, cashValue, maxFeeRateBps);
         }
     }
 

@@ -25,18 +25,18 @@ abstract contract Auth is IAuth {
         _;
     }
 
-    constructor(address admin) {
-        admins[admin] = true;
+    constructor(address admin_) {
+        admins[admin_] = true;
         adminCount = 1;
-        operators[admin] = true;
+        operators[admin_] = true;
     }
 
-    function isAdmin(address usr) external view returns (bool) {
-        return admins[usr];
+    function isAdmin(address usr_) external view returns (bool) {
+        return admins[usr_];
     }
 
-    function isOperator(address usr) external view returns (bool) {
-        return operators[usr];
+    function isOperator(address usr_) external view returns (bool) {
+        return operators[usr_];
     }
 
     /// @notice Adds a new admin
@@ -60,22 +60,22 @@ abstract contract Auth is IAuth {
 
     /// @notice Removes an existing Admin
     /// Can only be called by a current admin
-    /// @param admin - The admin to be removed
-    function removeAdmin(address admin) external onlyAdmin {
-        require(admins[admin], NotAdmin());
+    /// @param admin_ - The admin to be removed
+    function removeAdmin(address admin_) external onlyAdmin {
+        require(admins[admin_], NotAdmin());
         require(adminCount > 1, LastAdmin());
         --adminCount;
-        admins[admin] = false;
-        emit RemovedAdmin(admin, msg.sender);
+        admins[admin_] = false;
+        emit RemovedAdmin(admin_, msg.sender);
     }
 
     /// @notice Removes an existing operator
     /// Can only be called by a current admin
-    /// @param operator - The operator to be removed
-    function removeOperator(address operator) external onlyAdmin {
-        require(operators[operator], NotOperator());
-        operators[operator] = false;
-        emit RemovedOperator(operator, msg.sender);
+    /// @param operator_ - The operator to be removed
+    function removeOperator(address operator_) external onlyAdmin {
+        require(operators[operator_], NotOperator());
+        operators[operator_] = false;
+        emit RemovedOperator(operator_, msg.sender);
     }
 
     /// @notice Removes the operator role for the caller

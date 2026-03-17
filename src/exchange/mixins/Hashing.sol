@@ -8,13 +8,13 @@ import { IHashing } from "../interfaces/IHashing.sol";
 import { Order, ORDER_TYPEHASH } from "../libraries/Structs.sol";
 
 abstract contract Hashing is EIP712, IHashing {
-    string internal constant domainName = "Polymarket CTF Exchange";
-    string internal constant domainVersion = "2";
+    string internal constant DOMAIN_NAME = "Polymarket CTF Exchange";
+    string internal constant DOMAIN_VERSION = "2";
 
     constructor() EIP712() { }
 
     function _domainNameAndVersion() internal pure override returns (string memory name, string memory version) {
-        return (domainName, domainVersion);
+        return (DOMAIN_NAME, DOMAIN_VERSION);
     }
 
     /// @notice Computes the hash for an order
