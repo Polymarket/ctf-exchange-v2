@@ -17,12 +17,6 @@ contract CtfCollateralAdapter is Pausable, ERC1155TokenReceiver {
     using SafeTransferLib for address;
 
     /*--------------------------------------------------------------
-                                 ROLES
-    --------------------------------------------------------------*/
-
-    uint256 internal constant ADMIN_ROLE = _ROLE_0;
-
-    /*--------------------------------------------------------------
                                  STATE
     --------------------------------------------------------------*/
 
