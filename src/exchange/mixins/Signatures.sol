@@ -46,10 +46,10 @@ abstract contract Signatures is ISignatures, PolyFactoryHelper {
     /// @param order     - The order
     function validateOrderSignature(bytes32 orderHash, Order memory order) public view override {
         if (order.signature.length == 0) {
-            require(isPreapproved(orderHash), InvalidSignature());
+            require(_isPreapproved(orderHash), InvalidSignature());
         } else {
             require(
-                isValidSignature(order.signer, order.maker, orderHash, order.signature, order.signatureType),
+                _isValidSignature(order.signer, order.maker, orderHash, order.signature, order.signatureType),
                 InvalidSignature()
             );
         }
