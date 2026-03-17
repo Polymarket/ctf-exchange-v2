@@ -112,15 +112,11 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
         return CTFHelpers.positionIds(wrappedCollateral, _conditionId);
     }
 
-    function _splitPosition(bytes32 _conditionId, uint256[] calldata, uint256 _amount) internal virtual override {
+    function _splitPosition(bytes32 _conditionId, uint256 _amount) internal virtual override {
         INegRiskAdapter(negRiskAdapter).splitPosition(_conditionId, _amount);
     }
 
-    function _mergePositions(bytes32 _conditionId, uint256[] calldata _partition, uint256 _amount)
-        internal
-        virtual
-        override
-    {
+    function _mergePositions(bytes32 _conditionId, uint256 _amount) internal virtual override {
         INegRiskAdapter(negRiskAdapter).mergePositions(_conditionId, _amount);
     }
 
