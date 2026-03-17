@@ -25,57 +25,57 @@ abstract contract Auth is IAuth {
         _;
     }
 
-    constructor(address admin_) {
-        admins[admin_] = true;
+    constructor(address _admin) {
+        admins[_admin] = true;
         adminCount = 1;
-        operators[admin_] = true;
+        operators[_admin] = true;
     }
 
-    function isAdmin(address usr_) external view returns (bool) {
-        return admins[usr_];
+    function isAdmin(address _usr) external view returns (bool) {
+        return admins[_usr];
     }
 
-    function isOperator(address usr_) external view returns (bool) {
-        return operators[usr_];
+    function isOperator(address _usr) external view returns (bool) {
+        return operators[_usr];
     }
 
     /// @notice Adds a new admin
     /// Can only be called by a current admin
-    /// @param admin_ - The new admin
-    function addAdmin(address admin_) external onlyAdmin {
-        require(!admins[admin_], AlreadyAdmin());
+    /// @param _admin - The new admin
+    function addAdmin(address _admin) external onlyAdmin {
+        require(!admins[_admin], AlreadyAdmin());
         ++adminCount;
-        admins[admin_] = true;
-        emit NewAdmin(admin_, msg.sender);
+        admins[_admin] = true;
+        emit NewAdmin(_admin, msg.sender);
     }
 
     /// @notice Adds a new operator
     /// Can only be called by a current admin
-    /// @param operator_ - The new operator
-    function addOperator(address operator_) external onlyAdmin {
-        require(!operators[operator_], AlreadyOperator());
-        operators[operator_] = true;
-        emit NewOperator(operator_, msg.sender);
+    /// @param _operator - The new operator
+    function addOperator(address _operator) external onlyAdmin {
+        require(!operators[_operator], AlreadyOperator());
+        operators[_operator] = true;
+        emit NewOperator(_operator, msg.sender);
     }
 
     /// @notice Removes an existing Admin
     /// Can only be called by a current admin
-    /// @param admin_ - The admin to be removed
-    function removeAdmin(address admin_) external onlyAdmin {
-        require(admins[admin_], NotAdmin());
+    /// @param _admin - The admin to be removed
+    function removeAdmin(address _admin) external onlyAdmin {
+        require(admins[_admin], NotAdmin());
         require(adminCount > 1, LastAdmin());
         --adminCount;
-        admins[admin_] = false;
-        emit RemovedAdmin(admin_, msg.sender);
+        admins[_admin] = false;
+        emit RemovedAdmin(_admin, msg.sender);
     }
 
     /// @notice Removes an existing operator
     /// Can only be called by a current admin
-    /// @param operator_ - The operator to be removed
-    function removeOperator(address operator_) external onlyAdmin {
-        require(operators[operator_], NotOperator());
-        operators[operator_] = false;
-        emit RemovedOperator(operator_, msg.sender);
+    /// @param _operator - The operator to be removed
+    function removeOperator(address _operator) external onlyAdmin {
+        require(operators[_operator], NotOperator());
+        operators[_operator] = false;
+        emit RemovedOperator(_operator, msg.sender);
     }
 
     /// @notice Removes the operator role for the caller
