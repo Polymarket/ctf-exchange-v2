@@ -207,5 +207,4 @@ contract CtfCollateralAdapterTest is TestHelper {
         vm.expectRevert(Unauthorized.selector);
         ctfCollateralAdapter.pause(address(usdce));
     }
-
 }
