@@ -19,8 +19,6 @@ import { CollateralToken } from "./CollateralToken.sol";
 contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
     using SafeTransferLib for address;
 
-    uint256 internal constant WITNESS_ROLE = _ROLE_1;
-
     /*--------------------------------------------------------------
                                  STATE
     --------------------------------------------------------------*/
@@ -32,6 +30,8 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
     /*--------------------------------------------------------------
                                CONSTANTS
     --------------------------------------------------------------*/
+
+    uint256 internal constant WITNESS_ROLE = _ROLE_1;
 
     bytes32 internal constant _WRAP_TYPEHASH =
         keccak256("Wrap(address sender,address asset,address to,uint256 amount,uint256 nonce,uint256 deadline)");
