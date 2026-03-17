@@ -27,7 +27,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         usdce = collateral.usdce;
 
         // 2. Deploy real CtfCollateralAdapter
-        adapter = new CtfCollateralAdapter(address(ctf), address(collateral.token), address(usdce));
+        adapter = new CtfCollateralAdapter(admin, admin, address(ctf), address(collateral.token), address(usdce));
         vm.label(address(adapter), "CtfCollateralAdapter");
 
         // 3. Grant ROLE_1 (1 << 1) on CollateralToken to the adapter
@@ -307,7 +307,7 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         USDCe otherUsdce = new USDCe();
 
         CtfCollateralAdapter badAdapter =
-            new CtfCollateralAdapter(address(ctf), address(collateral.token), address(otherUsdce));
+            new CtfCollateralAdapter(admin, admin, address(ctf), address(collateral.token), address(otherUsdce));
 
         vm.prank(admin);
         collateral.token.addWrapper(address(badAdapter));

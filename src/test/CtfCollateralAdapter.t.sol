@@ -32,8 +32,9 @@ contract CtfCollateralAdapterTest is TestHelper {
 
         conditionalTokens = IConditionalTokens(Deployer.deployConditionalTokens());
 
-        ctfCollateralAdapter =
-            new CtfCollateralAdapter(address(conditionalTokens), address(collateral.token), address(usdce));
+        ctfCollateralAdapter = new CtfCollateralAdapter(
+            admin, admin, address(conditionalTokens), address(collateral.token), address(usdce)
+        );
 
         vm.startPrank(admin);
         collateral.token.addWrapper(address(ctfCollateralAdapter));

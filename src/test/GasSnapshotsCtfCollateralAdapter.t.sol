@@ -29,7 +29,7 @@ contract GasSnapshotsCtfCollateralAdapter is BaseExchangeTest {
         usdce = collateral.usdce;
 
         // 2. Deploy real CtfCollateralAdapter
-        adapter = new CtfCollateralAdapter(address(ctf), address(collateral.token), address(usdce));
+        adapter = new CtfCollateralAdapter(admin, admin, address(ctf), address(collateral.token), address(usdce));
         vm.label(address(adapter), "CtfCollateralAdapter");
 
         // 3. Grant Router role on CollateralToken to the adapter

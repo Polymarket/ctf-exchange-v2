@@ -6,14 +6,21 @@ import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 import { IConditionalTokens } from "src/adapters/interfaces/IConditionalTokens.sol";
 import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
 import { CollateralToken } from "src/collateral/CollateralToken.sol";
+import { Pausable } from "src/collateral/abstract/Pausable.sol";
 import { ERC1155TokenReceiver } from "src/exchange/mixins/ERC1155TokenReceiver.sol";
 
 /// @title CtfCollateralAdapter
 /// @author Polymarket
 /// @notice An adapter for interfacing with ConditionalTokens Markets
 ///         using the PolymarketCollateralToken
-contract CtfCollateralAdapter is ERC1155TokenReceiver {
+contract CtfCollateralAdapter is Pausable, ERC1155TokenReceiver {
     using SafeTransferLib for address;
+
+    /*--------------------------------------------------------------
+                                 ROLES
+    --------------------------------------------------------------*/
+
+    uint256 internal constant ADMIN_ROLE = _ROLE_0;
 
     /*--------------------------------------------------------------
                                  STATE
@@ -28,10 +35,13 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver {
                               CONSTRUCTOR
     --------------------------------------------------------------*/
 
-    constructor(address _conditionalTokens, address _collateralToken, address _usdce) {
+    constructor(address _owner, address _admin, address _conditionalTokens, address _collateralToken, address _usdce) {
         conditionalTokens = IConditionalTokens(_conditionalTokens);
         collateralToken = _collateralToken;
         usdce = _usdce;
+
+        _initializeOwner(_owner);
+        _grantRoles(_admin, ADMIN_ROLE);
 
         _usdce.safeApprove(_conditionalTokens, type(uint256).max);
     }
@@ -40,7 +50,10 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver {
                                 EXTERNAL
     --------------------------------------------------------------*/
 
-    function splitPosition(address, bytes32, bytes32 _conditionId, uint256[] calldata, uint256 _amount) external {
+    function splitPosition(address, bytes32, bytes32 _conditionId, uint256[] calldata, uint256 _amount)
+        external
+        onlyUnpaused(usdce)
+    {
         collateralToken.safeTransferFrom(msg.sender, collateralToken, _amount);
         CollateralToken(collateralToken).unwrap(usdce, address(this), _amount, address(0), "");
 
@@ -54,7 +67,10 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver {
         conditionalTokens.safeBatchTransferFrom(address(this), msg.sender, positionIds, amounts, "");
     }
 
-    function mergePositions(address, bytes32, bytes32 _conditionId, uint256[] calldata, uint256 _amount) external {
+    function mergePositions(address, bytes32, bytes32 _conditionId, uint256[] calldata, uint256 _amount)
+        external
+        onlyUnpaused(usdce)
+    {
         uint256[] memory positionIds = _getPositionIds(_conditionId);
 
         uint256[] memory amounts = new uint256[](2);
@@ -69,7 +85,7 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver {
         CollateralToken(collateralToken).wrap(usdce, msg.sender, _amount, address(0), "");
     }
 
-    function redeemPositions(address, bytes32, bytes32 _conditionId, uint256[] calldata) external {
+    function redeemPositions(address, bytes32, bytes32 _conditionId, uint256[] calldata) external onlyUnpaused(usdce) {
         uint256[] memory positionIds = _getPositionIds(_conditionId);
 
         uint256[] memory amounts = new uint256[](2);
@@ -84,6 +100,22 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver {
 
         usdce.safeTransfer(collateralToken, amount);
         CollateralToken(collateralToken).wrap(usdce, msg.sender, amount, address(0), "");
+    }
+
+    /*--------------------------------------------------------------
+                               ONLY ADMIN
+    --------------------------------------------------------------*/
+
+    /// @notice Adds a new admin
+    /// @param _admin The address of the new admin
+    function addAdmin(address _admin) external onlyRoles(ADMIN_ROLE) {
+        _grantRoles(_admin, ADMIN_ROLE);
+    }
+
+    /// @notice Removes an admin
+    /// @param _admin The address of the admin to remove
+    function removeAdmin(address _admin) external onlyRoles(ADMIN_ROLE) {
+        _removeRoles(_admin, ADMIN_ROLE);
     }
 
     /*--------------------------------------------------------------

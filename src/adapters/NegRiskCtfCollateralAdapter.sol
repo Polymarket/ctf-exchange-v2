@@ -27,9 +27,14 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
                               CONSTRUCTOR
     --------------------------------------------------------------*/
 
-    constructor(address _conditionalTokens, address _collateralToken, address _usdce, address _negRiskAdapter)
-        CtfCollateralAdapter(_conditionalTokens, _collateralToken, _usdce)
-    {
+    constructor(
+        address _owner,
+        address _admin,
+        address _conditionalTokens,
+        address _collateralToken,
+        address _usdce,
+        address _negRiskAdapter
+    ) CtfCollateralAdapter(_owner, _admin, _conditionalTokens, _collateralToken, _usdce) {
         negRiskAdapter = _negRiskAdapter;
         wrappedCollateral = INegRiskAdapter(_negRiskAdapter).wcol();
 
@@ -41,7 +46,7 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
                                 EXTERNAL
     --------------------------------------------------------------*/
 
-    function convertPositions(bytes32 _marketId, uint256 _indexSet, uint256 _amount) external {
+    function convertPositions(bytes32 _marketId, uint256 _indexSet, uint256 _amount) external onlyUnpaused(usdce) {
         INegRiskAdapter adapter = INegRiskAdapter(negRiskAdapter);
         uint256 questionCount = adapter.getQuestionCount(_marketId);
         uint256 feeBips = adapter.getFeeBips(_marketId);

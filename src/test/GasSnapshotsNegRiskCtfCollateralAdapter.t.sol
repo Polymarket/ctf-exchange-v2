@@ -41,7 +41,7 @@ contract GasSnapshotsNegRiskCtfCollateralAdapter is BaseExchangeTest {
 
         // 3. Deploy real NegRiskCtfCollateralAdapter
         adapter = new NegRiskCtfCollateralAdapter(
-            address(ctf), address(collateral.token), address(usdce), address(negRiskAdapter)
+            admin, admin, address(ctf), address(collateral.token), address(usdce), address(negRiskAdapter)
         );
         vm.label(address(adapter), "NegRiskCtfCollateralAdapter");
 
