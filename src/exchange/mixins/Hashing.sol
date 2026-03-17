@@ -23,6 +23,8 @@ abstract contract Hashing is EIP712, IHashing {
         return _hashTypedData(_createStructHash(order));
     }
 
+    /// @notice Creates the struct hash for an order
+    /// @dev This does not include the signature; the signature is downstream of this hash
     function _createStructHash(Order memory order) internal pure returns (bytes32) {
         bytes32 result;
         assembly {
