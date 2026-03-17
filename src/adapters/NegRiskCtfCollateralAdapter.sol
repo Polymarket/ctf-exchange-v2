@@ -5,7 +5,7 @@ import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 
 import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
 import { INegRiskAdapter } from "src/adapters/interfaces/INegRiskAdapter.sol";
-import { CollateralToken } from "src/collateral/CollateralToken.sol";
+import { CollateralOnramp } from "src/collateral/CollateralOnramp.sol";
 
 import { CtfCollateralAdapter } from "./CtfCollateralAdapter.sol";
 
@@ -27,9 +27,14 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
                               CONSTRUCTOR
     --------------------------------------------------------------*/
 
-    constructor(address _conditionalTokens, address _collateralToken, address _usdce, address _negRiskAdapter)
-        CtfCollateralAdapter(_conditionalTokens, _collateralToken, _usdce)
-    {
+    constructor(
+        address _conditionalTokens,
+        address _collateralToken,
+        address _usdce,
+        address _onramp,
+        address _offramp,
+        address _negRiskAdapter
+    ) CtfCollateralAdapter(_conditionalTokens, _collateralToken, _usdce, _onramp, _offramp) {
         negRiskAdapter = _negRiskAdapter;
         wrappedCollateral = INegRiskAdapter(_negRiskAdapter).wcol();
 
@@ -66,10 +71,7 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
 
         // Wrap any received USDC.e into CollateralToken
         uint256 usdceAmount = usdce.balanceOf(address(this));
-        if (usdceAmount > 0) {
-            usdce.safeTransfer(collateralToken, usdceAmount);
-            CollateralToken(collateralToken).wrap(usdce, msg.sender, usdceAmount, address(0), "");
-        }
+        if (usdceAmount > 0) CollateralOnramp(onramp).wrap(usdce, msg.sender, usdceAmount);
     }
 
     /*--------------------------------------------------------------

@@ -29,14 +29,16 @@ contract GasSnapshotsCtfCollateralAdapter is BaseExchangeTest {
         usdce = collateral.usdce;
 
         // 2. Deploy real CtfCollateralAdapter
-        adapter = new CtfCollateralAdapter(address(ctf), address(collateral.token), address(usdce));
+        adapter = new CtfCollateralAdapter(
+            address(ctf),
+            address(collateral.token),
+            address(usdce),
+            address(collateral.onramp),
+            address(collateral.offramp)
+        );
         vm.label(address(adapter), "CtfCollateralAdapter");
 
-        // 3. Grant Router role on CollateralToken to the adapter
-        vm.prank(admin);
-        collateral.token.addWrapper(address(adapter));
-
-        // 4. Recompute yes/no using usdce (CtfCollateralAdapter uses usdce for position IDs)
+        // 3. Recompute yes/no using usdce (CtfCollateralAdapter uses usdce for position IDs)
         uint256[] memory positionIds = CTFHelpers.positionIds(address(usdce), conditionId);
         yes = positionIds[0];
         no = positionIds[1];

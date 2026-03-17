@@ -5,7 +5,8 @@ import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 
 import { IConditionalTokens } from "src/adapters/interfaces/IConditionalTokens.sol";
 import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
-import { CollateralToken } from "src/collateral/CollateralToken.sol";
+import { CollateralOnramp } from "src/collateral/CollateralOnramp.sol";
+import { CollateralOfframp } from "src/collateral/CollateralOfframp.sol";
 import { ERC1155TokenReceiver } from "src/exchange/mixins/ERC1155TokenReceiver.sol";
 
 /// @title CtfCollateralAdapter
@@ -23,17 +24,29 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver {
 
     address public immutable collateralToken;
     address public immutable usdce;
+    address public immutable onramp;
+    address public immutable offramp;
 
     /*--------------------------------------------------------------
                               CONSTRUCTOR
     --------------------------------------------------------------*/
 
-    constructor(address _conditionalTokens, address _collateralToken, address _usdce) {
+    constructor(
+        address _conditionalTokens,
+        address _collateralToken,
+        address _usdce,
+        address _onramp,
+        address _offramp
+    ) {
         conditionalTokens = IConditionalTokens(_conditionalTokens);
         collateralToken = _collateralToken;
         usdce = _usdce;
+        onramp = _onramp;
+        offramp = _offramp;
 
         _usdce.safeApprove(_conditionalTokens, type(uint256).max);
+        _usdce.safeApprove(_onramp, type(uint256).max);
+        _collateralToken.safeApprove(_offramp, type(uint256).max);
     }
 
     /*--------------------------------------------------------------
@@ -41,8 +54,8 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver {
     --------------------------------------------------------------*/
 
     function splitPosition(address, bytes32, bytes32 _conditionId, uint256[] calldata, uint256 _amount) external {
-        collateralToken.safeTransferFrom(msg.sender, collateralToken, _amount);
-        CollateralToken(collateralToken).unwrap(usdce, address(this), _amount, address(0), "");
+        collateralToken.safeTransferFrom(msg.sender, address(this), _amount);
+        CollateralOfframp(offramp).unwrap(usdce, address(this), _amount);
 
         _splitPosition(_conditionId, _amount);
 
@@ -65,8 +78,7 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver {
 
         _mergePositions(_conditionId, _amount);
 
-        usdce.safeTransfer(collateralToken, _amount);
-        CollateralToken(collateralToken).wrap(usdce, msg.sender, _amount, address(0), "");
+        CollateralOnramp(onramp).wrap(usdce, msg.sender, _amount);
     }
 
     function redeemPositions(address, bytes32, bytes32 _conditionId, uint256[] calldata) external {
@@ -82,8 +94,7 @@ contract CtfCollateralAdapter is ERC1155TokenReceiver {
 
         uint256 amount = usdce.balanceOf(address(this));
 
-        usdce.safeTransfer(collateralToken, amount);
-        CollateralToken(collateralToken).wrap(usdce, msg.sender, amount, address(0), "");
+        CollateralOnramp(onramp).wrap(usdce, msg.sender, amount);
     }
 
     /*--------------------------------------------------------------

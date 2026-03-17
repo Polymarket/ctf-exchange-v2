@@ -27,14 +27,16 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
         usdce = collateral.usdce;
 
         // 2. Deploy real CtfCollateralAdapter
-        adapter = new CtfCollateralAdapter(address(ctf), address(collateral.token), address(usdce));
+        adapter = new CtfCollateralAdapter(
+            address(ctf),
+            address(collateral.token),
+            address(usdce),
+            address(collateral.onramp),
+            address(collateral.offramp)
+        );
         vm.label(address(adapter), "CtfCollateralAdapter");
 
-        // 3. Grant ROLE_1 (1 << 1) on CollateralToken to the adapter
-        vm.prank(admin);
-        collateral.token.addWrapper(address(adapter));
-
-        // 4. Recompute yes/no using usdce (CtfCollateralAdapter uses usdce for position IDs)
+        // 3. Recompute yes/no using usdce (CtfCollateralAdapter uses usdce for position IDs)
         uint256[] memory positionIds = CTFHelpers.positionIds(address(usdce), conditionId);
         yes = positionIds[0];
         no = positionIds[1];
@@ -306,11 +308,13 @@ contract MatchOrdersCtfCollateralAdapterTest is BaseExchangeTest {
     function test_MatchOrdersCtfCollateralAdapter_Mint_Reverts_WhenAdapterUsdceMismatch() public {
         USDCe otherUsdce = new USDCe();
 
-        CtfCollateralAdapter badAdapter =
-            new CtfCollateralAdapter(address(ctf), address(collateral.token), address(otherUsdce));
-
-        vm.prank(admin);
-        collateral.token.addWrapper(address(badAdapter));
+        CtfCollateralAdapter badAdapter = new CtfCollateralAdapter(
+            address(ctf),
+            address(collateral.token),
+            address(otherUsdce),
+            address(collateral.onramp),
+            address(collateral.offramp)
+        );
 
         vm.startPrank(admin);
         ExchangeInitParams memory p = ExchangeInitParams({

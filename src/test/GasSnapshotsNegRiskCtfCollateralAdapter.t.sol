@@ -41,15 +41,16 @@ contract GasSnapshotsNegRiskCtfCollateralAdapter is BaseExchangeTest {
 
         // 3. Deploy real NegRiskCtfCollateralAdapter
         adapter = new NegRiskCtfCollateralAdapter(
-            address(ctf), address(collateral.token), address(usdce), address(negRiskAdapter)
+            address(ctf),
+            address(collateral.token),
+            address(usdce),
+            address(collateral.onramp),
+            address(collateral.offramp),
+            address(negRiskAdapter)
         );
         vm.label(address(adapter), "NegRiskCtfCollateralAdapter");
 
-        // 4. Grant Router role on CollateralToken to the adapter
-        vm.prank(admin);
-        collateral.token.addWrapper(address(adapter));
-
-        // 5. Prepare NegRisk market + question
+        // 4. Prepare NegRisk market + question
         bytes memory data = new bytes(0);
         vm.startPrank(admin);
         bytes32 marketId = negRiskAdapter.prepareMarket(0, data);
