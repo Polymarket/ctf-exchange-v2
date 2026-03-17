@@ -10,9 +10,11 @@ import { NegRiskAdapterSetUp } from "src/test/dev/NegRiskAdapterSetUp.sol";
 import { IConditionalTokens } from "src/adapters/interfaces/IConditionalTokens.sol";
 import { INegRiskAdapter } from "src/adapters/interfaces/INegRiskAdapter.sol";
 
+import { CollateralErrors } from "src/collateral/abstract/CollateralErrors.sol";
 import { NegRiskCtfCollateralAdapter } from "src/adapters/NegRiskCtfCollateralAdapter.sol";
 
 contract NegRiskCtfCollateralAdapterTest is TestHelper {
+    error Unauthorized();
     address admin = alice;
     address owner = alice;
     address oracle = carly;
@@ -284,5 +286,79 @@ contract NegRiskCtfCollateralAdapterTest is TestHelper {
         assertEq(conditionalTokens.balanceOf(alice, positionIds[1]), 0);
         assertEq(conditionalTokens.balanceOf(brian, positionIds[0]), 0);
         assertEq(conditionalTokens.balanceOf(brian, positionIds[1]), 0);
+    }
+
+    /*--------------------------------------------------------------
+                            PAUSE TESTS
+    --------------------------------------------------------------*/
+
+    function test_revert_NegRiskCtfCollateralAdapter_splitPosition_paused() public {
+        _before(4);
+
+        vm.prank(admin);
+        negRiskCtfCollateralAdapter.pause(address(usdce));
+
+        usdce.mint(alice, amount);
+
+        vm.startPrank(alice);
+        usdce.approve(address(collateral.onramp), amount);
+        collateral.onramp.wrap(address(usdce), alice, amount);
+        collateral.token.approve(address(negRiskCtfCollateralAdapter), amount);
+
+        vm.expectRevert(CollateralErrors.OnlyUnpaused.selector);
+        negRiskCtfCollateralAdapter.splitPosition(
+            address(0), bytes32(0), conditionIds[0], CTFHelpers.partition(), amount
+        );
+        vm.stopPrank();
+    }
+
+    function test_revert_NegRiskCtfCollateralAdapter_mergePositions_paused() public {
+        test_NegRiskCtfCollateralAdapter_splitPosition();
+
+        vm.prank(admin);
+        negRiskCtfCollateralAdapter.pause(address(usdce));
+
+        uint256[] memory positionIds = CTFHelpers.positionIds(address(wrappedCollateral), conditionIds[0]);
+        uint256[] memory amounts = new uint256[](2);
+        amounts[0] = amount;
+        amounts[1] = amount;
+        vm.prank(alice);
+        conditionalTokens.safeBatchTransferFrom(alice, brian, positionIds, amounts, "");
+
+        vm.startPrank(brian);
+        conditionalTokens.setApprovalForAll(address(negRiskCtfCollateralAdapter), true);
+        vm.expectRevert(CollateralErrors.OnlyUnpaused.selector);
+        negRiskCtfCollateralAdapter.mergePositions(
+            address(0), bytes32(0), conditionIds[0], CTFHelpers.partition(), amount
+        );
+        vm.stopPrank();
+    }
+
+    function test_revert_NegRiskCtfCollateralAdapter_redeemPositions_paused() public {
+        test_NegRiskCtfCollateralAdapter_splitPosition();
+
+        vm.prank(oracle);
+        negRiskAdapter.reportOutcome(questionIds[0], true);
+
+        vm.prank(admin);
+        negRiskCtfCollateralAdapter.pause(address(usdce));
+
+        vm.startPrank(alice);
+        conditionalTokens.setApprovalForAll(address(negRiskCtfCollateralAdapter), true);
+        vm.expectRevert(CollateralErrors.OnlyUnpaused.selector);
+        negRiskCtfCollateralAdapter.redeemPositions(address(0), bytes32(0), conditionIds[0], CTFHelpers.partition());
+        vm.stopPrank();
+    }
+
+    function test_revert_NegRiskCtfCollateralAdapter_convertPositions_paused() public {
+        _before(4);
+        _splitAllQuestions(alice, amount);
+
+        vm.prank(admin);
+        negRiskCtfCollateralAdapter.pause(address(usdce));
+
+        vm.prank(alice);
+        vm.expectRevert(CollateralErrors.OnlyUnpaused.selector);
+        negRiskCtfCollateralAdapter.convertPositions(negRiskMarketId, 1, amount);
     }
 }
