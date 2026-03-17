@@ -12,9 +12,11 @@ import { CollateralToken } from "./CollateralToken.sol";
 /// @title CollateralOfframp
 /// @author Polymarket
 /// @notice Permissionless offramp for the PolymarketCollateralToken
-/// @notice ROLE_0: Admin
+/// @notice ADMIN_ROLE: Admin
 contract CollateralOfframp is OwnableRoles, CollateralErrors, Pausable {
     using SafeTransferLib for address;
+
+    uint256 internal constant ADMIN_ROLE = _ROLE_0;
 
     /*--------------------------------------------------------------
                                  STATE
@@ -30,7 +32,7 @@ contract CollateralOfframp is OwnableRoles, CollateralErrors, Pausable {
         collateralToken = _collateralToken;
 
         _initializeOwner(_owner);
-        _grantRoles(_admin, _ROLE_0);
+        _grantRoles(_admin, ADMIN_ROLE);
     }
 
     /*--------------------------------------------------------------
@@ -53,13 +55,13 @@ contract CollateralOfframp is OwnableRoles, CollateralErrors, Pausable {
 
     /// @notice Adds a new admin to the contract
     /// @param _admin The address of the new admin
-    function addAdmin(address _admin) external onlyRoles(_ROLE_0) {
-        _grantRoles(_admin, _ROLE_0);
+    function addAdmin(address _admin) external onlyRoles(ADMIN_ROLE) {
+        _grantRoles(_admin, ADMIN_ROLE);
     }
 
     /// @notice Removes an admin from the contract
     /// @param _admin The address of the admin to remove
-    function removeAdmin(address _admin) external onlyRoles(_ROLE_0) {
-        _removeRoles(_admin, _ROLE_0);
+    function removeAdmin(address _admin) external onlyRoles(ADMIN_ROLE) {
+        _removeRoles(_admin, ADMIN_ROLE);
     }
 }

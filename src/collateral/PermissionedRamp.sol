@@ -14,10 +14,13 @@ import { CollateralToken } from "./CollateralToken.sol";
 /// @title PermissionedRamp
 /// @author Polymarket
 /// @notice Permissioned wrap/unwrap for the PolymarketCollateralToken using EIP-712 witness signatures
-/// @notice ROLE_0: Admin
-/// @notice ROLE_1: Witness
+/// @notice ADMIN_ROLE: Admin
+/// @notice WITNESS_ROLE: Witness
 contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
     using SafeTransferLib for address;
+
+    uint256 internal constant ADMIN_ROLE = _ROLE_0;
+    uint256 internal constant WITNESS_ROLE = _ROLE_1;
 
     /*--------------------------------------------------------------
                                  STATE
@@ -45,7 +48,7 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
         collateralToken = _collateralToken;
 
         _initializeOwner(_owner);
-        _grantRoles(_admin, _ROLE_0);
+        _grantRoles(_admin, ADMIN_ROLE);
     }
 
     /*--------------------------------------------------------------
@@ -102,26 +105,26 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
 
     /// @notice Adds a new admin to the contract
     /// @param _admin The address of the new admin
-    function addAdmin(address _admin) external onlyRoles(_ROLE_0) {
-        _grantRoles(_admin, _ROLE_0);
+    function addAdmin(address _admin) external onlyRoles(ADMIN_ROLE) {
+        _grantRoles(_admin, ADMIN_ROLE);
     }
 
     /// @notice Removes an admin from the contract
     /// @param _admin The address of the admin to remove
-    function removeAdmin(address _admin) external onlyRoles(_ROLE_0) {
-        _removeRoles(_admin, _ROLE_0);
+    function removeAdmin(address _admin) external onlyRoles(ADMIN_ROLE) {
+        _removeRoles(_admin, ADMIN_ROLE);
     }
 
     /// @notice Adds a new witness to the contract
     /// @param _witness The address of the new witness
-    function addWitness(address _witness) external onlyRoles(_ROLE_0) {
-        _grantRoles(_witness, _ROLE_1);
+    function addWitness(address _witness) external onlyRoles(ADMIN_ROLE) {
+        _grantRoles(_witness, WITNESS_ROLE);
     }
 
     /// @notice Removes a witness from the contract
     /// @param _witness The address of the witness to remove
-    function removeWitness(address _witness) external onlyRoles(_ROLE_0) {
-        _removeRoles(_witness, _ROLE_1);
+    function removeWitness(address _witness) external onlyRoles(ADMIN_ROLE) {
+        _removeRoles(_witness, WITNESS_ROLE);
     }
 
     /*--------------------------------------------------------------
@@ -149,6 +152,6 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
         bytes32 digest = _hashTypedData(structHash);
 
         address witness = ECDSA.recoverCalldata(digest, _signature);
-        require(hasAnyRole(witness, _ROLE_1), InvalidSignature());
+        require(hasAnyRole(witness, WITNESS_ROLE), InvalidSignature());
     }
 }
