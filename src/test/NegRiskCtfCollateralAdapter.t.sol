@@ -42,7 +42,7 @@ contract NegRiskCtfCollateralAdapterTest is TestHelper {
         (negRiskAdapter, conditionalTokens, wrappedCollateral) = NegRiskAdapterSetUp.deploy(owner, address(usdce));
 
         negRiskCtfCollateralAdapter = new NegRiskCtfCollateralAdapter(
-            address(conditionalTokens), address(collateral.token), address(usdce), address(negRiskAdapter)
+            admin, admin, address(conditionalTokens), address(collateral.token), address(usdce), address(negRiskAdapter)
         );
 
         vm.startPrank(admin);

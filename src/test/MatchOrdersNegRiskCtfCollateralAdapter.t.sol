@@ -39,7 +39,7 @@ contract MatchOrdersNegRiskCtfCollateralAdapterTest is BaseExchangeTest {
 
         // 3. Deploy real NegRiskCtfCollateralAdapter
         adapter = new NegRiskCtfCollateralAdapter(
-            address(ctf), address(collateral.token), address(usdce), address(negRiskAdapter)
+            admin, admin, address(ctf), address(collateral.token), address(usdce), address(negRiskAdapter)
         );
         vm.label(address(adapter), "NegRiskCtfCollateralAdapter");
 
@@ -328,7 +328,7 @@ contract MatchOrdersNegRiskCtfCollateralAdapterTest is BaseExchangeTest {
         USDCe otherUsdce = new USDCe();
 
         NegRiskCtfCollateralAdapter badAdapter = new NegRiskCtfCollateralAdapter(
-            address(ctf), address(collateral.token), address(otherUsdce), address(negRiskAdapter)
+            admin, admin, address(ctf), address(collateral.token), address(otherUsdce), address(negRiskAdapter)
         );
 
         vm.prank(admin);
