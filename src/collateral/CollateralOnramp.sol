@@ -16,8 +16,6 @@ import { CollateralToken } from "./CollateralToken.sol";
 contract CollateralOnramp is OwnableRoles, CollateralErrors, Pausable {
     using SafeTransferLib for address;
 
-    uint256 internal constant ADMIN_ROLE = _ROLE_0;
-
     /*--------------------------------------------------------------
                                  STATE
     --------------------------------------------------------------*/

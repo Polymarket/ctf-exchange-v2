@@ -19,7 +19,6 @@ import { CollateralToken } from "./CollateralToken.sol";
 contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
     using SafeTransferLib for address;
 
-    uint256 internal constant ADMIN_ROLE = _ROLE_0;
     uint256 internal constant WITNESS_ROLE = _ROLE_1;
 
     /*--------------------------------------------------------------

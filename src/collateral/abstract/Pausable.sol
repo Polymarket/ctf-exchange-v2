@@ -13,6 +13,8 @@ abstract contract PausableEvents {
 /// @title Pausable
 /// @author Polymarket
 abstract contract Pausable is OwnableRoles, CollateralErrors, PausableEvents {
+    uint256 internal constant ADMIN_ROLE = _ROLE_0;
+
     mapping(address => bool) public paused;
 
     modifier onlyUnpaused(address _asset) {
@@ -22,8 +24,8 @@ abstract contract Pausable is OwnableRoles, CollateralErrors, PausableEvents {
 
     /// @notice Pauses the wrapping/unwrapping of a supported asset
     /// @param _asset The asset to pause
-    /// @dev The caller must have the ROLE_0 role
-    function pause(address _asset) external onlyRoles(_ROLE_0) {
+    /// @dev The caller must have the ADMIN_ROLE role
+    function pause(address _asset) external onlyRoles(ADMIN_ROLE) {
         paused[_asset] = true;
 
         emit Paused(_asset);
@@ -31,8 +33,8 @@ abstract contract Pausable is OwnableRoles, CollateralErrors, PausableEvents {
 
     /// @notice Unpauses the wrapping/unwrapping of a supported asset
     /// @param _asset The asset to unpause
-    /// @dev The caller must have the ROLE_0 role
-    function unpause(address _asset) external onlyRoles(_ROLE_0) {
+    /// @dev The caller must have the ADMIN_ROLE role
+    function unpause(address _asset) external onlyRoles(ADMIN_ROLE) {
         paused[_asset] = false;
 
         emit Unpaused(_asset);
