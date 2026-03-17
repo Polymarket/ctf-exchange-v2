@@ -113,7 +113,7 @@ abstract contract Signatures is ISignatures, PolyFactoryHelper {
         view
         returns (bool)
     {
-        return ECDSA.tryRecover(structHash, signature) == signer;
+        return ECDSA.recover(structHash, signature) == signer;
     }
 
     /// @notice Verifies a signature signed by a Polymarket proxy wallet
