@@ -44,6 +44,10 @@ contract CtfCollateralAdapter is Pausable, ERC1155TokenReceiver {
                                 EXTERNAL
     --------------------------------------------------------------*/
 
+    /// @notice Splits collateral into conditional token positions
+    /// @dev Unnamed params retained for IConditionalTokens interface compatibility
+    /// @param _conditionId The condition ID to split on
+    /// @param _amount The amount of collateral to split
     function splitPosition(address, bytes32, bytes32 _conditionId, uint256[] calldata, uint256 _amount)
         external
         onlyUnpaused(usdce)
@@ -61,6 +65,10 @@ contract CtfCollateralAdapter is Pausable, ERC1155TokenReceiver {
         conditionalTokens.safeBatchTransferFrom(address(this), msg.sender, positionIds, amounts, "");
     }
 
+    /// @notice Merges conditional token positions back into collateral
+    /// @dev Unnamed params retained for IConditionalTokens interface compatibility
+    /// @param _conditionId The condition ID to merge on
+    /// @param _amount The amount of each position to merge
     function mergePositions(address, bytes32, bytes32 _conditionId, uint256[] calldata, uint256 _amount)
         external
         onlyUnpaused(usdce)
@@ -79,6 +87,9 @@ contract CtfCollateralAdapter is Pausable, ERC1155TokenReceiver {
         CollateralToken(collateralToken).wrap(usdce, msg.sender, _amount, address(0), "");
     }
 
+    /// @notice Redeems conditional token positions for collateral after resolution
+    /// @dev Unnamed params retained for IConditionalTokens interface compatibility
+    /// @param _conditionId The condition ID to redeem
     function redeemPositions(address, bytes32, bytes32 _conditionId, uint256[] calldata) external onlyUnpaused(usdce) {
         uint256[] memory positionIds = _getPositionIds(_conditionId);
 

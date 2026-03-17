@@ -46,6 +46,10 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
                                 EXTERNAL
     --------------------------------------------------------------*/
 
+    /// @notice Converts NO positions into YES positions via the NegRiskAdapter
+    /// @param _marketId The neg risk market ID
+    /// @param _indexSet Bitmask of question indices whose NO tokens to convert
+    /// @param _amount The amount of each NO position to convert
     function convertPositions(bytes32 _marketId, uint256 _indexSet, uint256 _amount) external onlyUnpaused(usdce) {
         INegRiskAdapter adapter = INegRiskAdapter(negRiskAdapter);
         uint256 questionCount = adapter.getQuestionCount(_marketId);

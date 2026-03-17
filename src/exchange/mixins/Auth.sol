@@ -31,10 +31,14 @@ abstract contract Auth is IAuth {
         operators[_admin] = true;
     }
 
+    /// @notice Returns whether an address is an admin
+    /// @param _usr The address to check
     function isAdmin(address _usr) external view returns (bool) {
         return admins[_usr];
     }
 
+    /// @notice Returns whether an address is an operator
+    /// @param _usr The address to check
     function isOperator(address _usr) external view returns (bool) {
         return operators[_usr];
     }

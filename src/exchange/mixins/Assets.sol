@@ -28,18 +28,22 @@ abstract contract Assets is IAssets {
         ERC1155(_ctf).setApprovalForAll(_outcomeTokenFactory, true);
     }
 
+    /// @notice Returns the collateral token address
     function getCollateral() public view override returns (address) {
         return collateral;
     }
 
+    /// @notice Returns the Conditional Tokens Framework address
     function getCtf() public view override returns (address) {
         return ctf;
     }
 
+    /// @notice Returns the collateral address used by the CTF for position ID derivation
     function getCtfCollateral() public view override returns (address) {
         return ctfCollateral;
     }
 
+    /// @notice Returns the address that facilitates outcome token minting or merging
     function getOutcomeTokenFactory() public view override returns (address) {
         return outcomeTokenFactory;
     }
