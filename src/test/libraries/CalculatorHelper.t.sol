@@ -3,7 +3,7 @@ pragma solidity <0.9.0;
 
 import { Test } from "lib/forge-std/src/Test.sol";
 
-import { CalculatorHelper } from "src/exchange/libraries/CalculatorHelper.sol";
+import { CalculatorHelper } from "../../exchange/libraries/CalculatorHelper.sol";
 
 contract CalculatorHelperTest is Test {
     function test_CalculatorHelper_FuzzCalculateTakingAmount(uint64 making, uint128 makerAmount, uint128 takerAmount)

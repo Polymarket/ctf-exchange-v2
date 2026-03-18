@@ -2,14 +2,14 @@
 pragma solidity <0.9.0;
 
 import { BaseExchangeTest } from "./BaseExchangeTest.sol";
-import { ExchangeInitParams, Order, Side } from "src/exchange/libraries/Structs.sol";
-import { CTFExchange } from "src/exchange/CTFExchange.sol";
+import { ExchangeInitParams, Order, Side } from "../exchange/libraries/Structs.sol";
+import { CTFExchange } from "../exchange/CTFExchange.sol";
 import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
-import { IConditionalTokens } from "src/exchange/interfaces/IConditionalTokens.sol";
-import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
-import { CtfCollateralAdapter } from "src/adapters/CtfCollateralAdapter.sol";
-import { Collateral, CollateralSetup } from "src/test/dev/CollateralSetup.sol";
-import { USDCe } from "src/test/dev/mocks/USDCe.sol";
+import { IConditionalTokens } from "../exchange/interfaces/IConditionalTokens.sol";
+import { CTFHelpers } from "../adapters/libraries/CTFHelpers.sol";
+import { CtfCollateralAdapter } from "../adapters/CtfCollateralAdapter.sol";
+import { Collateral, CollateralSetup } from "./dev/CollateralSetup.sol";
+import { USDCe } from "./dev/mocks/USDCe.sol";
 import { MockProxyFactory } from "./dev/mocks/MockProxyFactory.sol";
 import { MockSafeFactory } from "./dev/mocks/MockSafeFactory.sol";
 

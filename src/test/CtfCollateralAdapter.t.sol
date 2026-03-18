@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import { Deployer } from "src/test/dev/util/Deployer.sol";
-import { TestHelper } from "src/test/dev/TestHelper.sol";
-import { IConditionalTokens } from "src/adapters/interfaces/IConditionalTokens.sol";
-import { CTHelpers } from "src/adapters/libraries/CTHelpers.sol";
-import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
+import { Deployer } from "./dev/util/Deployer.sol";
+import { TestHelper } from "./dev/TestHelper.sol";
+import { IConditionalTokens } from "../adapters/interfaces/IConditionalTokens.sol";
+import { CTHelpers } from "../adapters/libraries/CTHelpers.sol";
+import { CTFHelpers } from "../adapters/libraries/CTFHelpers.sol";
 
-import { Collateral, USDCe, CollateralSetup } from "src/test/dev/CollateralSetup.sol";
+import { Collateral, USDCe, CollateralSetup } from "./dev/CollateralSetup.sol";
 
-import { CollateralErrors } from "src/collateral/abstract/CollateralErrors.sol";
-import { CtfCollateralAdapter } from "src/adapters/CtfCollateralAdapter.sol";
+import { CollateralErrors } from "../collateral/abstract/CollateralErrors.sol";
+import { CtfCollateralAdapter } from "../adapters/CtfCollateralAdapter.sol";
 
 contract CtfCollateralAdapterTest is TestHelper {
     error Unauthorized();

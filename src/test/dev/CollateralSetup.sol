@@ -3,15 +3,15 @@ pragma solidity 0.8.33;
 
 import { LibClone } from "lib/solady/src/utils/LibClone.sol";
 
-import { vm } from "src/test/dev/util/vm.sol";
-import { USDC } from "src/test/dev/mocks/USDC.sol";
-import { USDCe } from "src/test/dev/mocks/USDCe.sol";
+import { vm } from "./util/vm.sol";
+import { USDC } from "./mocks/USDC.sol";
+import { USDCe } from "./mocks/USDCe.sol";
 
-import { CollateralVault } from "src/test/dev/mocks/CollateralVault.sol";
-import { CollateralToken } from "src/collateral/CollateralToken.sol";
-import { CollateralOnramp } from "src/collateral/CollateralOnramp.sol";
-import { CollateralOfframp } from "src/collateral/CollateralOfframp.sol";
-import { PermissionedRamp } from "src/collateral/PermissionedRamp.sol";
+import { CollateralVault } from "./mocks/CollateralVault.sol";
+import { CollateralToken } from "../../collateral/CollateralToken.sol";
+import { CollateralOnramp } from "../../collateral/CollateralOnramp.sol";
+import { CollateralOfframp } from "../../collateral/CollateralOfframp.sol";
+import { PermissionedRamp } from "../../collateral/PermissionedRamp.sol";
 
 struct Collateral {
     CollateralToken token;

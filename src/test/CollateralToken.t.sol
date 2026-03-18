@@ -5,12 +5,12 @@ import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 import { Initializable } from "lib/solady/src/utils/Initializable.sol";
 import { Ownable } from "lib/solady/src/auth/Ownable.sol";
 
-import { TestHelper } from "src/test/dev/TestHelper.sol";
+import { TestHelper } from "./dev/TestHelper.sol";
 
-import { Collateral, CollateralToken, USDC, USDCe, CollateralSetup } from "src/test/dev/CollateralSetup.sol";
-import { CollateralErrors } from "src/collateral/abstract/CollateralErrors.sol";
-import { CollateralTokenEvents } from "src/collateral/CollateralToken.sol";
-import { ICollateralTokenCallbacks } from "src/collateral/interfaces/ICollateralTokenCallbacks.sol";
+import { Collateral, CollateralToken, USDC, USDCe, CollateralSetup } from "./dev/CollateralSetup.sol";
+import { CollateralErrors } from "../collateral/abstract/CollateralErrors.sol";
+import { CollateralTokenEvents } from "../collateral/CollateralToken.sol";
+import { ICollateralTokenCallbacks } from "../collateral/interfaces/ICollateralTokenCallbacks.sol";
 
 contract MockCollateralTokenRouter is ICollateralTokenCallbacks {
     using SafeTransferLib for address;

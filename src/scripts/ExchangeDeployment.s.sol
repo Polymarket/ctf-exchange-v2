@@ -2,8 +2,8 @@
 pragma solidity 0.8.33;
 
 import { Script } from "lib/forge-std/src/Script.sol";
-import { CTFExchange } from "src/exchange/CTFExchange.sol";
-import { ExchangeInitParams } from "src/exchange/libraries/Structs.sol";
+import { CTFExchange } from "../exchange/CTFExchange.sol";
+import { ExchangeInitParams } from "../exchange/libraries/Structs.sol";
 
 /// @title ExchangeDeployment
 /// @notice Script to deploy the CTF Exchange

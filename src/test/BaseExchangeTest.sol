@@ -12,18 +12,18 @@ import { Deployer } from "./dev/util/Deployer.sol";
 
 import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
 
-import { CTFExchange } from "src/exchange/CTFExchange.sol";
-import { IAuthEE } from "src/exchange/interfaces/IAuth.sol";
-import { IFeesEE } from "src/exchange/interfaces/IFees.sol";
-import { ITradingEE } from "src/exchange/interfaces/ITrading.sol";
-import { IPausableEE } from "src/exchange/interfaces/IPausable.sol";
-import { ISignaturesEE } from "src/exchange/interfaces/ISignatures.sol";
-import { IUserPausableEE } from "src/exchange/interfaces/IUserPausable.sol";
+import { CTFExchange } from "../exchange/CTFExchange.sol";
+import { IAuthEE } from "../exchange/interfaces/IAuth.sol";
+import { IFeesEE } from "../exchange/interfaces/IFees.sol";
+import { ITradingEE } from "../exchange/interfaces/ITrading.sol";
+import { IPausableEE } from "../exchange/interfaces/IPausable.sol";
+import { ISignaturesEE } from "../exchange/interfaces/ISignatures.sol";
+import { IUserPausableEE } from "../exchange/interfaces/IUserPausable.sol";
 
-import { IConditionalTokens } from "src/exchange/interfaces/IConditionalTokens.sol";
+import { IConditionalTokens } from "../exchange/interfaces/IConditionalTokens.sol";
 
-import { CalculatorHelper } from "src/exchange/libraries/CalculatorHelper.sol";
-import { ExchangeInitParams, Order, Side, SignatureType, ORDER_TYPEHASH } from "src/exchange/libraries/Structs.sol";
+import { CalculatorHelper } from "../exchange/libraries/CalculatorHelper.sol";
+import { ExchangeInitParams, Order, Side, SignatureType, ORDER_TYPEHASH } from "../exchange/libraries/Structs.sol";
 
 contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITradingEE, ISignaturesEE, IUserPausableEE {
     USDC public usdc;

@@ -3,9 +3,9 @@ pragma solidity 0.8.33;
 
 import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
 
-import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
-import { INegRiskAdapter } from "src/adapters/interfaces/INegRiskAdapter.sol";
-import { CollateralToken } from "src/collateral/CollateralToken.sol";
+import { CTFHelpers } from "./libraries/CTFHelpers.sol";
+import { INegRiskAdapter } from "./interfaces/INegRiskAdapter.sol";
+import { CollateralToken } from "../collateral/CollateralToken.sol";
 
 import { CtfCollateralAdapter } from "./CtfCollateralAdapter.sol";
 

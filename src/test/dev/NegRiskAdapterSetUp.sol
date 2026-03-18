@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import { vm } from "src/test/dev/util/vm.sol";
-import { Deployer } from "src/test/dev/util/Deployer.sol";
-import { IConditionalTokens } from "src/adapters/interfaces/IConditionalTokens.sol";
-import { INegRiskAdapter } from "src/adapters/interfaces/INegRiskAdapter.sol";
+import { vm } from "./util/vm.sol";
+import { Deployer } from "./util/Deployer.sol";
+import { IConditionalTokens } from "../../adapters/interfaces/IConditionalTokens.sol";
+import { INegRiskAdapter } from "../../adapters/interfaces/INegRiskAdapter.sol";
 
 library NegRiskAdapterSetUp {
     function deploy(address _admin, address _usdce) public returns (INegRiskAdapter, IConditionalTokens, address) {

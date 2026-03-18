@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.33;
 
-import { Collateral, USDCe, CollateralSetup } from "src/test/dev/CollateralSetup.sol";
-import { Deployer } from "src/test/dev/util/Deployer.sol";
-import { TestHelper } from "src/test/dev/TestHelper.sol";
-import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
+import { Collateral, USDCe, CollateralSetup } from "./dev/CollateralSetup.sol";
+import { Deployer } from "./dev/util/Deployer.sol";
+import { TestHelper } from "./dev/TestHelper.sol";
+import { CTFHelpers } from "../adapters/libraries/CTFHelpers.sol";
 // TODO: NegRiskAdapterSetUp needs to be created - requires NegRiskAdapter artifact
-import { NegRiskAdapterSetUp } from "src/test/dev/NegRiskAdapterSetUp.sol";
-import { IConditionalTokens } from "src/adapters/interfaces/IConditionalTokens.sol";
-import { INegRiskAdapter } from "src/adapters/interfaces/INegRiskAdapter.sol";
+import { NegRiskAdapterSetUp } from "./dev/NegRiskAdapterSetUp.sol";
+import { IConditionalTokens } from "../adapters/interfaces/IConditionalTokens.sol";
+import { INegRiskAdapter } from "../adapters/interfaces/INegRiskAdapter.sol";
 
-import { CollateralErrors } from "src/collateral/abstract/CollateralErrors.sol";
-import { NegRiskCtfCollateralAdapter } from "src/adapters/NegRiskCtfCollateralAdapter.sol";
+import { CollateralErrors } from "../collateral/abstract/CollateralErrors.sol";
+import { NegRiskCtfCollateralAdapter } from "../adapters/NegRiskCtfCollateralAdapter.sol";
 
 contract NegRiskCtfCollateralAdapterTest is TestHelper {
     error Unauthorized();

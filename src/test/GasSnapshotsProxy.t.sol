@@ -2,9 +2,9 @@
 pragma solidity <0.9.0;
 
 import { BaseExchangeTest } from "./BaseExchangeTest.sol";
-import { ExchangeInitParams, Order, Side, SignatureType } from "src/exchange/libraries/Structs.sol";
-import { CTFExchange } from "src/exchange/CTFExchange.sol";
-import { IConditionalTokens } from "src/exchange/interfaces/IConditionalTokens.sol";
+import { ExchangeInitParams, Order, Side, SignatureType } from "../exchange/libraries/Structs.sol";
+import { CTFExchange } from "../exchange/CTFExchange.sol";
+import { IConditionalTokens } from "../exchange/interfaces/IConditionalTokens.sol";
 import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
 import { MockProxyFactory } from "./dev/mocks/MockProxyFactory.sol";
 import { MockSafeFactory } from "./dev/mocks/MockSafeFactory.sol";

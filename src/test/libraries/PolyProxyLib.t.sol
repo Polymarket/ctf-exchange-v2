@@ -3,7 +3,7 @@ pragma solidity <0.9.0;
 
 import { Test } from "lib/forge-std/src/Test.sol";
 import { Vm } from "lib/forge-std/src/Vm.sol";
-import { PolyProxyLib } from "src/exchange/libraries/PolyProxyLib.sol";
+import { PolyProxyLib } from "../../exchange/libraries/PolyProxyLib.sol";
 
 contract MockProxyImplementation {
     uint256 public constant VALUE_TO_SET = 777;
