@@ -46,7 +46,7 @@ struct Order {
     Side side;
     /// @notice Signature type used by the Order: EOA, POLY_PROXY, POLY_GNOSIS_SAFE or POLY_1271
     SignatureType signatureType;
-    /// @notice Unix Timestamp in seconds at which the order was created
+    /// @notice Unix timestamp in milliseconds at which the order was created
     uint256 timestamp;
     /// @notice The metadata associated with the order, hashed
     bytes32 metadata;
