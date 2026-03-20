@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.33;
+pragma solidity 0.8.34;
 
 import { Collateral, USDCe, CollateralSetup } from "src/test/dev/CollateralSetup.sol";
 import { Deployer } from "src/test/dev/util/Deployer.sol";

@@ -1,5 +1,5 @@
 [profile.default]
-solc = "0.8.33"
+solc = "0.8.34"
 ffi = true
 gas_reports = ["*"]
 out = "out"

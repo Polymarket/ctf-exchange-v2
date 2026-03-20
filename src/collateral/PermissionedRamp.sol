@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.33;
+pragma solidity 0.8.34;
 
 import { OwnableRoles } from "lib/solady/src/auth/OwnableRoles.sol";
 import { ECDSA } from "lib/solady/src/utils/ECDSA.sol";

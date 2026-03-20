@@ -154,9 +154,9 @@ src/
 
 ### Pragma
 
-- Production contracts (exchange, adapters, collateral): `pragma solidity 0.8.30;` (exact)
+- Production contracts (exchange, adapters, collateral): `pragma solidity 0.8.34;` (exact)
 - Mixins, interfaces, exchange libraries: `pragma solidity <0.9.0;`
-- Tests and dev helpers: `pragma solidity <0.9.0;` or `pragma solidity 0.8.30;`
+- Tests and dev helpers: `pragma solidity <0.9.0;` or `pragma solidity 0.8.34;`
 - Legacy adapter libraries (CTHelpers): `pragma solidity >=0.5.1;`
 - When adding new files, match the pragma style of neighboring files in the same directory.
 
@@ -354,6 +354,11 @@ After completing any task that changes project conventions, structure, or workfl
 - **New contracts or directories**: Update the Project Structure tree.
 - **New dependencies**: Add to the Dependencies section.
 - **Changed conventions**: If a naming pattern, test pattern, pragma version, or formatting rule changes, update the relevant section so future sessions follow the new convention.
+- **Solidity version bumps**: When bumping the Solidity version:
+  1. Update `solc` in `foundry.toml`.
+  2. Replace the exact version in all `pragma solidity X.Y.Z;` lines under `src/` (production, tests, scripts, mocks — everything that uses the exact pragma). Do **not** touch range pragmas (`<0.9.0`, `>=0.5.1`) or files under `lib/`.
+  3. Update the version references in the **Pragma** subsection of this file to match.
+  4. Run `forge build && forge test && forge fmt` to verify nothing breaks.
 - **New error/event contracts**: Note where they live in the Errors & Events subsection.
 - **New build steps or CI changes**: Update Build & Verification Commands.
 - **New test helpers or accounts**: Update the Testing section.
