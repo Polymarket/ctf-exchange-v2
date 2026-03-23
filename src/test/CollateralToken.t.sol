@@ -1,16 +1,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
-import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
-import { Initializable } from "lib/solady/src/utils/Initializable.sol";
-import { Ownable } from "lib/solady/src/auth/Ownable.sol";
+import { SafeTransferLib } from "@solady/src/utils/SafeTransferLib.sol";
+import { Initializable } from "@solady/src/utils/Initializable.sol";
+import { Ownable } from "@solady/src/auth/Ownable.sol";
 
-import { TestHelper } from "src/test/dev/TestHelper.sol";
+import { TestHelper } from "@ctf-exchange-v2/src/test/dev/TestHelper.sol";
 
-import { Collateral, CollateralToken, USDC, USDCe, CollateralSetup } from "src/test/dev/CollateralSetup.sol";
-import { CollateralErrors } from "src/collateral/abstract/CollateralErrors.sol";
-import { CollateralTokenEvents } from "src/collateral/CollateralToken.sol";
-import { ICollateralTokenCallbacks } from "src/collateral/interfaces/ICollateralTokenCallbacks.sol";
+import {
+    Collateral,
+    CollateralToken,
+    USDC,
+    USDCe,
+    CollateralSetup
+} from "@ctf-exchange-v2/src/test/dev/CollateralSetup.sol";
+import { CollateralErrors } from "@ctf-exchange-v2/src/collateral/abstract/CollateralErrors.sol";
+import { CollateralTokenEvents } from "@ctf-exchange-v2/src/collateral/CollateralToken.sol";
+import { ICollateralTokenCallbacks } from "@ctf-exchange-v2/src/collateral/interfaces/ICollateralTokenCallbacks.sol";
 
 contract MockCollateralTokenRouter is ICollateralTokenCallbacks {
     using SafeTransferLib for address;

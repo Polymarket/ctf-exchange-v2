@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
-import { LibClone } from "lib/solady/src/utils/LibClone.sol";
+import { LibClone } from "@solady/src/utils/LibClone.sol";
 
-import { vm } from "src/test/dev/util/vm.sol";
-import { USDC } from "src/test/dev/mocks/USDC.sol";
-import { USDCe } from "src/test/dev/mocks/USDCe.sol";
+import { vm } from "@ctf-exchange-v2/src/test/dev/util/vm.sol";
+import { USDC } from "@ctf-exchange-v2/src/test/dev/mocks/USDC.sol";
+import { USDCe } from "@ctf-exchange-v2/src/test/dev/mocks/USDCe.sol";
 
-import { CollateralVault } from "src/test/dev/mocks/CollateralVault.sol";
-import { CollateralToken } from "src/collateral/CollateralToken.sol";
-import { CollateralOnramp } from "src/collateral/CollateralOnramp.sol";
-import { CollateralOfframp } from "src/collateral/CollateralOfframp.sol";
-import { PermissionedRamp } from "src/collateral/PermissionedRamp.sol";
+import { CollateralVault } from "@ctf-exchange-v2/src/test/dev/mocks/CollateralVault.sol";
+import { CollateralToken } from "@ctf-exchange-v2/src/collateral/CollateralToken.sol";
+import { CollateralOnramp } from "@ctf-exchange-v2/src/collateral/CollateralOnramp.sol";
+import { CollateralOfframp } from "@ctf-exchange-v2/src/collateral/CollateralOfframp.sol";
+import { PermissionedRamp } from "@ctf-exchange-v2/src/collateral/PermissionedRamp.sol";
 
 struct Collateral {
     CollateralToken token;

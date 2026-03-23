@@ -10,20 +10,26 @@ import { MockSafeFactory } from "./dev/mocks/MockSafeFactory.sol";
 
 import { Deployer } from "./dev/util/Deployer.sol";
 
-import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
+import { ERC1155 } from "@solady/src/tokens/ERC1155.sol";
 
-import { CTFExchange } from "src/exchange/CTFExchange.sol";
-import { IAuthEE } from "src/exchange/interfaces/IAuth.sol";
-import { IFeesEE } from "src/exchange/interfaces/IFees.sol";
-import { ITradingEE } from "src/exchange/interfaces/ITrading.sol";
-import { IPausableEE } from "src/exchange/interfaces/IPausable.sol";
-import { ISignaturesEE } from "src/exchange/interfaces/ISignatures.sol";
-import { IUserPausableEE } from "src/exchange/interfaces/IUserPausable.sol";
+import { CTFExchange } from "@ctf-exchange-v2/src/exchange/CTFExchange.sol";
+import { IAuthEE } from "@ctf-exchange-v2/src/exchange/interfaces/IAuth.sol";
+import { IFeesEE } from "@ctf-exchange-v2/src/exchange/interfaces/IFees.sol";
+import { ITradingEE } from "@ctf-exchange-v2/src/exchange/interfaces/ITrading.sol";
+import { IPausableEE } from "@ctf-exchange-v2/src/exchange/interfaces/IPausable.sol";
+import { ISignaturesEE } from "@ctf-exchange-v2/src/exchange/interfaces/ISignatures.sol";
+import { IUserPausableEE } from "@ctf-exchange-v2/src/exchange/interfaces/IUserPausable.sol";
 
-import { IConditionalTokens } from "src/exchange/interfaces/IConditionalTokens.sol";
+import { IConditionalTokens } from "@ctf-exchange-v2/src/exchange/interfaces/IConditionalTokens.sol";
 
-import { CalculatorHelper } from "src/exchange/libraries/CalculatorHelper.sol";
-import { ExchangeInitParams, Order, Side, SignatureType, ORDER_TYPEHASH } from "src/exchange/libraries/Structs.sol";
+import { CalculatorHelper } from "@ctf-exchange-v2/src/exchange/libraries/CalculatorHelper.sol";
+import {
+    ExchangeInitParams,
+    Order,
+    Side,
+    SignatureType,
+    ORDER_TYPEHASH
+} from "@ctf-exchange-v2/src/exchange/libraries/Structs.sol";
 
 contract BaseExchangeTest is TestHelper, IAuthEE, IFeesEE, IPausableEE, ITradingEE, ISignaturesEE, IUserPausableEE {
     USDC public usdc;

@@ -1,5 +1,10 @@
 [profile.default]
 solc = "0.8.34"
+remappings = [
+    "@solady/=lib/solady/",
+    "@forge-std/=lib/forge-std/",
+    "@ctf-exchange-v2/src/=src/",
+]
 ffi = true
 gas_reports = ["*"]
 out = "out"

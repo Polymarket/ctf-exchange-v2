@@ -2,7 +2,7 @@
 pragma solidity <0.9.0;
 
 import { BaseExchangeTest } from "./BaseExchangeTest.sol";
-import { Order, Side } from "src/exchange/libraries/Structs.sol";
+import { Order, Side } from "@ctf-exchange-v2/src/exchange/libraries/Structs.sol";
 
 /// @notice Gas snapshot tests for matchOrders
 /// @dev Run with: forge test --match-contract GasSnapshots --gas-report

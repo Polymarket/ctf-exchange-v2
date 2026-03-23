@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
+import { ERC1155 } from "@solady/src/tokens/ERC1155.sol";
 
 import { ToggleableERC1271Mock } from "./dev/mocks/ToggleableERC1271Mock.sol";
-import { Order, Side, SignatureType } from "src/exchange/libraries/Structs.sol";
+import { Order, Side, SignatureType } from "@ctf-exchange-v2/src/exchange/libraries/Structs.sol";
 
 import { BaseExchangeTest } from "./BaseExchangeTest.sol";
 

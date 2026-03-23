@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
-import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
+import { SafeTransferLib } from "@solady/src/utils/SafeTransferLib.sol";
 
-import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
-import { INegRiskAdapter } from "src/adapters/interfaces/INegRiskAdapter.sol";
-import { CollateralToken } from "src/collateral/CollateralToken.sol";
+import { CTFHelpers } from "@ctf-exchange-v2/src/adapters/libraries/CTFHelpers.sol";
+import { INegRiskAdapter } from "@ctf-exchange-v2/src/adapters/interfaces/INegRiskAdapter.sol";
+import { CollateralToken } from "@ctf-exchange-v2/src/collateral/CollateralToken.sol";
 
 import { CtfCollateralAdapter } from "./CtfCollateralAdapter.sol";
 

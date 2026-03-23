@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity 0.8.34;
 
-import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
-import { Ownable } from "lib/solady/src/auth/Ownable.sol";
+import { ERC20 } from "@solady/src/tokens/ERC20.sol";
+import { Ownable } from "@solady/src/auth/Ownable.sol";
 
 /// @notice Mock CollateralVault for testing.
 contract CollateralVault is Ownable {

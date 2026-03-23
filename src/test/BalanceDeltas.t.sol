@@ -2,7 +2,7 @@
 pragma solidity <0.9.0;
 
 import { BaseExchangeTest } from "./BaseExchangeTest.sol";
-import { Order, Side } from "src/exchange/libraries/Structs.sol";
+import { Order, Side } from "@ctf-exchange-v2/src/exchange/libraries/Structs.sol";
 
 /// @title Balance Delta Tests
 /// @notice Comprehensive tests verifying exact token/collateral amounts for all match types

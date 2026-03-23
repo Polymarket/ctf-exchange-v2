@@ -184,9 +184,10 @@ Section order: STATE → CONSTANTS → MODIFIERS → CONSTRUCTOR → VIEW → ON
 
 ### Imports
 
-- External libs: `import {Type} from "lib/solady/src/path/File.sol";`
-- Cross-domain src: `import {Type} from "src/domain/File.sol";`
+- External libs: `import {Type} from "@solady/src/path/File.sol";` or `import {Type} from "@forge-std/src/File.sol";`
+- Cross-domain src: `import {Type} from "@ctf-exchange-v2/src/domain/File.sol";`
 - Same-domain src: `import {Type} from "./File.sol";` or `import {Type} from "../File.sol";`
+- Remappings are defined in `foundry.toml` under `remappings`. Do not create a `remappings.txt` file.
 - Group external imports first, then local imports, separated by a blank line.
 
 ### Naming

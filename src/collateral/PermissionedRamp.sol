@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
-import { OwnableRoles } from "lib/solady/src/auth/OwnableRoles.sol";
-import { ECDSA } from "lib/solady/src/utils/ECDSA.sol";
-import { EIP712 } from "lib/solady/src/utils/EIP712.sol";
-import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
+import { OwnableRoles } from "@solady/src/auth/OwnableRoles.sol";
+import { ECDSA } from "@solady/src/utils/ECDSA.sol";
+import { EIP712 } from "@solady/src/utils/EIP712.sol";
+import { SafeTransferLib } from "@solady/src/utils/SafeTransferLib.sol";
 
 import { CollateralErrors } from "./abstract/CollateralErrors.sol";
 import { Pausable } from "./abstract/Pausable.sol";

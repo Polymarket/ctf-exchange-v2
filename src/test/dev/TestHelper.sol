@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
-import { Test } from "lib/forge-std/src/Test.sol";
+import { Test } from "@forge-std/src/Test.sol";
 
-import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
+import { ERC20 } from "@solady/src/tokens/ERC20.sol";
 
 abstract contract TestHelper is Test {
     mapping(address => mapping(address => uint256)) private balanceCheckpoints;

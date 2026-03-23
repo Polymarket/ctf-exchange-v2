@@ -2,17 +2,17 @@
 pragma solidity <0.9.0;
 
 import { BaseExchangeTest } from "./BaseExchangeTest.sol";
-import { Order, Side, ExchangeInitParams } from "src/exchange/libraries/Structs.sol";
-import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
+import { Order, Side, ExchangeInitParams } from "@ctf-exchange-v2/src/exchange/libraries/Structs.sol";
+import { ERC1155 } from "@solady/src/tokens/ERC1155.sol";
 
-import { CTFExchange } from "src/exchange/CTFExchange.sol";
+import { CTFExchange } from "@ctf-exchange-v2/src/exchange/CTFExchange.sol";
 
-import { Collateral, CollateralSetup } from "src/test/dev/CollateralSetup.sol";
-import { USDCe } from "src/test/dev/mocks/USDCe.sol";
-import { Deployer } from "src/test/dev/util/Deployer.sol";
-import { INegRiskAdapter } from "src/adapters/interfaces/INegRiskAdapter.sol";
-import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
-import { NegRiskCtfCollateralAdapter } from "src/adapters/NegRiskCtfCollateralAdapter.sol";
+import { Collateral, CollateralSetup } from "@ctf-exchange-v2/src/test/dev/CollateralSetup.sol";
+import { USDCe } from "@ctf-exchange-v2/src/test/dev/mocks/USDCe.sol";
+import { Deployer } from "@ctf-exchange-v2/src/test/dev/util/Deployer.sol";
+import { INegRiskAdapter } from "@ctf-exchange-v2/src/adapters/interfaces/INegRiskAdapter.sol";
+import { CTFHelpers } from "@ctf-exchange-v2/src/adapters/libraries/CTFHelpers.sol";
+import { NegRiskCtfCollateralAdapter } from "@ctf-exchange-v2/src/adapters/NegRiskCtfCollateralAdapter.sol";
 
 contract MatchOrdersNegRiskCtfCollateralAdapterTest is BaseExchangeTest {
     NegRiskCtfCollateralAdapter public adapter;

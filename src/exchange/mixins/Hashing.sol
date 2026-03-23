@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { EIP712 } from "lib/solady/src/utils/EIP712.sol";
+import { EIP712 } from "@solady/src/utils/EIP712.sol";
 
 import { IHashing } from "../interfaces/IHashing.sol";
 

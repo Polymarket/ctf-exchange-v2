@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
-import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
-import { ERC1155 } from "lib/solady/src/tokens/ERC1155.sol";
+import { ERC20 } from "@solady/src/tokens/ERC20.sol";
+import { ERC1155 } from "@solady/src/tokens/ERC1155.sol";
 
-import { ERC1155TokenReceiver } from "src/exchange/mixins/ERC1155TokenReceiver.sol";
-import { IConditionalTokens } from "src/exchange/interfaces/IConditionalTokens.sol";
+import { ERC1155TokenReceiver } from "@ctf-exchange-v2/src/exchange/mixins/ERC1155TokenReceiver.sol";
+import { IConditionalTokens } from "@ctf-exchange-v2/src/exchange/interfaces/IConditionalTokens.sol";
 
 /// @notice Minimal adapter mock that emulates CtfCollateralAdapter behavior for tests.
 contract CtfCollateralAdapterMock is ERC1155TokenReceiver {

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
-import { OwnableRoles } from "lib/solady/src/auth/OwnableRoles.sol";
-import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
+import { OwnableRoles } from "@solady/src/auth/OwnableRoles.sol";
+import { SafeTransferLib } from "@solady/src/utils/SafeTransferLib.sol";
 
 import { CollateralErrors } from "./abstract/CollateralErrors.sol";
 import { Pausable } from "./abstract/Pausable.sol";

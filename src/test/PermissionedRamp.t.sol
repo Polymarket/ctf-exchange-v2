@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
-import { TestHelper } from "src/test/dev/TestHelper.sol";
+import { TestHelper } from "@ctf-exchange-v2/src/test/dev/TestHelper.sol";
 
-import { CollateralErrors } from "src/collateral/abstract/CollateralErrors.sol";
-import { PermissionedRamp } from "src/collateral/PermissionedRamp.sol";
-import { Collateral, CollateralSetup, USDC, USDCe } from "src/test/dev/CollateralSetup.sol";
+import { CollateralErrors } from "@ctf-exchange-v2/src/collateral/abstract/CollateralErrors.sol";
+import { PermissionedRamp } from "@ctf-exchange-v2/src/collateral/PermissionedRamp.sol";
+import { Collateral, CollateralSetup, USDC, USDCe } from "@ctf-exchange-v2/src/test/dev/CollateralSetup.sol";
 
 contract PermissionedRampTest is TestHelper {
     error Unauthorized();

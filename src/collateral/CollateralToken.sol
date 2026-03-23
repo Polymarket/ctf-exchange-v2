@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
-import { OwnableRoles } from "lib/solady/src/auth/OwnableRoles.sol";
-import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
-import { Initializable } from "lib/solady/src/utils/Initializable.sol";
-import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
-import { UUPSUpgradeable } from "lib/solady/src/utils/UUPSUpgradeable.sol";
+import { OwnableRoles } from "@solady/src/auth/OwnableRoles.sol";
+import { ERC20 } from "@solady/src/tokens/ERC20.sol";
+import { Initializable } from "@solady/src/utils/Initializable.sol";
+import { SafeTransferLib } from "@solady/src/utils/SafeTransferLib.sol";
+import { UUPSUpgradeable } from "@solady/src/utils/UUPSUpgradeable.sol";
 
 import { CollateralErrors } from "./abstract/CollateralErrors.sol";
 import { ICollateralToken } from "./interfaces/ICollateralToken.sol";

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity <0.9.0;
 
-import { Test } from "lib/forge-std/src/Test.sol";
-import { Vm } from "lib/forge-std/src/Vm.sol";
+import { Test } from "@forge-std/src/Test.sol";
+import { Vm } from "@forge-std/src/Vm.sol";
 
-import { PolySafeLib } from "src/exchange/libraries/PolySafeLib.sol";
+import { PolySafeLib } from "@ctf-exchange-v2/src/exchange/libraries/PolySafeLib.sol";
 
 contract MockSafeImplementation {
     // Intentionally empty: acts as a stand-in for the real Gnosis Safe master copy.

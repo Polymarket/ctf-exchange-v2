@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
-import { OwnableRoles } from "lib/solady/src/auth/OwnableRoles.sol";
+import { OwnableRoles } from "@solady/src/auth/OwnableRoles.sol";
 
 import { CollateralErrors } from "./CollateralErrors.sol";
 

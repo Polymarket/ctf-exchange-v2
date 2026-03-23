@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
-import { SafeTransferLib } from "lib/solady/src/utils/SafeTransferLib.sol";
+import { SafeTransferLib } from "@solady/src/utils/SafeTransferLib.sol";
 
-import { IConditionalTokens } from "src/adapters/interfaces/IConditionalTokens.sol";
-import { CTFHelpers } from "src/adapters/libraries/CTFHelpers.sol";
-import { CollateralToken } from "src/collateral/CollateralToken.sol";
-import { Pausable } from "src/collateral/abstract/Pausable.sol";
-import { ERC1155TokenReceiver } from "src/exchange/mixins/ERC1155TokenReceiver.sol";
+import { IConditionalTokens } from "@ctf-exchange-v2/src/adapters/interfaces/IConditionalTokens.sol";
+import { CTFHelpers } from "@ctf-exchange-v2/src/adapters/libraries/CTFHelpers.sol";
+import { CollateralToken } from "@ctf-exchange-v2/src/collateral/CollateralToken.sol";
+import { Pausable } from "@ctf-exchange-v2/src/collateral/abstract/Pausable.sol";
+import { ERC1155TokenReceiver } from "@ctf-exchange-v2/src/exchange/mixins/ERC1155TokenReceiver.sol";
 
 /// @title CtfCollateralAdapter
 /// @author Polymarket

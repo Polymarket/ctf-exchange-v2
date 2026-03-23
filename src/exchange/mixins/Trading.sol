@@ -6,7 +6,7 @@ import { IUserPausable } from "../interfaces/IUserPausable.sol";
 
 import { CalculatorHelper } from "../libraries/CalculatorHelper.sol";
 import { Order, Side, MatchType, OrderStatus } from "../libraries/Structs.sol";
-import { CTHelpers } from "src/adapters/libraries/CTHelpers.sol";
+import { CTHelpers } from "@ctf-exchange-v2/src/adapters/libraries/CTHelpers.sol";
 
 import { Hashing } from "./Hashing.sol";
 import { UserPausable } from "./UserPausable.sol";

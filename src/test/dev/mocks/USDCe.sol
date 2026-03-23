@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.34;
 
-import { ERC20 } from "lib/solady/src/tokens/ERC20.sol";
+import { ERC20 } from "@solady/src/tokens/ERC20.sol";
 
 contract USDCe is ERC20 {
     function name() public pure override returns (string memory) {
