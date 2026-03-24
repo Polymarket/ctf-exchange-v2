@@ -20,19 +20,29 @@ contract CtfCollateralAdapter is Pausable, ERC1155TokenReceiver {
                                  STATE
     --------------------------------------------------------------*/
 
-    IConditionalTokens public immutable conditionalTokens;
+    /// @notice The legacy Conditional Tokens Framework contract.
+    IConditionalTokens public immutable CONDITIONAL_TOKENS;
 
-    address public immutable collateralToken;
-    address public immutable usdce;
+    /// @notice The collateral token (PMCT) contract address.
+    address public immutable COLLATERAL_TOKEN;
+
+    /// @notice The USDC.e token address.
+    address public immutable USDCE;
 
     /*--------------------------------------------------------------
                               CONSTRUCTOR
     --------------------------------------------------------------*/
 
+    /// @notice Deploys the CTF collateral adapter.
+    /// @param _owner The contract owner.
+    /// @param _admin The initial admin address.
+    /// @param _conditionalTokens The legacy CTF contract address.
+    /// @param _collateralToken The collateral token (PMCT) address.
+    /// @param _usdce The USDC.e token address.
     constructor(address _owner, address _admin, address _conditionalTokens, address _collateralToken, address _usdce) {
-        conditionalTokens = IConditionalTokens(_conditionalTokens);
-        collateralToken = _collateralToken;
-        usdce = _usdce;
+        CONDITIONAL_TOKENS = IConditionalTokens(_conditionalTokens);
+        COLLATERAL_TOKEN = _collateralToken;
+        USDCE = _usdce;
 
         _initializeOwner(_owner);
         _grantRoles(_admin, ADMIN_ROLE);
@@ -50,10 +60,17 @@ contract CtfCollateralAdapter is Pausable, ERC1155TokenReceiver {
     /// @param _amount The amount of collateral to split
     function splitPosition(address, bytes32, bytes32 _conditionId, uint256[] calldata, uint256 _amount)
         external
-        onlyUnpaused(usdce)
+        onlyUnpaused(USDCE)
     {
-        collateralToken.safeTransferFrom(msg.sender, collateralToken, _amount);
-        CollateralToken(collateralToken).unwrap(usdce, address(this), _amount, address(0), "");
+        COLLATERAL_TOKEN.safeTransferFrom(msg.sender, COLLATERAL_TOKEN, _amount);
+        // forgefmt: disable-next-item
+        CollateralToken(COLLATERAL_TOKEN).unwrap({
+            _asset: USDCE,
+            _to: address(this),
+            _amount: _amount,
+            _callbackReceiver: address(0),
+            _data: ""
+        });
 
         _splitPosition(_conditionId, _amount);
 
@@ -62,7 +79,7 @@ contract CtfCollateralAdapter is Pausable, ERC1155TokenReceiver {
         amounts[0] = _amount;
         amounts[1] = _amount;
 
-        conditionalTokens.safeBatchTransferFrom(address(this), msg.sender, positionIds, amounts, "");
+        CONDITIONAL_TOKENS.safeBatchTransferFrom(address(this), msg.sender, positionIds, amounts, "");
     }
 
     /// @notice Merges conditional token positions back into collateral
@@ -71,7 +88,7 @@ contract CtfCollateralAdapter is Pausable, ERC1155TokenReceiver {
     /// @param _amount The amount of each position to merge
     function mergePositions(address, bytes32, bytes32 _conditionId, uint256[] calldata, uint256 _amount)
         external
-        onlyUnpaused(usdce)
+        onlyUnpaused(USDCE)
     {
         uint256[] memory positionIds = _getPositionIds(_conditionId);
 
@@ -79,32 +96,46 @@ contract CtfCollateralAdapter is Pausable, ERC1155TokenReceiver {
         amounts[0] = _amount;
         amounts[1] = _amount;
 
-        conditionalTokens.safeBatchTransferFrom(msg.sender, address(this), positionIds, amounts, "");
+        CONDITIONAL_TOKENS.safeBatchTransferFrom(msg.sender, address(this), positionIds, amounts, "");
 
         _mergePositions(_conditionId, _amount);
 
-        usdce.safeTransfer(collateralToken, _amount);
-        CollateralToken(collateralToken).wrap(usdce, msg.sender, _amount, address(0), "");
+        USDCE.safeTransfer(COLLATERAL_TOKEN, _amount);
+        // forgefmt: disable-next-item
+        CollateralToken(COLLATERAL_TOKEN).wrap({
+            _asset: USDCE,
+            _to: msg.sender,
+            _amount: _amount,
+            _callbackReceiver: address(0),
+            _data: ""
+        });
     }
 
     /// @notice Redeems conditional token positions for collateral after resolution
     /// @dev Unnamed params retained for IConditionalTokens interface compatibility
     /// @param _conditionId The condition ID to redeem
-    function redeemPositions(address, bytes32, bytes32 _conditionId, uint256[] calldata) external onlyUnpaused(usdce) {
+    function redeemPositions(address, bytes32, bytes32 _conditionId, uint256[] calldata) external onlyUnpaused(USDCE) {
         uint256[] memory positionIds = _getPositionIds(_conditionId);
 
         uint256[] memory amounts = new uint256[](2);
-        amounts[0] = conditionalTokens.balanceOf(msg.sender, positionIds[0]);
-        amounts[1] = conditionalTokens.balanceOf(msg.sender, positionIds[1]);
+        amounts[0] = CONDITIONAL_TOKENS.balanceOf(msg.sender, positionIds[0]);
+        amounts[1] = CONDITIONAL_TOKENS.balanceOf(msg.sender, positionIds[1]);
 
-        conditionalTokens.safeBatchTransferFrom(msg.sender, address(this), positionIds, amounts, "");
+        CONDITIONAL_TOKENS.safeBatchTransferFrom(msg.sender, address(this), positionIds, amounts, "");
 
         _redeemPositions(_conditionId, CTFHelpers.partition());
 
-        uint256 amount = usdce.balanceOf(address(this));
+        uint256 amount = USDCE.balanceOf(address(this));
 
-        usdce.safeTransfer(collateralToken, amount);
-        CollateralToken(collateralToken).wrap(usdce, msg.sender, amount, address(0), "");
+        USDCE.safeTransfer(COLLATERAL_TOKEN, amount);
+        // forgefmt: disable-next-item
+        CollateralToken(COLLATERAL_TOKEN).wrap({
+            _asset: USDCE,
+            _to: msg.sender,
+            _amount: amount,
+            _callbackReceiver: address(0),
+            _data: ""
+        });
     }
 
     /*--------------------------------------------------------------
@@ -127,19 +158,43 @@ contract CtfCollateralAdapter is Pausable, ERC1155TokenReceiver {
                                 INTERNAL
     --------------------------------------------------------------*/
 
+    /// @dev Returns the YES and NO position IDs for a condition.
     function _getPositionIds(bytes32 _conditionId) internal view virtual returns (uint256[] memory) {
-        return CTFHelpers.positionIds(usdce, _conditionId);
+        return CTFHelpers.positionIds(USDCE, _conditionId);
     }
 
+    /// @dev Splits collateral into positions via the legacy CTF.
     function _splitPosition(bytes32 _conditionId, uint256 _amount) internal virtual {
-        conditionalTokens.splitPosition(usdce, bytes32(0), _conditionId, CTFHelpers.partition(), _amount);
+        // forgefmt: disable-next-item
+        CONDITIONAL_TOKENS.splitPosition({
+            collateralToken: USDCE,
+            parentCollectionId: bytes32(0),
+            conditionId: _conditionId,
+            partition: CTFHelpers.partition(),
+            amount: _amount
+        });
     }
 
+    /// @dev Merges positions back into collateral via the legacy CTF.
     function _mergePositions(bytes32 _conditionId, uint256 _amount) internal virtual {
-        conditionalTokens.mergePositions(usdce, bytes32(0), _conditionId, CTFHelpers.partition(), _amount);
+        // forgefmt: disable-next-item
+        CONDITIONAL_TOKENS.mergePositions({
+            collateralToken: USDCE,
+            parentCollectionId: bytes32(0),
+            conditionId: _conditionId,
+            partition: CTFHelpers.partition(),
+            amount: _amount
+        });
     }
 
+    /// @dev Redeems resolved positions via the legacy CTF.
     function _redeemPositions(bytes32 _conditionId, uint256[] memory indexSets) internal virtual {
-        conditionalTokens.redeemPositions(usdce, bytes32(0), _conditionId, indexSets);
+        // forgefmt: disable-next-item
+        CONDITIONAL_TOKENS.redeemPositions({
+            collateralToken: USDCE,
+            parentCollectionId: bytes32(0),
+            conditionId: _conditionId,
+            indexSets: indexSets
+        });
     }
 }

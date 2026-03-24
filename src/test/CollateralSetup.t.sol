@@ -20,12 +20,12 @@ contract CollateralSetUp_Test is TestHelper {
         assertEq(collateral.token.symbol(), "PMCT");
         assertEq(collateral.token.decimals(), 6);
 
-        assertEq(ERC20(collateral.token.usdc()).name(), "USDC");
-        assertEq(ERC20(collateral.token.usdc()).symbol(), "USDC");
-        assertEq(ERC20(collateral.token.usdc()).decimals(), 6);
+        assertEq(ERC20(collateral.token.USDC()).name(), "USDC");
+        assertEq(ERC20(collateral.token.USDC()).symbol(), "USDC");
+        assertEq(ERC20(collateral.token.USDC()).decimals(), 6);
 
-        assertEq(ERC20(collateral.token.usdce()).name(), "USDCe");
-        assertEq(ERC20(collateral.token.usdce()).symbol(), "USDCe");
-        assertEq(ERC20(collateral.token.usdce()).decimals(), 6);
+        assertEq(ERC20(collateral.token.USDCE()).name(), "USDCe");
+        assertEq(ERC20(collateral.token.USDCE()).symbol(), "USDCe");
+        assertEq(ERC20(collateral.token.USDCE()).decimals(), 6);
     }
 }

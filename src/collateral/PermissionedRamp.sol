@@ -13,7 +13,8 @@ import { CollateralToken } from "./CollateralToken.sol";
 
 /// @title PermissionedRamp
 /// @author Polymarket
-/// @notice Permissioned wrap/unwrap for the PolymarketCollateralToken using EIP-712 witness signatures
+/// @notice Permissioned wrap/unwrap for the PolymarketCollateralToken using EIP-712 witness
+/// signatures
 /// @notice ADMIN_ROLE: Admin
 /// @notice WITNESS_ROLE: Witness
 contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
@@ -23,19 +24,24 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
                                  STATE
     --------------------------------------------------------------*/
 
-    address public immutable collateralToken;
+    /// @notice The collateral token address.
+    address public immutable COLLATERAL_TOKEN;
 
+    /// @notice Per-sender nonce for replay protection.
     mapping(address => uint256) public nonces;
 
     /*--------------------------------------------------------------
                                CONSTANTS
     --------------------------------------------------------------*/
 
+    /// @dev Witness role for signing wrap/unwrap approvals.
     uint256 internal constant WITNESS_ROLE = _ROLE_1;
 
+    /// @dev EIP-712 typehash for the Wrap struct.
     bytes32 internal constant _WRAP_TYPEHASH =
         keccak256("Wrap(address sender,address asset,address to,uint256 amount,uint256 nonce,uint256 deadline)");
 
+    /// @dev EIP-712 typehash for the Unwrap struct.
     bytes32 internal constant _UNWRAP_TYPEHASH =
         keccak256("Unwrap(address sender,address asset,address to,uint256 amount,uint256 nonce,uint256 deadline)");
 
@@ -43,8 +49,12 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
                               CONSTRUCTOR
     --------------------------------------------------------------*/
 
+    /// @notice Deploys the permissioned ramp contract.
+    /// @param _owner The contract owner.
+    /// @param _admin The initial admin address.
+    /// @param _collateralToken The collateral token address.
     constructor(address _owner, address _admin, address _collateralToken) {
-        collateralToken = _collateralToken;
+        COLLATERAL_TOKEN = _collateralToken;
 
         _initializeOwner(_owner);
         _grantRoles(_admin, ADMIN_ROLE);
@@ -71,9 +81,24 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
         uint256 _deadline,
         bytes calldata _signature
     ) external onlyUnpaused(_asset) {
-        _validateSignature(_WRAP_TYPEHASH, _asset, _to, _amount, _nonce, _deadline, _signature);
-        _asset.safeTransferFrom(msg.sender, collateralToken, _amount);
-        CollateralToken(collateralToken).wrap(_asset, _to, _amount, address(0), "");
+        _validateSignature({
+            _typehash: _WRAP_TYPEHASH,
+            _asset: _asset,
+            _to: _to,
+            _amount: _amount,
+            _nonce: _nonce,
+            _deadline: _deadline,
+            _signature: _signature
+        });
+        _asset.safeTransferFrom(msg.sender, COLLATERAL_TOKEN, _amount);
+        // forgefmt: disable-next-item
+        CollateralToken(COLLATERAL_TOKEN).wrap({
+            _asset: _asset,
+            _to: _to,
+            _amount: _amount,
+            _callbackReceiver: address(0),
+            _data: ""
+        });
     }
 
     /// @notice Unwraps a supported asset from the collateral token
@@ -93,9 +118,24 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
         uint256 _deadline,
         bytes calldata _signature
     ) external onlyUnpaused(_asset) {
-        _validateSignature(_UNWRAP_TYPEHASH, _asset, _to, _amount, _nonce, _deadline, _signature);
-        collateralToken.safeTransferFrom(msg.sender, collateralToken, _amount);
-        CollateralToken(collateralToken).unwrap(_asset, _to, _amount, address(0), "");
+        _validateSignature({
+            _typehash: _UNWRAP_TYPEHASH,
+            _asset: _asset,
+            _to: _to,
+            _amount: _amount,
+            _nonce: _nonce,
+            _deadline: _deadline,
+            _signature: _signature
+        });
+        COLLATERAL_TOKEN.safeTransferFrom(msg.sender, COLLATERAL_TOKEN, _amount);
+        // forgefmt: disable-next-item
+        CollateralToken(COLLATERAL_TOKEN).unwrap({
+            _asset: _asset,
+            _to: _to,
+            _amount: _amount,
+            _callbackReceiver: address(0),
+            _data: ""
+        });
     }
 
     /*--------------------------------------------------------------
@@ -130,11 +170,22 @@ contract PermissionedRamp is OwnableRoles, CollateralErrors, Pausable, EIP712 {
                                INTERNAL
     --------------------------------------------------------------*/
 
+    /// @dev Returns the EIP-712 domain name and version.
+    /// @return name The domain name.
+    /// @return version The domain version.
     function _domainNameAndVersion() internal pure override returns (string memory name, string memory version) {
         name = "PermissionedRamp";
         version = "1";
     }
 
+    /// @dev Validates the witness signature and increments the nonce.
+    /// @param _typehash The EIP-712 typehash (wrap or unwrap).
+    /// @param _asset The asset address.
+    /// @param _to The recipient address.
+    /// @param _amount The amount.
+    /// @param _nonce The expected sender nonce.
+    /// @param _deadline The signature expiry timestamp.
+    /// @param _signature The witness ECDSA signature.
     function _validateSignature(
         bytes32 _typehash,
         address _asset,

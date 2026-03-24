@@ -20,13 +20,23 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
                                  STATE
     --------------------------------------------------------------*/
 
-    address public immutable negRiskAdapter;
-    address public immutable wrappedCollateral;
+    /// @notice The legacy NegRisk adapter contract address.
+    address public immutable NEG_RISK_ADAPTER;
+
+    /// @notice The wrapped collateral token from the legacy adapter.
+    address public immutable WRAPPED_COLLATERAL;
 
     /*--------------------------------------------------------------
                               CONSTRUCTOR
     --------------------------------------------------------------*/
 
+    /// @notice Deploys the NegRisk CTF collateral adapter.
+    /// @param _owner The contract owner.
+    /// @param _admin The initial admin address.
+    /// @param _conditionalTokens The legacy CTF contract address.
+    /// @param _collateralToken The collateral token (PMCT) address.
+    /// @param _usdce The USDC.e token address.
+    /// @param _negRiskAdapter The legacy NegRisk adapter address.
     constructor(
         address _owner,
         address _admin,
@@ -35,11 +45,11 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
         address _usdce,
         address _negRiskAdapter
     ) CtfCollateralAdapter(_owner, _admin, _conditionalTokens, _collateralToken, _usdce) {
-        negRiskAdapter = _negRiskAdapter;
-        wrappedCollateral = INegRiskAdapter(_negRiskAdapter).wcol();
+        NEG_RISK_ADAPTER = _negRiskAdapter;
+        WRAPPED_COLLATERAL = INegRiskAdapter(_negRiskAdapter).wcol();
 
         _usdce.safeApprove(_negRiskAdapter, type(uint256).max);
-        conditionalTokens.setApprovalForAll(_negRiskAdapter, true);
+        CONDITIONAL_TOKENS.setApprovalForAll(_negRiskAdapter, true);
     }
 
     /*--------------------------------------------------------------
@@ -50,8 +60,8 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
     /// @param _marketId The neg risk market ID
     /// @param _indexSet Bitmask of question indices whose NO tokens to convert
     /// @param _amount The amount of each NO position to convert
-    function convertPositions(bytes32 _marketId, uint256 _indexSet, uint256 _amount) external onlyUnpaused(usdce) {
-        INegRiskAdapter adapter = INegRiskAdapter(negRiskAdapter);
+    function convertPositions(bytes32 _marketId, uint256 _indexSet, uint256 _amount) external onlyUnpaused(USDCE) {
+        INegRiskAdapter adapter = INegRiskAdapter(NEG_RISK_ADAPTER);
         uint256 questionCount = adapter.getQuestionCount(_marketId);
         uint256 feeBips = adapter.getFeeBips(_marketId);
 
@@ -59,7 +69,7 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
         {
             (uint256[] memory ids, uint256[] memory amounts) =
                 _buildPositionArrays(adapter, _marketId, _indexSet, questionCount, false, _amount);
-            conditionalTokens.safeBatchTransferFrom(msg.sender, address(this), ids, amounts, "");
+            CONDITIONAL_TOKENS.safeBatchTransferFrom(msg.sender, address(this), ids, amounts, "");
         }
 
         // Convert positions via NegRiskAdapter
@@ -70,14 +80,21 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
             uint256 amountOut = _amount - (_amount * feeBips / 10_000);
             (uint256[] memory ids, uint256[] memory amounts) =
                 _buildPositionArrays(adapter, _marketId, _indexSet, questionCount, true, amountOut);
-            conditionalTokens.safeBatchTransferFrom(address(this), msg.sender, ids, amounts, "");
+            CONDITIONAL_TOKENS.safeBatchTransferFrom(address(this), msg.sender, ids, amounts, "");
         }
 
         // Wrap any received USDC.e into CollateralToken
-        uint256 usdceAmount = usdce.balanceOf(address(this));
+        uint256 usdceAmount = USDCE.balanceOf(address(this));
         if (usdceAmount > 0) {
-            usdce.safeTransfer(collateralToken, usdceAmount);
-            CollateralToken(collateralToken).wrap(usdce, msg.sender, usdceAmount, address(0), "");
+            USDCE.safeTransfer(COLLATERAL_TOKEN, usdceAmount);
+            // forgefmt: disable-next-item
+            CollateralToken(COLLATERAL_TOKEN).wrap({
+                _asset: USDCE,
+                _to: msg.sender,
+                _amount: usdceAmount,
+                _callbackReceiver: address(0),
+                _data: ""
+            });
         }
     }
 
@@ -98,6 +115,7 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
     ) internal view returns (uint256[] memory ids, uint256[] memory amounts) {
         uint256 count;
         for (uint256 i; i < _questionCount; ++i) {
+            // forge-lint: disable-next-line(incorrect-shift)
             bool inSet = _indexSet & (1 << i) != 0;
             if (inSet != _yesPositions) ++count;
         }
@@ -107,6 +125,7 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
         uint256 idx;
 
         for (uint256 i; i < _questionCount; ++i) {
+            // forge-lint: disable-next-line(incorrect-shift)
             bool inSet = _indexSet & (1 << i) != 0;
             if (inSet != _yesPositions) {
                 bytes32 questionId = bytes32(uint256(_marketId) | i);
@@ -117,25 +136,29 @@ contract NegRiskCtfCollateralAdapter is CtfCollateralAdapter {
         }
     }
 
+    /// @dev Returns position IDs using wrapped collateral.
     function _getPositionIds(bytes32 _conditionId) internal view virtual override returns (uint256[] memory) {
-        return CTFHelpers.positionIds(wrappedCollateral, _conditionId);
+        return CTFHelpers.positionIds(WRAPPED_COLLATERAL, _conditionId);
     }
 
+    /// @dev Splits via the NegRisk adapter.
     function _splitPosition(bytes32 _conditionId, uint256 _amount) internal virtual override {
-        INegRiskAdapter(negRiskAdapter).splitPosition(_conditionId, _amount);
+        INegRiskAdapter(NEG_RISK_ADAPTER).splitPosition(_conditionId, _amount);
     }
 
+    /// @dev Merges via the NegRisk adapter.
     function _mergePositions(bytes32 _conditionId, uint256 _amount) internal virtual override {
-        INegRiskAdapter(negRiskAdapter).mergePositions(_conditionId, _amount);
+        INegRiskAdapter(NEG_RISK_ADAPTER).mergePositions(_conditionId, _amount);
     }
 
+    /// @dev Redeems via the NegRisk adapter using current balances.
     function _redeemPositions(bytes32 _conditionId, uint256[] memory) internal virtual override {
         uint256[] memory positionIds = _getPositionIds(_conditionId);
         uint256[] memory amounts = new uint256[](2);
 
-        amounts[0] = conditionalTokens.balanceOf(address(this), positionIds[0]);
-        amounts[1] = conditionalTokens.balanceOf(address(this), positionIds[1]);
+        amounts[0] = CONDITIONAL_TOKENS.balanceOf(address(this), positionIds[0]);
+        amounts[1] = CONDITIONAL_TOKENS.balanceOf(address(this), positionIds[1]);
 
-        INegRiskAdapter(negRiskAdapter).redeemPositions(_conditionId, amounts);
+        INegRiskAdapter(NEG_RISK_ADAPTER).redeemPositions(_conditionId, amounts);
     }
 }

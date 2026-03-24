@@ -12,7 +12,18 @@ import { ICollateralToken } from "./interfaces/ICollateralToken.sol";
 import { ICollateralTokenCallbacks } from "./interfaces/ICollateralTokenCallbacks.sol";
 
 abstract contract CollateralTokenEvents {
+    /// @notice Emitted when an asset is wrapped into collateral
+    /// @param caller Address that initiated the wrap
+    /// @param asset The underlying asset address
+    /// @param to Recipient of the minted collateral
+    /// @param amount Amount of collateral minted
     event Wrapped(address indexed caller, address indexed asset, address indexed to, uint256 amount);
+
+    /// @notice Emitted when collateral is unwrapped to an asset
+    /// @param caller Address that initiated the unwrap
+    /// @param asset The underlying asset address
+    /// @param to Recipient of the unwrapped asset
+    /// @param amount Amount of collateral burned
     event Unwrapped(address indexed caller, address indexed asset, address indexed to, uint256 amount);
 }
 
@@ -35,23 +46,32 @@ contract CollateralToken is
                                  STATE
     --------------------------------------------------------------*/
 
-    address public immutable usdc;
-    address public immutable usdce;
-    address public immutable vault;
+    /// @notice Address of the native USDC token
+    address public immutable USDC;
+
+    /// @notice Address of the bridged USDC.e token
+    address public immutable USDCE;
+
+    /// @notice Address of the vault holding underlying assets
+    address public immutable VAULT;
 
     /*--------------------------------------------------------------
                                CONSTANTS
     --------------------------------------------------------------*/
 
+    /// @dev Role flag for mint/burn privileges
     uint256 internal constant MINTER_ROLE = _ROLE_0;
+
+    /// @dev Role flag for wrap/unwrap privileges
     uint256 internal constant WRAPPER_ROLE = _ROLE_1;
 
     /*--------------------------------------------------------------
                                MODIFIERS
     --------------------------------------------------------------*/
 
+    /// @dev Reverts if the asset is not USDC or USDC.e
     modifier onlyValidAsset(address _asset) {
-        require(_asset == usdc || _asset == usdce, InvalidAsset());
+        require(_asset == USDC || _asset == USDCE, InvalidAsset());
         _;
     }
 
@@ -59,10 +79,14 @@ contract CollateralToken is
                               CONSTRUCTOR
     --------------------------------------------------------------*/
 
+    /// @notice Deploys the CollateralToken implementation
+    /// @param _usdc Address of the native USDC token
+    /// @param _usdce Address of the bridged USDC.e token
+    /// @param _vault Address of the vault for underlying assets
     constructor(address _usdc, address _usdce, address _vault) {
-        usdc = _usdc;
-        usdce = _usdce;
-        vault = _vault;
+        USDC = _usdc;
+        USDCE = _usdce;
+        VAULT = _vault;
 
         _disableInitializers();
     }
@@ -82,14 +106,20 @@ contract CollateralToken is
                                   VIEW
     --------------------------------------------------------------*/
 
+    /// @notice Returns the token name
+    /// @return The token name string
     function name() public pure override returns (string memory) {
         return "PolyMarketCollateralToken";
     }
 
+    /// @notice Returns the token symbol
+    /// @return The token symbol string
     function symbol() public pure override returns (string memory) {
         return "PMCT";
     }
 
+    /// @notice Returns the token decimal precision
+    /// @return The number of decimals (6)
     function decimals() public pure override returns (uint8) {
         return 6;
     }
@@ -137,7 +167,7 @@ contract CollateralToken is
         }
 
         // transfer asset to the vault
-        _asset.safeTransfer(vault, _amount);
+        _asset.safeTransfer(VAULT, _amount);
 
         emit Wrapped(msg.sender, _asset, _to, _amount);
     }
@@ -158,7 +188,7 @@ contract CollateralToken is
         onlyValidAsset(_asset)
     {
         // transfer asset from the vault
-        _asset.safeTransferFrom(vault, _to, _amount);
+        _asset.safeTransferFrom(VAULT, _to, _amount);
 
         // callback (skip if address(0))
         if (_callbackReceiver != address(0)) {
@@ -175,18 +205,26 @@ contract CollateralToken is
                             ROLE MANAGEMENT
     --------------------------------------------------------------*/
 
+    /// @notice Grants minter role to an address
+    /// @param _minter Address to grant minter role
     function addMinter(address _minter) external onlyOwner {
         _grantRoles(_minter, MINTER_ROLE);
     }
 
+    /// @notice Revokes minter role from an address
+    /// @param _minter Address to revoke minter role from
     function removeMinter(address _minter) external onlyOwner {
         _removeRoles(_minter, MINTER_ROLE);
     }
 
+    /// @notice Grants wrapper role to an address
+    /// @param _wrapper Address to grant wrapper role
     function addWrapper(address _wrapper) external onlyOwner {
         _grantRoles(_wrapper, WRAPPER_ROLE);
     }
 
+    /// @notice Revokes wrapper role from an address
+    /// @param _wrapper Address to revoke wrapper role from
     function removeWrapper(address _wrapper) external onlyOwner {
         _removeRoles(_wrapper, WRAPPER_ROLE);
     }
@@ -195,7 +233,9 @@ contract CollateralToken is
                            SOLADY OVERRIDES
     --------------------------------------------------------------*/
 
-    function _givePermit2InfiniteAllowance() internal view override returns (bool) {
+    /// @dev Disables Permit2 infinite allowance
+    /// @return Always returns false
+    function _givePermit2InfiniteAllowance() internal pure override returns (bool) {
         return false;
     }
 

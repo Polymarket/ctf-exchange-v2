@@ -11,7 +11,7 @@ import { CollateralToken } from "./CollateralToken.sol";
 
 /// @title CollateralOnramp
 /// @author Polymarket
-/// @notice Permissionless onramp for the PolymarketCollateralToken
+/// @notice Onramp for the PolymarketCollateralToken
 /// @notice ADMIN_ROLE: Admin
 contract CollateralOnramp is OwnableRoles, CollateralErrors, Pausable {
     using SafeTransferLib for address;
@@ -20,14 +20,19 @@ contract CollateralOnramp is OwnableRoles, CollateralErrors, Pausable {
                                  STATE
     --------------------------------------------------------------*/
 
-    address public immutable collateralToken;
+    /// @notice The collateral token address.
+    address public immutable COLLATERAL_TOKEN;
 
     /*--------------------------------------------------------------
                               CONSTRUCTOR
     --------------------------------------------------------------*/
 
+    /// @notice Deploys the onramp contract.
+    /// @param _owner The contract owner.
+    /// @param _admin The initial admin address.
+    /// @param _collateralToken The collateral token address.
     constructor(address _owner, address _admin, address _collateralToken) {
-        collateralToken = _collateralToken;
+        COLLATERAL_TOKEN = _collateralToken;
 
         _initializeOwner(_owner);
         _grantRoles(_admin, ADMIN_ROLE);
@@ -43,8 +48,15 @@ contract CollateralOnramp is OwnableRoles, CollateralErrors, Pausable {
     /// @param _amount The amount of asset to wrap
     /// @dev The asset must not be paused
     function wrap(address _asset, address _to, uint256 _amount) external onlyUnpaused(_asset) {
-        _asset.safeTransferFrom(msg.sender, collateralToken, _amount);
-        CollateralToken(collateralToken).wrap(_asset, _to, _amount, address(0), "");
+        _asset.safeTransferFrom(msg.sender, COLLATERAL_TOKEN, _amount);
+        // forgefmt: disable-next-item
+        CollateralToken(COLLATERAL_TOKEN).wrap({
+            _asset: _asset,
+            _to: _to,
+            _amount: _amount,
+            _callbackReceiver: address(0),
+            _data: ""
+        });
     }
 
     /*--------------------------------------------------------------

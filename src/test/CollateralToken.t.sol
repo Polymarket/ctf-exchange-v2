@@ -104,9 +104,9 @@ contract CollateralTokenTest is TestHelper, CollateralTokenEvents {
     }
 
     function test_CollateralToken_immutables() public view {
-        assertEq(collateral.token.usdc(), address(usdc));
-        assertEq(collateral.token.usdce(), address(usdce));
-        assertEq(collateral.token.vault(), collateral.vault);
+        assertEq(collateral.token.USDC(), address(usdc));
+        assertEq(collateral.token.USDCE(), address(usdce));
+        assertEq(collateral.token.VAULT(), collateral.vault);
     }
 
     /*--------------------------------------------------------------
