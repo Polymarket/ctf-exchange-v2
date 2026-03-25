@@ -8,7 +8,7 @@ Core concepts:
 - **CTFExchange**: Main entry point. Mixin-based architecture combining Auth, Fees, Signatures, Trading, Pausable, and ERC1155TokenReceiver. Operator-gated order matching with admin controls.
 - **Order Matching**: Three settlement paths — COMPLEMENTARY (BUY vs SELL, direct P2P transfers), MINT (both BUY, split collateral into outcome tokens), MERGE (both SELL, merge outcome tokens back to collateral).
 - **Adapters**: CtfCollateralAdapter bridges CollateralToken ↔ ConditionalTokens (split/merge/redeem). NegRiskCtfCollateralAdapter extends it for NegRisk markets with position conversion.
-- **CollateralToken**: UUPS-upgradeable ERC20 (PMCT, 6 decimals) wrapping USDC/USDCe, with permissionless onramp/offramp and EIP-712 witness-signed PermissionedRamp.
+- **CollateralToken**: UUPS-upgradeable ERC20 (pUSD, 6 decimals) wrapping USDC/USDCe, with permissionless onramp/offramp and EIP-712 witness-signed PermissionedRamp.
 
 ## Post-Audit Policy
 
@@ -95,9 +95,9 @@ src/
 │       ├── CTFHelpers.sol                 # positionIds(), partition()
 │       └── CTHelpers.sol                  # getConditionId(), getCollectionId(), getPositionId()
 ├── collateral/
-│   ├── CollateralToken.sol                # UUPS ERC20 (PMCT, 6 decimals) — wrap/unwrap with callbacks
-│   ├── CollateralOnramp.sol               # Permissionless USDC/USDCe → PMCT
-│   ├── CollateralOfframp.sol              # Permissionless PMCT → USDC/USDCe
+│   ├── CollateralToken.sol                # UUPS ERC20 (pUSD, 6 decimals) — wrap/unwrap with callbacks
+│   ├── CollateralOnramp.sol               # Permissionless USDC/USDCe → pUSD
+│   ├── CollateralOfframp.sol              # Permissionless pUSD → USDC/USDCe
 │   ├── PermissionedRamp.sol               # EIP-712 witness-signed wrap/unwrap with nonces
 │   ├── abstract/
 │   │   ├── CollateralErrors.sol           # Shared collateral errors

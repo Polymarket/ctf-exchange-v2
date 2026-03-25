@@ -16,8 +16,8 @@ contract CollateralSetUp_Test is TestHelper {
     }
 
     function test_setup() public view {
-        assertEq(collateral.token.name(), "PolyMarketCollateralToken");
-        assertEq(collateral.token.symbol(), "PMCT");
+        assertEq(collateral.token.name(), "Polymarket USD");
+        assertEq(collateral.token.symbol(), "pUSD");
         assertEq(collateral.token.decimals(), 6);
 
         assertEq(ERC20(collateral.token.USDC()).name(), "USDC");

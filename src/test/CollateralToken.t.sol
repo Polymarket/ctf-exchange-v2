@@ -92,11 +92,11 @@ contract CollateralTokenTest is TestHelper, CollateralTokenEvents {
     --------------------------------------------------------------*/
 
     function test_CollateralToken_name() public view {
-        assertEq(collateral.token.name(), "PolyMarketCollateralToken");
+        assertEq(collateral.token.name(), "Polymarket USD");
     }
 
     function test_CollateralToken_symbol() public view {
-        assertEq(collateral.token.symbol(), "PMCT");
+        assertEq(collateral.token.symbol(), "pUSD");
     }
 
     function test_CollateralToken_decimals() public view {

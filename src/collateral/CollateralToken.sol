@@ -109,13 +109,13 @@ contract CollateralToken is
     /// @notice Returns the token name
     /// @return The token name string
     function name() public pure override returns (string memory) {
-        return "PolyMarketCollateralToken";
+        return "Polymarket USD";
     }
 
     /// @notice Returns the token symbol
     /// @return The token symbol string
     function symbol() public pure override returns (string memory) {
-        return "PMCT";
+        return "pUSD";
     }
 
     /// @notice Returns the token decimal precision
