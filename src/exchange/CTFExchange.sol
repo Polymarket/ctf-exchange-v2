@@ -11,6 +11,12 @@ import { ERC1155TokenReceiver } from "./mixins/ERC1155TokenReceiver.sol";
 
 import { ExchangeInitParams, Order } from "./libraries/Structs.sol";
 
+//  ____   ___  _  __   ____  __    _    ____  _  _______ _____
+// |  _ \ / _ \| | \ \ / /  \/  |  / \  |  _ \| |/ / ____|_   _|
+// | |_) | | | | |  \ V /| |\/| | / _ \ | |_) | ' /|  _|   | |
+// |  __/| |_| | |___| | | |  | |/ ___ \|  _ <| . \| |___  | |
+// |_|    \___/|_____|_| |_|  |_/_/   \_\_| \_\_|\_\_____| |_|
+
 /// @title CTF Exchange
 /// @notice Implements logic for trading CTF assets
 /// @author Polymarket
