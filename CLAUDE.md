@@ -152,6 +152,13 @@ src/
 
 ## Solidity Conventions
 
+### License
+
+- Production contracts (exchange, adapters, collateral, scripts): `// SPDX-License-Identifier: BUSL-1.1`
+- Tests and dev helpers: `// SPDX-License-Identifier: MIT`
+- Exception: `src/adapters/libraries/CTHelpers.sol` retains `LGPL-3.0-or-later` (forked from Gnosis Conditional Tokens).
+- When adding new production files, always use `BUSL-1.1`. Do not use MIT for production code.
+
 ### Pragma
 
 - Production contracts (exchange, adapters, collateral): `pragma solidity 0.8.34;` (exact)
