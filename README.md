@@ -2,6 +2,36 @@
 
 The CTF Exchange V2 is the core smart contract system for trading [Conditional Token Framework](https://docs.gnosis.io/conditionaltokens/) (CTF) assets on Polymarket. It implements operator-driven order matching with support for multiple settlement types, signature schemes, and a wrapped collateral layer.
 
+## Deployed Contracts
+
+### Polygon
+
+| Contract | Address |
+|----------|---------|
+| [CollateralToken](src/collateral/CollateralToken.sol) (impl) | [`0x6bBCef9f7ef3B6C592c99e0f206a0DE94Ad0925f`](https://polygonscan.com/address/0x6bBCef9f7ef3B6C592c99e0f206a0DE94Ad0925f) |
+| [CollateralToken](src/collateral/CollateralToken.sol) (proxy) | [`0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB`](https://polygonscan.com/address/0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB) |
+| [CollateralOnramp](src/collateral/CollateralOnramp.sol) | [`0x93070a847efEf7F70739046A929D47a521F5B8ee`](https://polygonscan.com/address/0x93070a847efEf7F70739046A929D47a521F5B8ee) |
+| [CollateralOfframp](src/collateral/CollateralOfframp.sol) | [`0x2957922Eb93258b93368531d39fAcCA3B4dC5854`](https://polygonscan.com/address/0x2957922Eb93258b93368531d39fAcCA3B4dC5854) |
+| [PermissionedRamp](src/collateral/PermissionedRamp.sol) | [`0xebC2459Ec962869ca4c0bd1E06368272732BCb08`](https://polygonscan.com/address/0xebC2459Ec962869ca4c0bd1E06368272732BCb08) |
+| [CtfCollateralAdapter](src/adapters/CtfCollateralAdapter.sol) | [`0xADa100874d00e3331D00F2007a9c336a65009718`](https://polygonscan.com/address/0xADa100874d00e3331D00F2007a9c336a65009718) |
+| [NegRiskCtfCollateralAdapter](src/adapters/NegRiskCtfCollateralAdapter.sol) | [`0xAdA200001000ef00D07553cEE7006808F895c6F1`](https://polygonscan.com/address/0xAdA200001000ef00D07553cEE7006808F895c6F1) |
+| [CTFExchangeV2](src/exchange/CTFExchange.sol) | [`0xE111180000d2663C0091e4f400237545B87B996B`](https://polygonscan.com/address/0xE111180000d2663C0091e4f400237545B87B996B) |
+| [NegRiskCtfExchangeV2](src/exchange/CTFExchange.sol) | [`0xe2222d002000Ba0053CEF3375333610F64600036`](https://polygonscan.com/address/0xe2222d002000Ba0053CEF3375333610F64600036) |
+
+### Amoy
+
+| Contract | Address |
+|----------|---------|
+| [CollateralToken](src/collateral/CollateralToken.sol) (impl) | [`0x28A4eaD5bD4847d36F6d046A45e827bdf7781C29`](https://amoy.polygonscan.com/address/0x28A4eaD5bD4847d36F6d046A45e827bdf7781C29) |
+| [CollateralToken](src/collateral/CollateralToken.sol) (proxy) | [`0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB`](https://amoy.polygonscan.com/address/0xC011a7E12a19f7B1f670d46F03B03f3342E82DFB) |
+| [CollateralOnramp](src/collateral/CollateralOnramp.sol) | [`0x93070a847efEf7F70739046A929D47a521F5B8ee`](https://amoy.polygonscan.com/address/0x93070a847efEf7F70739046A929D47a521F5B8ee) |
+| [CollateralOfframp](src/collateral/CollateralOfframp.sol) | [`0x2957922Eb93258b93368531d39fAcCA3B4dC5854`](https://amoy.polygonscan.com/address/0x2957922Eb93258b93368531d39fAcCA3B4dC5854) |
+| [PermissionedRamp](src/collateral/PermissionedRamp.sol) | [`0xebC2459Ec962869ca4c0bd1E06368272732BCb08`](https://amoy.polygonscan.com/address/0xebC2459Ec962869ca4c0bd1E06368272732BCb08) |
+| [CtfCollateralAdapter](src/adapters/CtfCollateralAdapter.sol) | [`0xADa100874d00e3331D00F2007a9c336a65009718`](https://amoy.polygonscan.com/address/0xADa100874d00e3331D00F2007a9c336a65009718) |
+| [NegRiskCtfCollateralAdapter](src/adapters/NegRiskCtfCollateralAdapter.sol) | [`0xAdA200001000ef00D07553cEE7006808F895c6F1`](https://amoy.polygonscan.com/address/0xAdA200001000ef00D07553cEE7006808F895c6F1) |
+| [CTFExchangeV2](src/exchange/CTFExchange.sol) | [`0xE111180000d2663C0091e4f400237545B87B996B`](https://amoy.polygonscan.com/address/0xE111180000d2663C0091e4f400237545B87B996B) |
+| [NegRiskCtfExchangeV2](src/exchange/CTFExchange.sol) | [`0xe2222d002000Ba0053CEF3375333610F64600036`](https://amoy.polygonscan.com/address/0xe2222d002000Ba0053CEF3375333610F64600036) |
+
 ## Architecture
 
 The exchange uses a **mixin composition pattern**, where each concern is isolated into its own abstract contract:
