@@ -16,7 +16,7 @@ The CTF Exchange V2 is the core smart contract system for trading [Conditional T
 | [CtfCollateralAdapter](src/adapters/CtfCollateralAdapter.sol) | [`0xADa100874d00e3331D00F2007a9c336a65009718`](https://polygonscan.com/address/0xADa100874d00e3331D00F2007a9c336a65009718) |
 | [NegRiskCtfCollateralAdapter](src/adapters/NegRiskCtfCollateralAdapter.sol) | [`0xAdA200001000ef00D07553cEE7006808F895c6F1`](https://polygonscan.com/address/0xAdA200001000ef00D07553cEE7006808F895c6F1) |
 | [CTFExchangeV2](src/exchange/CTFExchange.sol) | [`0xE111180000d2663C0091e4f400237545B87B996B`](https://polygonscan.com/address/0xE111180000d2663C0091e4f400237545B87B996B) |
-| [NegRiskCtfExchangeV2](src/exchange/CTFExchange.sol) | [`0xe2222d002000Ba0053CEF3375333610F64600036`](https://polygonscan.com/address/0xe2222d002000Ba0053CEF3375333610F64600036) |
+| [NegRiskCtfExchangeV2](src/exchange/CTFExchange.sol) | [`0xe2222d279d744050d28e00520010520000310F59`](https://polygonscan.com/address/0xe2222d279d744050d28e00520010520000310F59) |
 
 ### Amoy
 
@@ -30,7 +30,7 @@ The CTF Exchange V2 is the core smart contract system for trading [Conditional T
 | [CtfCollateralAdapter](src/adapters/CtfCollateralAdapter.sol) | [`0xADa100874d00e3331D00F2007a9c336a65009718`](https://amoy.polygonscan.com/address/0xADa100874d00e3331D00F2007a9c336a65009718) |
 | [NegRiskCtfCollateralAdapter](src/adapters/NegRiskCtfCollateralAdapter.sol) | [`0xAdA200001000ef00D07553cEE7006808F895c6F1`](https://amoy.polygonscan.com/address/0xAdA200001000ef00D07553cEE7006808F895c6F1) |
 | [CTFExchangeV2](src/exchange/CTFExchange.sol) | [`0xE111180000d2663C0091e4f400237545B87B996B`](https://amoy.polygonscan.com/address/0xE111180000d2663C0091e4f400237545B87B996B) |
-| [NegRiskCtfExchangeV2](src/exchange/CTFExchange.sol) | [`0xe2222d002000Ba0053CEF3375333610F64600036`](https://amoy.polygonscan.com/address/0xe2222d002000Ba0053CEF3375333610F64600036) |
+| [NegRiskCtfExchangeV2](src/exchange/CTFExchange.sol) | [`0xe2222d279d744050d28e00520010520000310F59`](https://amoy.polygonscan.com/address/0xe2222d279d744050d28e00520010520000310F59) |
 
 ## Architecture
 
