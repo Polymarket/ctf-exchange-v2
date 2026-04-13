@@ -32,6 +32,19 @@ The CTF Exchange V2 is the core smart contract system for trading [Conditional T
 | [CTFExchangeV2](src/exchange/CTFExchange.sol) | [`0xE111180000d2663C0091e4f400237545B87B996B`](https://amoy.polygonscan.com/address/0xE111180000d2663C0091e4f400237545B87B996B) |
 | [NegRiskCtfExchangeV2](src/exchange/CTFExchange.sol) | [`0xe2222d279d744050d28e00520010520000310F59`](https://amoy.polygonscan.com/address/0xe2222d279d744050d28e00520010520000310F59) |
 
+## Security
+
+### Audits
+
+| Auditor | Report |
+|---------|--------|
+| Quantstamp | [CTF Exchange V2 - Quantstamp - March 2026](audits/CTF%20Exchange%20V2%20-%20Quantstamp%20-%20March%202026.pdf) |
+| Cantina | [CTF Exchange V2 - Cantina - March 2026](audits/CTF%20Exchange%20V2%20-%20Cantina%20-%20March%202026.pdf) |
+
+### Bug Bounty
+
+Security vulnerabilities can be reported through the [Cantina bug bounty program](https://cantina.xyz/bounties/ff945ca2-2a6e-4b83-b1b6-7a0cd3b94bea).
+
 ## Architecture
 
 The exchange uses a **mixin composition pattern**, where each concern is isolated into its own abstract contract:
