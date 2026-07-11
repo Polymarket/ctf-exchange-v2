@@ -84,7 +84,6 @@ abstract contract Trading is Hashing, AssetOperations, Events, Fees, UserPausabl
         uint256 takerFeeAmount,
         uint256[] memory makerFeeAmounts
     ) internal {
-        require(makerOrders.length > 0, NoMakerOrders());
 
         // Validate all tokenIds are valid positions for this conditionId
         _validateTokenIds(conditionId, takerOrder, makerOrders);
