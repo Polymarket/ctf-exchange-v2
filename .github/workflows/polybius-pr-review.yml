@@ -1,4 +1,4 @@
-name: Polybius PR Review
+name: Brunson PR Review
 
 on:
   pull_request:
