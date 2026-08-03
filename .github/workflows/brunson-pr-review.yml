@@ -15,7 +15,7 @@ jobs:
       !github.event.pull_request.draft
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Polybius PR review
+      - name: Trigger Brunson PR review
         run: |
           jq -n \
             --arg type "pr_review" \
@@ -36,7 +36,7 @@ jobs:
       github.event.issue.pull_request
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Polybius PR comment handler
+      - name: Trigger Brunson PR comment handler
         env:
           COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
