@@ -18,3 +18,6 @@ buffer
 !/broadcast
 /broadcast/*/31337/
 /broadcast/**/dry-run/
+
+# Lattice materializes the environment here (.lattice/env.json); never commit it
+.lattice/

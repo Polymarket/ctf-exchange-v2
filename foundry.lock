@@ -5,6 +5,12 @@
       "rev": "0844d7e1fc5e60d77b68e469bff60265f236c398"
     }
   },
+  "lib/lattice-std": {
+    "tag": {
+      "name": "v0.4.0",
+      "rev": "22e47f14278f47ec4762d420670442ef82d65207"
+    }
+  },
   "lib/solady": {
     "tag": {
       "name": "v0.1.26",

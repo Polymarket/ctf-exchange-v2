@@ -41,8 +41,11 @@ Before making any change, think hard about gas impact:
 forge build        # Compile
 forge test         # Run all tests
 forge fmt          # Format all files
-forge snapshot     # Regenerate .gas-snapshot
+forge snapshot --no-match-path 'script/releases/**'   # Regenerate .gas-snapshot
 ```
+
+Release suites under `script/releases/` skip without a Lattice book, so they are excluded from the gas snapshot
+(otherwise each records a `setUp() (gas: 0)` row).
 
 **CI** (`.github/workflows/test.yml`) runs: `forge fmt --check`, `forge build --sizes`, `forge test -vvv`.
 
@@ -148,6 +151,8 @@ src/
             ├── MockProxyFactory.sol        # Proxy factory mock
             ├── MockSafeFactory.sol         # Safe factory mock
             └── CtfCollateralAdapterMock.sol
+script/
+└── releases/                              # Lattice releases, one folder each (see Releases (Lattice))
 ```
 
 ## Solidity Conventions
@@ -354,6 +359,27 @@ forge snapshot
 
 - **Solady**: Gas-optimized contracts (ERC20, ERC1155, EIP712, ECDSA, SafeTransferLib, LibClone, UUPSUpgradeable, Initializable, OwnableRoles)
 - **forge-std**: Foundry testing framework
+- **lattice-std** (`lib/lattice-std`, remapping `@lattice-std/`): the Solidity side of Lattice — `Call`, `Deployment`, `Env` for release scripts, `LatticeTest` for release checks. Release tooling only; nothing in `src/` imports it.
+
+## Releases (Lattice)
+
+Governance and deploys on live environments (role grants, new helper contracts) ship as **releases** run by
+[Lattice](https://github.com/Polymarket/lattice): a folder under `script/releases/<name>/` with `release.json`, one
+forge script per step that touches the chain, and the forge suites Lattice runs at each step. Read
+`lattice help authoring` and `lattice help manifest` before writing one; the binary is current where this section is not.
+
+- **Setup**: `.lattice.json` at the root declares the repository (`ctf-exchange-v2`); `foundry.toml` grants read on
+  `.lattice/`, where Lattice materializes the book; `.lattice/` is gitignored — never commit it.
+- **Addresses come from the book** through lattice-std's `Env` (`Env.addr("ctfExchangeV2")`, `Env.authority()`),
+  never from `deploy/` files or literals.
+- **Legacy venues on Amoy** (`ctfExchangeV2`, `negRiskCtfExchangeV2`) are on the `direct` route from the authority
+  EOA, which sends one call per transaction: batch through a helper the authority owns (see
+  `amoy-executor-operators`), not one step per call.
+- **Versions**: the books record no ctf-exchange-v2 version yet, so releases omit `from`/`to`.
+- **Licensing**: release scripts and helpers are `BUSL-1.1` with `pragma solidity 0.8.34;`; suites under
+  `script/releases/*/test/` are `MIT`.
+- **Proving it**: from the release's commit, `lattice test ./script/releases/<name>/release.json --env <env> --repo .
+  --deployer unlocked:<addr>` must complete; put the command in the release's README.
 
 ## Keeping This File Up to Date
 

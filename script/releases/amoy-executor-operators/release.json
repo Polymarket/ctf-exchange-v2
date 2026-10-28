@@ -1,0 +1,98 @@
+{
+  "name": "amoy-executor-operators",
+  "description": "Authorize the 400 CLOB executor EOAs of preprod Amoy as operators of the legacy venues ctfExchangeV2 and negRiskCtfExchangeV2. Their admin is the authority EOA, which sends one call per transaction, so a one-shot ExecutorOperatorBatcher is deployed, owned by the authority and bound to the two venues and the list: for each venue in turn the authority makes it an admin, then has it add every missing executor and remove its own admin role. Afterwards the batcher administers neither venue. Amoy only: records no version, and every script refuses a book for another chain.",
+  "steps": [
+    {
+      "name": "pre-change-checks",
+      "kind": "verify",
+      "mode": "test",
+      "test": "script/releases/amoy-executor-operators/test/PreChange.t.sol"
+    },
+    {
+      "name": "deploy-operator-batcher",
+      "kind": "deploy",
+      "script": "script/releases/amoy-executor-operators/1-DeployExecutorOperatorBatcher.s.sol:DeployExecutorOperatorBatcher",
+      "profile": "default",
+      "skipIfDeployed": true,
+      "bindings": {
+        "executorOperatorBatcher": {
+          "contract": "executorOperatorBatcher",
+          "route": "direct"
+        }
+      }
+    },
+    {
+      "name": "check-batcher-bytecode",
+      "kind": "verify",
+      "mode": "bytecode",
+      "match": "full",
+      "targets": [
+        "executorOperatorBatcher"
+      ]
+    },
+    {
+      "name": "post-deploy-checks",
+      "kind": "verify",
+      "mode": "test",
+      "test": "script/releases/amoy-executor-operators/test/PostDeploy.t.sol"
+    },
+    {
+      "name": "add-ctf-exchange-batcher-admin",
+      "kind": "propose",
+      "script": "script/releases/amoy-executor-operators/2-AddCtfExchangeBatcherAdmin.s.sol:AddCtfExchangeBatcherAdmin",
+      "route": "direct",
+      "skipIfEmpty": true
+    },
+    {
+      "name": "re-derive-add-ctf-exchange-batcher-admin",
+      "kind": "verify",
+      "mode": "plan",
+      "script": "script/releases/amoy-executor-operators/2-AddCtfExchangeBatcherAdmin.s.sol:AddCtfExchangeBatcherAdmin"
+    },
+    {
+      "name": "grant-ctf-exchange-operators",
+      "kind": "propose",
+      "script": "script/releases/amoy-executor-operators/3-GrantCtfExchangeOperators.s.sol:GrantCtfExchangeOperators",
+      "route": "direct",
+      "skipIfEmpty": true
+    },
+    {
+      "name": "re-derive-grant-ctf-exchange-operators",
+      "kind": "verify",
+      "mode": "plan",
+      "script": "script/releases/amoy-executor-operators/3-GrantCtfExchangeOperators.s.sol:GrantCtfExchangeOperators"
+    },
+    {
+      "name": "add-neg-risk-ctf-exchange-batcher-admin",
+      "kind": "propose",
+      "script": "script/releases/amoy-executor-operators/4-AddNegRiskCtfExchangeBatcherAdmin.s.sol:AddNegRiskCtfExchangeBatcherAdmin",
+      "route": "direct",
+      "skipIfEmpty": true
+    },
+    {
+      "name": "re-derive-add-neg-risk-ctf-exchange-batcher-admin",
+      "kind": "verify",
+      "mode": "plan",
+      "script": "script/releases/amoy-executor-operators/4-AddNegRiskCtfExchangeBatcherAdmin.s.sol:AddNegRiskCtfExchangeBatcherAdmin"
+    },
+    {
+      "name": "grant-neg-risk-ctf-exchange-operators",
+      "kind": "propose",
+      "script": "script/releases/amoy-executor-operators/5-GrantNegRiskCtfExchangeOperators.s.sol:GrantNegRiskCtfExchangeOperators",
+      "route": "direct",
+      "skipIfEmpty": true
+    },
+    {
+      "name": "re-derive-grant-neg-risk-ctf-exchange-operators",
+      "kind": "verify",
+      "mode": "plan",
+      "script": "script/releases/amoy-executor-operators/5-GrantNegRiskCtfExchangeOperators.s.sol:GrantNegRiskCtfExchangeOperators"
+    },
+    {
+      "name": "post-change-checks",
+      "kind": "verify",
+      "mode": "test",
+      "test": "script/releases/amoy-executor-operators/test/PostChange.t.sol"
+    }
+  ]
+}

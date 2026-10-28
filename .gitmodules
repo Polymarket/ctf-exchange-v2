@@ -4,3 +4,6 @@
 [submodule "lib/forge-std"]
 	path = lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "lib/lattice-std"]
+	path = lib/lattice-std
+	url = https://github.com/Polymarket/lattice-std

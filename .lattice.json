@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "repository": "ctf-exchange-v2",
+  "stateRepo": "github.com/Polymarket/lattice-state",
+  "releases": "script/releases"
+}
